@@ -24,7 +24,7 @@ export default {
             this.dateCode = now.toLocaleDateString('en-US', options)
         },
         goSetting() {
-            this.$router.push("./addMenu")
+            this.$router.push("./setting")
         },
         goOperation() {
             this.$router.push("./operation")
