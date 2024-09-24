@@ -70,7 +70,7 @@ export default {
             <div class="timeStyle">{{ dateCode }}</div>
         </div>
         <div class="control">
-            <div class="setting" @click="goSetting()" :class="{ 'selected': this.$route.path == '/addMenu' }">
+            <div class="setting" @click="goSetting()" :class="{ 'selected': this.$route.path == '/setting' }">
                 <i class="fa-solid fa-gear"></i>
                 <h3>設定</h3>
             </div>
