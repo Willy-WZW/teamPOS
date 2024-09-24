@@ -3,34 +3,62 @@ import { RouterLink } from 'vue-router';
 export default {
     data() {
         return {
-
+            timeCode: ''
         }
     },
     methods: {
-        goSetting() {
-            this.$router.push("./addMenu")
+        updateTime() { //更新時間方法
+            const now = new Date();
+            let hours = now.getHours();
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const ampm = hours >= 12 ? 'PM' : 'AM'; //判斷AM PM
+
+            // 轉12小時制
+            hours = hours % 12;
+            hours = hours ? hours : 12; //小時為0時，顯示為12
+            hours = String(hours).padStart(2, '0');
+
+            this.timeCode = `${hours}:${minutes} ${ampm}`;
+
+            const options = { year: 'numeric', month: 'short', day: 'numeric' };
+            this.dateCode = now.toLocaleDateString('en-US', options)
         },
-        goOperation(){
+        goSetting() {
+            this.$router.push("./setting")
+        },
+        goOperation() {
             this.$router.push("./operation")
         },
-        goOrder(){
+        goOrder() {
             this.$router.push("./order")
         },
-        goStatus(){
+        goStatus() {
             this.$router.push("./orderStatus")
         },
-        goTCheckout(){
+        goTCheckout() {
             this.$router.push("./tableAndCheckout")
         },
-        goEvent(){
+        goEvent() {
             this.$router.push("./event")
         },
-        goWorkstation(){
+        goWorkstation() {
             this.$router.push("./workstation")
         },
-        goHistory(){
+        goHistory() {
             this.$router.push("./history")
         },
+    },
+    mounted() {
+        // 初始化時間
+        this.updateTime()
+
+        this.timeInterval = setInterval(() => {
+            this.updateTime()
+        }, 1000)
+    },
+    beforeDestroy() {
+        // 清除計時器
+        clearInterval(this.timeInterval);
     }
 }
 </script>
@@ -38,26 +66,28 @@ export default {
 <template>
     <div class="lefter">
         <div class="timeCode">
-            <span>time code</span>
+            <div class="timeStyle">{{ timeCode }}</div>
+            <div class="timeStyle">{{ dateCode }}</div>
         </div>
         <div class="control">
-            <div class="setting" @click="goSetting()" :class="{'selected': this.$route.path =='/addMenu'}">
+            <div class="setting" @click="goSetting()" :class="{ 'selected': this.$route.path == '/addMenu' }">
                 <i class="fa-solid fa-gear"></i>
                 <h3>設定</h3>
             </div>
-            <div class="operation" @click="goOperation()" :class="{'selected': this.$route.path =='/operation'}">
+            <div class="operation" @click="goOperation()" :class="{ 'selected': this.$route.path == '/operation' }">
                 <i class="fa-solid fa-chart-simple"></i>
                 <h3>營運</h3>
             </div>
-            <div class="order" @click="goOrder()" :class="{'selected': this.$route.path =='/order'}">
+            <div class="order" @click="goOrder()" :class="{ 'selected': this.$route.path == '/order' }">
                 <i class="fa-solid fa-utensils"></i>
                 <h3>點餐</h3>
             </div>
-            <div class="orderStatus" @click="goStatus()" :class="{'selected': this.$route.path =='/orderStatus'}">
+            <div class="orderStatus" @click="goStatus()" :class="{ 'selected': this.$route.path == '/orderStatus' }">
                 <i class="fa-solid fa-list-check"></i>
                 <h3>餐點狀態</h3>
             </div>
-            <div class="tableChechout" @click="goTCheckout()" :class="{'selected': this.$route.path =='/tableAndCheckout'}">
+            <div class="tableChechout" @click="goTCheckout()"
+                :class="{ 'selected': this.$route.path == '/tableAndCheckout' }">
                 <div>
                     <span class="material-symbols-outlined">
                         table_restaurant
@@ -68,22 +98,28 @@ export default {
                 </div>
                 <h3>桌位結帳</h3>
             </div>
-            <div class="event" @click="goEvent()" :class="{'selected': this.$route.path =='/event'}">
+            <div class="event" @click="goEvent()" :class="{ 'selected': this.$route.path == '/event' }">
                 <i class="fa-regular fa-calendar-check"></i>
                 <h3>活動</h3>
             </div>
-            <div class="workstation" @click="goWorkstation()" :class="{'selected': this.$route.path =='/workstation'}">
+            <div class="workstation" @click="goWorkstation()"
+                :class="{ 'selected': this.$route.path == '/workstation' }">
                 <i class="fa-solid fa-fire-burner"></i>
                 <h3>工作檯</h3>
             </div>
-            <div class="history" @click="goHistory()" :class="{'selected': this.$route.path =='/history'}">
+            <div class="history" @click="goHistory()" :class="{ 'selected': this.$route.path == '/history' }">
                 <i class="fa-solid fa-clock-rotate-left"></i>
                 <h3>歷史紀錄</h3>
             </div>
         </div>
         <div class="user">
+            <div class="userInfo">
+                <i class="fa-solid fa-user-injured"></i>
+                <h3>謝新達</h3>
+                <p>主持人</p>
+            </div>
             <span>
-                <RouterLink to="/">Home</RouterLink>
+                <RouterLink to="/">登出</RouterLink>
             </span>
         </div>
     </div>
@@ -106,7 +142,16 @@ $boxShadow: black;
     .timeCode {
         width: 80%;
         height: 100px;
-        border: 1px solid black;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        border-bottom: 1px solid black;
+
+        .timeStyle {
+            margin: 5px auto;
+            font-size: 18px;
+        }
     }
 
     .control {
@@ -123,6 +168,7 @@ $boxShadow: black;
             width: 100%;
             height: 12.5%;
             cursor: pointer;
+            border-radius: 5px;
             display: flex;
             justify-content: space-evenly;
             align-items: center;
@@ -146,6 +192,7 @@ $boxShadow: black;
             width: 100%;
             height: 12.5%;
             cursor: pointer;
+            border-radius: 5px;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -169,6 +216,7 @@ $boxShadow: black;
             width: 100%;
             height: 12.5%;
             cursor: pointer;
+            border-radius: 5px;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -192,6 +240,7 @@ $boxShadow: black;
             width: 100%;
             height: 12.5%;
             cursor: pointer;
+            border-radius: 5px;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -214,6 +263,7 @@ $boxShadow: black;
             width: 100%;
             height: 12.5%;
             cursor: pointer;
+            border-radius: 5px;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -231,6 +281,7 @@ $boxShadow: black;
             width: 100%;
             height: 12.5%;
             cursor: pointer;
+            border-radius: 5px;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -254,6 +305,7 @@ $boxShadow: black;
             width: 100%;
             height: 12.5%;
             cursor: pointer;
+            border-radius: 5px;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -277,6 +329,7 @@ $boxShadow: black;
             width: 100%;
             height: 12.5%;
             cursor: pointer;
+            border-radius: 5px;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -294,8 +347,8 @@ $boxShadow: black;
                 padding-top: 10px;
             }
         }
-        
-        .selected{
+
+        .selected {
             background-color: rgb(200, 200, 200);
             box-shadow: 5px 0.1px 1px $boxShadow;
         }
@@ -304,7 +357,28 @@ $boxShadow: black;
     .user {
         width: 80%;
         height: 150px;
-        border: 1px solid black;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+
+        .userInfo {
+            width: 100%;
+            height: 70%;
+            display: flex;
+            justify-content: space-evenly;
+            align-items: center;
+            flex-direction: column;
+            border-bottom: 1px solid black;
+            .fa-user-injured{
+                scale: 2;
+                margin-bottom: 5px;
+            }
+            p{
+                margin-bottom: 5px;
+                color: rgb(101, 101, 101);
+            }
+        }
     }
 
 }
