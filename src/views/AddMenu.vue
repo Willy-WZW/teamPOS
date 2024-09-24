@@ -93,7 +93,7 @@ export default {
                     <!-- 自定義 title 部分，使用者可以輸入 -->
                     <template #title>
                         <input class="collTitle" type="text" v-model="collapse.title"
-                            :placeholder="'客製化選項標題' + (index + 1)" @input="updateTitle(collapse, index)" />
+                            :placeholder="'客製化選項標題' + (index + 1)" @input="updateTitle(collapse, index)" @click.stop />
                     </template>
                     <div class="editOption">
                         <select v-model="collapse.type" @change="clearOption(collapse)" name="" id="">
