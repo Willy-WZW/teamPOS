@@ -1,15 +1,11 @@
 <script>
 import LeftBar from "@/components/LeftBar.vue";
 import axios from "axios";
-import VueCal from "vue-cal";
-import "vue-cal/dist/vuecal.css";
-
 export default {
     data() {
         return {
             announceId: "",
             announcements: [],
-            selectedDate: null, // 選中的日期
             today: new Date().toISOString().split("T")[0],
         };
     },
@@ -18,7 +14,6 @@ export default {
     },
     components: {
         LeftBar,
-        VueCal,
     },
     methods: {
         fetchAllannounceId() {
@@ -26,24 +21,14 @@ export default {
             axios
                 .post("http://localhost:8080/announce/searchAnnounce", params)
                 .then((response) => {
-                    this.announcements = response.data.data;
+                    this.announcements = response.data.data.filter((announce) => {
+                        return announce.announceEndTime >= this.today;
+                    });
                     console.log("獲取的公告數據：", this.announcements);
                 })
                 .catch((error) => {
                     console.error("獲取公告失敗：", error);
                 });
-        },
-        filterAnnouncementsByDate() {
-            if (!this.selectedDate) return this.announcements; // 如果未選擇日期，返回所有公告
-            return this.announcements.filter((announce) => {
-                const start = new Date(announce.announceStartTime);
-                const end = new Date(announce.announceEndTime);
-                const selected = new Date(this.selectedDate);
-                return selected >= start && selected <= end;
-            });
-        },
-        onDateSelect(date) {
-            this.selectedDate = date;
         },
     },
 };
@@ -55,12 +40,8 @@ export default {
             <LeftBar />
         </div>
         <div class="mainArea">
-            <vue-cal @cell-click="onDateSelect" style="width: 300px; margin-bottom: 20px"
-                :disable-views="['years','year', 'week', 'multi-day', 'day']" />
-
             <div>
-                <div v-for="announce in filterAnnouncementsByDate()" :key="announce.announceId"
-                    class="announcement-item">
+                <div v-for="announce in announcements" :key="announce.announceId" class="announcement-item">
                     <img :src="announce.announcePictureName" v-if="announce.announcePictureName"
                         class="preview-image" />
                     <h3>{{ announce.announceTitle }}</h3>
