@@ -5,7 +5,8 @@ export default {
     data() {
         return {
             startX: 0,
-            isSwiped: false,
+            translateX: 0,
+            categories: [],
             activeNames: [],
             collapses: [],
         };
@@ -14,18 +15,22 @@ export default {
         LeftBar
     },
     methods: {
-        startTouch(event) {
-            this.startX = event.touches[0].clientX;
+        startTouch(event, index) {
+            this.categories[index].startX = event.touches[0].clientX;
         },
-        moveTouch(event) {
-            const deltaX = event.touches[0].clientX - this.startX;
-            if (deltaX < -50) {
-                this.isSwiped = true;
+        moveTouch(event, index) {
+            const currentX = event.touches[0].clientX;
+            this.categories[index].translateX = currentX - this.categories[index].startX; // 根據滑動距離更新 translateX
+            if (this.categories[index].translateX < -55) {
+                this.categories[index].translateX = -55
+            }
+            if (this.categories[index].translateX > 0) {
+                this.categories[index].translateX = 0; // 避免滑動超過初始位置
             }
         },
-        endTouch() {
-            if (!this.isSwiped) {
-                this.isSwiped = false;
+        endTouch(index) {
+            if (this.categories[index].translateX > -50) {
+                this.categories[index].translateX = 0;
             }
         },
         confirmDelete() {
@@ -41,6 +46,11 @@ export default {
                     // 在這裡處理刪除訊息的邏輯
                 }
             });
+        },
+        addCg() {
+            this.categories.push(
+                { text: "", translateX: 0 },
+            )
         },
         clearOption(collapse) {
             collapse.options.forEach(option => {
@@ -89,22 +99,40 @@ export default {
             <div class="menuCategory">
                 <h1>菜單分類</h1>
                 <div class="optionArea">
-                    <div class="cOption" @touchstart="startTouch" @touchmove="moveTouch" @touchend="endTouch">
-                        <div class="opContent" :class="{ 'swipe-left': isSwiped }">
-                            <span>餐點名稱</span>
-                            <div class="countOp">1</div>
+                    <div class="cOption" v-for="(category, cIndex) in categories" :key="cIndex"
+                        :style="{ transform: `translate(${28 + category.translateX}px)` }"
+                        @touchstart="startTouch($event, cIndex)" @touchmove="moveTouch($event, cIndex)"
+                        @touchend="endTouch(cIndex)">
+                        <div class="opContent">
+                            <span>餐點名稱{{ category.name }}</span>
+                            <div class="countOp">55{{ category.count }}</div>
                         </div>
-                        <div v-if="isSwiped" @click="confirmDelete" class="deleteOp">
+                        <div @click="confirmDelete" class="deleteOp">
                             <span>刪除</span>
                         </div>
                     </div>
                     <div class="inputOp">
                         <input type="text" placeholder="輸入菜單分類">
                     </div>
-                    <i class="fa-solid fa-circle-plus"></i>
+                    <i class="fa-solid fa-circle-plus" @click="addCg()"></i>
                 </div>
                 <div class="saveCategory">儲存</div>
                 <div class="editCategory">編輯</div>
+            </div>
+            <div class="rightArea">
+                <div class="switchBtn">
+                    <div class="menuManage">
+                        <span>菜單管理</span>
+                    </div>
+                    <div class="workbench">
+                        <span>工作檯管理</span>
+                    </div>
+                    <div class="announce">
+                        <span>公告設定</span>
+                    </div>
+                </div>
+                <div class="menuArea">menuArea</div>
+                <div class="customerization">customerization</div>
             </div>
             <!-- <div class="mealNameArea">
                 <span>餐點名稱:</span>
@@ -215,7 +243,6 @@ export default {
                 justify-content: start;
                 align-items: center;
                 flex-direction: column;
-                position: relative;
                 overflow-x: hidden;
                 border: 1px solid black;
 
@@ -226,12 +253,12 @@ export default {
                     justify-content: space-between;
                     align-items: center;
                     flex-direction: column;
-                    position: absolute;
                     top: 0;
                     left: 0;
                     border-radius: 5px;
                     margin-bottom: 5%;
                     overflow-y: scroll;
+                    transition: transform 0.7s;
                     background-color: #f2f4f8;
 
                     .opContent {
@@ -266,21 +293,17 @@ export default {
                     .deleteOp {
                         width: 20%;
                         height: 100%;
-                        letter-spacing: 3px;
+                        letter-spacing: 2px;
                         position: absolute;
                         right: 0;
                         display: flex;
                         justify-content: center;
                         align-items: center;
                         color: white;
+                        font-weight: bold;
+                        font-family: "Noto Sans TC", sans-serif;
                         background-color: red;
                     }
-
-                    .swipe-left {
-                        /* 向左滑動 */
-                        transform: translateX(-100px);
-                    }
-
                 }
 
                 .inputOp {
@@ -336,6 +359,81 @@ export default {
                 color: black;
                 background-color: #dde1e6;
                 font-family: "Noto Sans TC", sans-serif;
+            }
+        }
+
+        .rightArea {
+            width: 73.5%;
+            height: 100%;
+            display: flex;
+            justify-content: start;
+            align-items: center;
+            flex-direction: column;
+            position: absolute;
+            top: 0;
+            right: 1.5%;
+            border: 1px solid green;
+
+            .switchBtn {
+                width: 100%;
+                height: 9.5%;
+                display: flex;
+                justify-content: space-evenly;
+                align-items: center;
+                border: 1px solid red;
+
+                .menuManage{
+                    width: 15%;
+                    height: 31%;
+                    border-radius: 10px;
+                    font-weight: bold;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    border: 1px solid black;
+                    font-family: "Noto Sans TC", sans-serif;
+                }
+                .workbench{
+                    width: 15%;
+                    height: 31%;
+                    border-radius: 10px;
+                    font-weight: bold;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    border: 1px solid black;
+                    font-family: "Noto Sans TC", sans-serif;
+                }
+                .announce{
+                    width: 15%;
+                    height: 31%;
+                    border-radius: 10px;
+                    font-weight: bold;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    border: 1px solid black;
+                    font-family: "Noto Sans TC", sans-serif;
+                }
+            }
+
+            .menuArea {
+                width: 100%;
+                height: 59%;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                border: 1px solid red;
+            }
+
+            .customerization {
+                width: 100%;
+                height: 27%;
+                margin-top: 2.5%;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                border: 1px solid red;
             }
         }
 
