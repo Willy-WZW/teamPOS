@@ -52,6 +52,11 @@ const router = createRouter({
       name: 'history',
       component: () => import('../views/History.vue')
     },
+    {
+      path: '/system',
+      name: 'system',
+      component: () => import('../views/System.vue')
+    },
   ]
 })
 

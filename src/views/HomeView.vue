@@ -6,16 +6,16 @@ export default{
         }
     },
     methods:{
-        goSetting() {
-            this.$router.push("./setting")
+        goSystem() {
+            this.$router.push("./system")
         },
     }
 }
 </script>
 
 <template>
-    <button @click="goSetting()">登入</button>
-    <h1>或在網址列後面新增 /setting</h1>
+    <button @click="goSystem()">登入</button>
+    <h1>或在網址列後面新增 /system</h1>
 </template>
 
 <style scoped lang="scss">
