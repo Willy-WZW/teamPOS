@@ -6,7 +6,10 @@ export default {
         return {
             startX: 0,
             translateX: 0,
-            categories: [],
+            categories: [
+            { text: "", translateX: 0 },
+            ],
+            cgInput:[],
             activeNames: [],
             collapses: [],
         };
@@ -47,8 +50,8 @@ export default {
                 }
             });
         },
-        addCg() {
-            this.categories.push(
+        addCgInput() {
+            this.cgInput.push(
                 { text: "", translateX: 0 },
             )
         },
@@ -111,10 +114,10 @@ export default {
                             <span>刪除</span>
                         </div>
                     </div>
-                    <div class="inputOp">
+                    <div class="inputOp" v-for="(item, cgIndex) in cgInput" :key="cgIndex">
                         <input type="text" placeholder="輸入菜單分類">
                     </div>
-                    <i class="fa-solid fa-circle-plus" @click="addCg()"></i>
+                    <i class="fa-solid fa-circle-plus" @click="addCgInput()"></i>
                 </div>
                 <div class="saveCategory">儲存</div>
                 <div class="editCategory">編輯</div>
@@ -244,7 +247,6 @@ export default {
                 align-items: center;
                 flex-direction: column;
                 overflow-x: hidden;
-                border: 1px solid black;
 
                 .cOption {
                     width: 125%;
