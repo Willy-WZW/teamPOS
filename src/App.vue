@@ -34,8 +34,10 @@ import { RouterLink, RouterView } from 'vue-router'
   // }
 
   .mainArea{
-    width: 80%;
+    width: 90%;
     height: 100dvh;
+    position: fixed;
+    left: 10%;
   }
 }
 
