@@ -127,6 +127,7 @@ export default {
 
 <style scoped lang="scss">
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@100..900&display=swap');
+$selectedColor: #1563ffe1;
 $fontAndIconColor:rgba(0, 0, 0, 0.7);
 $bgColor: aliceblue;
 $boxShadow: rgba(0, 0, 0, 0.4);
@@ -386,10 +387,10 @@ $boxShadow: rgba(0, 0, 0, 0.4);
             // background-color: rgb(200, 200, 200);
             // box-shadow: 5px 0.1px 1px $boxShadow;
             background-color: rgb(182, 223, 255);
-            box-shadow: 5px 0.1px 1px $boxShadow;
+            box-shadow: 5px 0.1px 1px $selectedColor ;
             transform: translateX(20px); 
             transition: transform 0.5s ease-in;
-            color: #1563ff;
+            color: $selectedColor;
 
         }
     }
