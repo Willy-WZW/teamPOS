@@ -15,6 +15,7 @@
     "fullcalendar": "^6.1.15",
     "package.json": "file:",
     "pinia": "^2.1.7",
+    "sweetalert2": "^11.14.1",
     "vue": "^3.4.29",
     "vue-router": "^4.3.3"
   },

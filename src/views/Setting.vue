@@ -1,26 +1,47 @@
 <script>
 import LeftBar from '@/components/LeftBar.vue'
+import Swal from 'sweetalert2';
 export default {
     data() {
         return {
+            startX: 0,
+            isSwiped: false,
             activeNames: [],
-            collapses: [
-                // {
-                //     name: "",
-                //     title: "",
-                //     type: 'radio',
-                //     options: [
-                //         { text: '' },
-                //         { text: '' },
-                //     ],
-                // }
-            ]
+            collapses: [],
         };
     },
     components: {
         LeftBar
     },
     methods: {
+        startTouch(event) {
+            this.startX = event.touches[0].clientX;
+        },
+        moveTouch(event) {
+            const deltaX = event.touches[0].clientX - this.startX;
+            if (deltaX < -50) {
+                this.isSwiped = true;
+            }
+        },
+        endTouch() {
+            if (!this.isSwiped) {
+                this.isSwiped = false;
+            }
+        },
+        confirmDelete() {
+            Swal.fire({
+                title: '確定要刪除這條訊息嗎？',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: '確定',
+                cancelButtonText: '取消',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire('已刪除!', '該訊息已被刪除。', 'success');
+                    // 在這裡處理刪除訊息的邏輯
+                }
+            });
+        },
         clearOption(collapse) {
             collapse.options.forEach(option => {
                 option.text = ""
@@ -65,7 +86,27 @@ export default {
             <LeftBar />
         </div>
         <div class="mainArea">
-            <div class="mealNameArea">
+            <div class="menuCategory">
+                <h1>菜單分類</h1>
+                <div class="optionArea">
+                    <div class="cOption" @touchstart="startTouch" @touchmove="moveTouch" @touchend="endTouch">
+                        <div class="opContent" :class="{ 'swipe-left': isSwiped }">
+                            <span>餐點名稱</span>
+                            <div class="countOp">1</div>
+                        </div>
+                        <div v-if="isSwiped" @click="confirmDelete" class="deleteOp">
+                            <span>刪除</span>
+                        </div>
+                    </div>
+                    <div class="inputOp">
+                        <input type="text" placeholder="輸入菜單分類">
+                    </div>
+                    <i class="fa-solid fa-circle-plus"></i>
+                </div>
+                <div class="saveCategory">儲存</div>
+                <div class="editCategory">編輯</div>
+            </div>
+            <!-- <div class="mealNameArea">
                 <span>餐點名稱:</span>
                 <input type="text" placeholder="請輸入餐點名稱">
                 <span>餐點類型:</span>
@@ -89,34 +130,33 @@ export default {
             </div>
             <el-collapse v-model="activeNames">
                 <el-collapse-item v-for="(collapse, index) in collapses" :key="index" :title="collapse.title"
-                    :name="collapse.name">
-                    <!-- 自定義 title 部分，使用者可以輸入 -->
-                    <template #title>
+                    :name="collapse.name"> -->
+            <!-- 自定義 title 部分，使用者可以輸入 -->
+            <!-- <template #title>
                         <input class="collTitle" type="text" v-model="collapse.title"
                             :placeholder="'客製化選項標題' + (index + 1)" @input="updateTitle(collapse, index)" @click.stop />
                     </template>
-                    <div class="editOption">
-                        <select v-model="collapse.type" @change="clearOption(collapse)" name="" id="">
-                            <option value="radio">單選</option>
-                            <option value="checkbox">多選</option>
-                        </select>
-                        <i class="fa-solid fa-plus" @click="addOptionBox(collapse)"></i>
-                        <i class="fa-solid fa-file-circle-xmark" @click="deleteThisCollapse(index)"></i>
-                    </div>
-                    <div class="option" v-for="(option, opIndex) in collapse.options" :key="opIndex">
-                        <input v-if="collapse.type === 'radio'" type="radio" :name="'radio' + collapse.name" id="">
-                        <input v-if="collapse.type === 'checkbox'" type="checkbox" name="" id="">
-                        <input type="text" class="markupOption" v-model="option.text"
-                            :placeholder="'客製化選項' + (opIndex + 1)">
-                        <!-- markup防呆: 1. + or - 2.僅能是數字 3.數字不能0開頭 -->
-                        <input type="text" class="markup" placeholder="金額+/-">
+<div class="editOption">
+    <select v-model="collapse.type" @change="clearOption(collapse)" name="" id="">
+        <option value="radio">單選</option>
+        <option value="checkbox">多選</option>
+    </select>
+    <i class="fa-solid fa-plus" @click="addOptionBox(collapse)"></i>
+    <i class="fa-solid fa-file-circle-xmark" @click="deleteThisCollapse(index)"></i>
+</div>
+<div class="option" v-for="(option, opIndex) in collapse.options" :key="opIndex">
+    <input v-if="collapse.type === 'radio'" type="radio" :name="'radio' + collapse.name" id="">
+    <input v-if="collapse.type === 'checkbox'" type="checkbox" name="" id="">
+    <input type="text" class="markupOption" v-model="option.text" :placeholder="'客製化選項' + (opIndex + 1)"> -->
+            <!-- markup防呆: 1. + or - 2.僅能是數字 3.數字不能0開頭 -->
+            <!-- <input type="text" class="markup" placeholder="金額+/-">
                         <i class="fa-solid fa-trash" @click="removeOption(collapse, opIndex)"></i>
                     </div>
                 </el-collapse-item>
             </el-collapse>
             <div class="addOption">
                 <i class="fa-solid fa-square-plus" @click="addCustomization()"></i>
-            </div>
+            </div> -->
         </div>
     </div>
 </template>
@@ -141,149 +181,300 @@ export default {
 
     .mainArea {
         width: 100%;
-        height: 90%;
+        height: 100%;
         overflow-y: scroll;
         display: flex;
         justify-content: start;
-        align-items: center;
+        align-items: start;
         flex-direction: column;
+        position: relative;
 
-        .mealNameArea {
-            width: 90%;
-            padding-bottom: 5px;
-            font-size: 20px;
-            border-bottom: 2px solid black;
-
-            span {
-                margin-right: 5px;
-            }
-
-            input {
-                width: 50%;
-                border: none;
-                color: transparent;
-                font-size: 20px;
-                margin-right: 30px;
-                color: black;
-            }
-
-            select {
-                font-size: 20px;
-                margin-right: 20px;
-            }
-
-            .price {
-                width: 120px;
-                color: black;
-            }
-        }
-
-        .mealImage {
-            width: 90%;
-            margin-top: 5px;
-
-            input {
-                cursor: pointer;
-                width: 70px;
-            }
-
-            span {
-                margin-right: 5px;
-            }
-        }
-
-        .mealDescription {
-            width: 90%;
-            margin-top: 5px;
-
-            .mealDes {
-                width: 80%;
-                height: 80px;
-                font-size: 18px;
-            }
-        }
-
-        .collTitle {
-            width: 230px;
-            font-size: 26px;
-            margin-left: 10px;
-        }
-
-        .el-collapse {
-            width: 90%;
-            margin: 30px auto;
-            --el-collapse-header-font-size: 20px;
-            --el-collapse-header-bg-color: #b0f079;
-
-            .el-collapse-item {
-                margin-bottom: 10px;
-            }
-
-            .editOption {
-                width: 100%;
-                display: flex;
-                justify-content: space-around;
-                align-items: center;
-                margin: 2% auto;
-
-                select {
-                    font-size: 30px;
-                }
-
-                .fa-plus {
-                    font-size: 40px;
-                    cursor: pointer;
-                }
-
-                .fa-file-circle-xmark {
-                    font-size: 40px;
-                    cursor: pointer;
-                }
-
-            }
-
-            .option {
-                width: 100%;
-                margin: 2% auto;
-                display: flex;
-                align-items: center;
-
-                input[type=checkbox],
-                input[type=radio] {
-                    margin: 0 30px;
-                    scale: 2;
-                }
-
-                .markupOption {
-                    width: 60%;
-                    font-size: 40px;
-                    margin-right: 100px
-                }
-
-                .markup {
-                    width: 15%;
-                    font-size: 40px;
-                    margin-right: 70px;
-                }
-
-                .fa-trash {
-                    font-size: 40px;
-                    cursor: pointer;
-                }
-            }
-        }
-
-        .addOption {
-            width: 90%;
-            margin-top: 30px;
+        .menuCategory {
+            width: 21%;
+            height: 87%;
+            border-radius: 10px;
             display: flex;
-            justify-content: center;
+            justify-content: start;
+            align-items: center;
+            flex-direction: column;
+            position: absolute;
+            top: 9.5%;
+            left: 2%;
+            background-color: white;
 
-            .fa-square-plus {
-                font-size: 40px;
+            h1 {
+                margin: 1% auto;
+                font-family: "Noto Sans TC", sans-serif;
+            }
+
+            .optionArea {
+                width: 87%;
+                height: 84%;
+                margin-bottom: 3%;
+                display: flex;
+                justify-content: start;
+                align-items: center;
+                flex-direction: column;
+                position: relative;
+                overflow-x: hidden;
+                border: 1px solid black;
+
+                .cOption {
+                    width: 125%;
+                    height: 6%;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    flex-direction: column;
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    border-radius: 5px;
+                    margin-bottom: 5%;
+                    overflow-y: scroll;
+                    background-color: #f2f4f8;
+
+                    .opContent {
+                        width: 80%;
+                        height: 100%;
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        position: absolute;
+                        left: 0;
+                        overflow: hidden;
+
+                        span {
+                            font-weight: bold;
+                            font-family: "Noto Sans TC", sans-serif;
+                            margin-left: 2.5%;
+                        }
+
+                        .countOp {
+                            min-width: 15%;
+                            height: 50%;
+                            display: flex;
+                            justify-content: center;
+                            align-items: center;
+                            margin-right: 2.5%;
+                            border-radius: 30px;
+                            color: white;
+                            background-color: gray;
+                        }
+                    }
+
+                    .deleteOp {
+                        width: 20%;
+                        height: 100%;
+                        letter-spacing: 3px;
+                        position: absolute;
+                        right: 0;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        color: white;
+                        background-color: red;
+                    }
+
+                    .swipe-left {
+                        /* 向左滑動 */
+                        transform: translateX(-100px);
+                    }
+
+                }
+
+                .inputOp {
+                    width: 100%;
+                    height: 6%;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    border-radius: 5px;
+                    margin-bottom: 5%;
+                    background-color: #f2f4f8;
+
+                    input {
+                        width: 95%;
+                        border: none;
+                        background-color: transparent;
+                        margin-left: 2.5%;
+                        font-size: 18px;
+                        font-weight: bold;
+                        font-family: "Noto Sans TC", sans-serif;
+                    }
+                }
+
+                .fa-circle-plus {
+                    font-size: 30px;
+                    cursor: pointer;
+                }
+            }
+
+            .saveCategory {
+                width: 90%;
+                height: 37px;
+                border-radius: 10px;
+                margin-bottom: 3%;
                 cursor: pointer;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                color: white;
+                background-color: #343a3f;
+                font-family: "Noto Sans TC", sans-serif;
+            }
+
+            .editCategory {
+                width: 90%;
+                height: 37px;
+                border-radius: 10px;
+                margin-bottom: 3%;
+                cursor: pointer;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                color: black;
+                background-color: #dde1e6;
+                font-family: "Noto Sans TC", sans-serif;
             }
         }
+
+        // .mealNameArea {
+        //     width: 90%;
+        //     padding-bottom: 5px;
+        //     font-size: 20px;
+        //     border-bottom: 2px solid black;
+
+        //     span {
+        //         margin-right: 5px;
+        //     }
+
+        //     input {
+        //         width: 50%;
+        //         border: none;
+        //         color: transparent;
+        //         font-size: 20px;
+        //         margin-right: 30px;
+        //         color: black;
+        //     }
+
+        //     select {
+        //         font-size: 20px;
+        //         margin-right: 20px;
+        //     }
+
+        //     .price {
+        //         width: 120px;
+        //         color: black;
+        //     }
+        // }
+
+        // .mealImage {
+        //     width: 90%;
+        //     margin-top: 5px;
+
+        //     input {
+        //         cursor: pointer;
+        //         width: 70px;
+        //     }
+
+        //     span {
+        //         margin-right: 5px;
+        //     }
+        // }
+
+        // .mealDescription {
+        //     width: 90%;
+        //     margin-top: 5px;
+
+        //     .mealDes {
+        //         width: 80%;
+        //         height: 80px;
+        //         font-size: 18px;
+        //     }
+        // }
+
+        // .collTitle {
+        //     width: 230px;
+        //     font-size: 26px;
+        //     margin-left: 10px;
+        // }
+
+        // .el-collapse {
+        //     width: 90%;
+        //     margin: 30px auto;
+        //     --el-collapse-header-font-size: 20px;
+        //     --el-collapse-header-bg-color: #b0f079;
+
+        //     .el-collapse-item {
+        //         margin-bottom: 10px;
+        //     }
+
+        //     .editOption {
+        //         width: 100%;
+        //         display: flex;
+        //         justify-content: space-around;
+        //         align-items: center;
+        //         margin: 2% auto;
+
+        //         select {
+        //             font-size: 30px;
+        //         }
+
+        //         .fa-plus {
+        //             font-size: 40px;
+        //             cursor: pointer;
+        //         }
+
+        //         .fa-file-circle-xmark {
+        //             font-size: 40px;
+        //             cursor: pointer;
+        //         }
+
+        //     }
+
+        //     .option {
+        //         width: 100%;
+        //         margin: 2% auto;
+        //         display: flex;
+        //         align-items: center;
+
+        //         input[type=checkbox],
+        //         input[type=radio] {
+        //             margin: 0 30px;
+        //             scale: 2;
+        //         }
+
+        //         .markupOption {
+        //             width: 60%;
+        //             font-size: 40px;
+        //             margin-right: 100px
+        //         }
+
+        //         .markup {
+        //             width: 15%;
+        //             font-size: 40px;
+        //             margin-right: 70px;
+        //         }
+
+        //         .fa-trash {
+        //             font-size: 40px;
+        //             cursor: pointer;
+        //         }
+        //     }
+        // }
+
+        // .addOption {
+        //     width: 90%;
+        //     margin-top: 30px;
+        //     display: flex;
+        //     justify-content: center;
+
+        //     .fa-square-plus {
+        //         font-size: 40px;
+        //         cursor: pointer;
+        //     }
+        // }
     }
 
 }
