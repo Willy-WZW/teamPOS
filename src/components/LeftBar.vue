@@ -127,8 +127,9 @@ export default {
 
 <style scoped lang="scss">
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@100..900&display=swap');
+$fontAndIconColor:rgba(0, 0, 0, 0.7);
 $bgColor: aliceblue;
-$boxShadow: black;
+$boxShadow: rgba(0, 0, 0, 0.4);
 
 .lefter {
     width: 100%;
@@ -146,7 +147,7 @@ $boxShadow: black;
         justify-content: center;
         align-items: center;
         flex-direction: column;
-        border-bottom: 1px solid black;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.5);
 
         .timeStyle {
             margin: 5px auto;
@@ -161,6 +162,7 @@ $boxShadow: black;
         justify-content: space-between;
         align-items: center;
         flex-direction: column;
+        color: $fontAndIconColor;
         // border: 1px solid black;
 
 
@@ -174,8 +176,12 @@ $boxShadow: black;
             align-items: center;
             flex-direction: column;
             font-family: "Noto Sans TC", sans-serif;
-            box-shadow: -2px 2px 5px $boxShadow;
-
+            // box-shadow: -2px 2px 5px $boxShadow;
+            box-shadow: -2px 1px 5px $boxShadow;
+            &:active{
+                background-color: rgba(169, 217, 253, 0.563);;
+                transition: background-color 0.1s ease; /* 颜色过渡效果 */
+            }
             .fa-gear {
                 margin-top: 13px;
                 scale: 2;
@@ -198,8 +204,12 @@ $boxShadow: black;
             align-items: center;
             flex-direction: column;
             font-family: "Noto Sans TC", sans-serif;
-            box-shadow: -2px 2px 5px $boxShadow;
-
+            // box-shadow: -2px 2px 5px $boxShadow;
+            box-shadow: -2px 1px 5px $boxShadow;
+            &:active{
+                background-color: rgba(169, 217, 253, 0.563);;
+                transition: background-color 0.1s ease; /* 颜色过渡效果 */
+            }
             .fa-chart-simple {
                 margin-top: 13px;
                 scale: 2;
@@ -222,8 +232,12 @@ $boxShadow: black;
             align-items: center;
             flex-direction: column;
             font-family: "Noto Sans TC", sans-serif;
-            box-shadow: -2px 2px 5px $boxShadow;
-
+            // box-shadow: -2px 2px 5px $boxShadow;
+            box-shadow: -2px 1px 5px $boxShadow;
+            &:active{
+                background-color: rgba(169, 217, 253, 0.563);;
+                transition: background-color 0.1s ease; /* 颜色过渡效果 */
+            }
             .fa-utensils {
                 margin-top: 13px;
                 scale: 2;
@@ -246,8 +260,12 @@ $boxShadow: black;
             align-items: center;
             flex-direction: column;
             font-family: "Noto Sans TC", sans-serif;
-            box-shadow: -2px 2px 5px $boxShadow;
-
+            // box-shadow: -2px 2px 5px $boxShadow;
+            box-shadow: -2px 1px 5px $boxShadow;
+            &:active{
+                background-color: rgba(169, 217, 253, 0.563);;
+                transition: background-color 0.1s ease; /* 颜色过渡效果 */
+            }
             .fa-list-check {
                 margin-top: 13px;
                 scale: 2;
@@ -269,8 +287,12 @@ $boxShadow: black;
             align-items: center;
             flex-direction: column;
             font-family: "Noto Sans TC", sans-serif;
-            box-shadow: -2px 2px 5px $boxShadow;
-
+            // box-shadow: -2px 2px 5px $boxShadow;
+            box-shadow: -2px 1px 5px $boxShadow;
+            &:active{
+                background-color: rgba(169, 217, 253, 0.563);;
+                transition: background-color 0.1s ease; /* 颜色过渡效果 */
+            }
             .material-symbols-outlined {
                 margin-top: 13px auto 0 auto;
                 scale: 1.2;
@@ -287,8 +309,12 @@ $boxShadow: black;
             align-items: center;
             flex-direction: column;
             font-family: "Noto Sans TC", sans-serif;
-            box-shadow: -2px 2px 5px $boxShadow;
-
+            // box-shadow: -2px 2px 5px $boxShadow;
+            box-shadow: -2px 1px 5px $boxShadow;
+            &:active{
+                background-color: rgba(169, 217, 253, 0.563);;
+                transition: background-color 0.1s ease; /* 颜色过渡效果 */
+            }
             .fa-calendar-check {
                 margin-top: 13px;
                 scale: 2;
@@ -311,8 +337,12 @@ $boxShadow: black;
             align-items: center;
             flex-direction: column;
             font-family: "Noto Sans TC", sans-serif;
-            box-shadow: -2px 2px 5px $boxShadow;
-
+            // box-shadow: -2px 2px 5px $boxShadow;
+            box-shadow: -2px 1px 5px $boxShadow;
+            &:active{
+                background-color: rgba(169, 217, 253, 0.563);;
+                transition: background-color 0.1s ease; /* 颜色过渡效果 */
+            }
             .fa-fire-burner {
                 margin-top: 13px;
                 scale: 2;
@@ -335,8 +365,12 @@ $boxShadow: black;
             align-items: center;
             flex-direction: column;
             font-family: "Noto Sans TC", sans-serif;
-            box-shadow: -2px 2px 5px $boxShadow;
-
+            // box-shadow: -2px 2px 5px $boxShadow;
+            box-shadow: -2px 1px 5px $boxShadow;
+            &:active{
+                background-color: rgba(169, 217, 253, 0.563);;
+                transition: background-color 0.3s ease; /* 颜色过渡效果 */
+            }
             .fa-clock-rotate-left {
                 margin-top: 13px;
                 scale: 2;
@@ -349,8 +383,14 @@ $boxShadow: black;
         }
 
         .selected {
-            background-color: rgb(200, 200, 200);
+            // background-color: rgb(200, 200, 200);
+            // box-shadow: 5px 0.1px 1px $boxShadow;
+            background-color: rgb(182, 223, 255);
             box-shadow: 5px 0.1px 1px $boxShadow;
+            transform: translateX(20px); 
+            transition: transform 0.5s ease-in;
+            color: #1563ff;
+
         }
     }
 
