@@ -8,9 +8,9 @@ export default {
             startX: 0,
             translateX: 0,
             categories: [
-            { text: "", translateX: 0 },
+                { text: "", translateX: 0 },
             ],
-            cgInput:[],
+            cgInput: [],
             activeNames: [],
             collapses: [],
         };
@@ -54,7 +54,7 @@ export default {
         },
         addCgInput() {
             this.cgInput.push(
-                { text: ""},
+                { text: "" },
             )
         },
         clearOption(collapse) {
@@ -127,11 +127,38 @@ export default {
                 <div class="saveCategory">儲存</div>
                 <div class="editCategory">編輯</div>
             </div>
-            <!-- <div class="menuArea">
-                <div class="menuTop"></div>
-                <div class="menuMain"></div>
+            <div class="menuAndCust">
+                <div class="menuArea">
+                    <div class="menuTop">
+                        <div class="mtLeft">
+                            <span>餐點</span>
+                        </div>
+                        <div class="mtRight">
+                            <div class="selCate">
+                                <span>菜單分類</span>
+                                <div class="countOp">55</div>
+                            </div>
+                            <div class="saveBtn">儲存</div>
+                        </div>
+                    </div>
+                    <div class="menuMain"></div>
+                </div>
+                <div class="customerization">
+                    <div class="cuTop">
+                        <div class="cuLeft">
+                            <span>客製化選項</span>
+                        </div>
+                        <div class="cuRight">
+                            <div class="selCate">
+                                <span>菜單分類</span>
+                                <div class="countOp">55</div>
+                            </div>
+                            <div class="saveBtn">儲存</div>
+                        </div>
+                    </div>
+                    <div class="menuMain"></div>
+                </div>
             </div>
-            <div class="customerization">customerization</div> -->
 
 
             <!-- <div class="mealNameArea">
@@ -220,7 +247,7 @@ $divColor: #fff;
         position: relative;
 
         .header {
-            width: 97%;
+            width: 96%;
             height: 6.3%;
             position: absolute;
             top: 2%;
@@ -372,47 +399,170 @@ $divColor: #fff;
             }
         }
 
-        // .menuArea {
-        //     width: 100%;
-        //     height: 59%;
-        //     border-radius: 10px;
-        //     display: flex;
-        //     justify-content: start;
-        //     align-items: center;
-        //     flex-direction: column;
-        //     background-color: $divColor;
+        .menuAndCust {
+            width: 73.5%;
+            height: 87%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            position: absolute;
+            top: 9.5%;
+            right: 2%;
 
-        //     .menuTop{
-        //         width: 97%;
-        //         height: 7%;
-        //         margin-top: 4%;
-        //         border: 1px solid #343a3f;
-        //         display: flex;
-        //         justify-content: center;
-        //         align-items: center;
-        //         flex-direction: column;
-        //     }
+            .menuArea {
+                width: 100%;
+                height: 71%;
+                border-radius: 10px;
+                display: flex;
+                justify-content: start;
+                align-items: center;
+                flex-direction: column;
+                background-color: $divColor;
 
-        //     .menuMain{
-        //         width: 97%;
-        //         height: 85%;
-        //         display: flex;
-        //         justify-content: center;
-        //         align-items: center;
-        //         flex-direction: column;
-        //         border: 1px solid black
-        //     }
-        // }
+                .menuTop {
+                    width: 97%;
+                    height: 7%;
+                    margin: 2% 0 1% 0;
+                    border-bottom: 1px solid #343a3f;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
 
-        // .customerization {
-        //     width: 100%;
-        //     height: 27%;
-        //     margin-top: 2.5%;
-        //     display: flex;
-        //     justify-content: center;
-        //     align-items: center;
-        //     border: 1px solid red;
-        // }
+                    .mtLeft {
+                        width: 20%;
+                        font-size: 30px;
+                        font-weight: bold;
+                        letter-spacing: 3px;
+                        margin-left: 1%;
+                        font-family: "Noto Sans TC", sans-serif;
+                    }
+
+                    .mtRight {
+                        width: 26%;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        letter-spacing: 3px;
+
+                        .selCate {
+                            width: 66%;
+                            display: flex;
+                            justify-content: space-evenly;
+                            align-items: center;
+                            font-weight: bold;
+                            font-family: "Noto Sans TC", sans-serif;
+
+                            .countOp {
+                                min-width: 20%;
+                                letter-spacing: 0px;
+                                font-weight: 500;
+                                color: white;
+                                background-color: gray;
+                                border-radius: 30px;
+                                display: flex;
+                                justify-content: center;
+                                align-items: center;
+                            }
+                        }
+
+                        .saveBtn {
+                            width: 32.4%;
+                            height: 91%;
+                            border-radius: 5px;
+                            color: white;
+                            background-color: black;
+                            display: flex;
+                            justify-content: center;
+                            align-items: center;
+                            font-family: "Noto Sans TC", sans-serif;
+                        }
+                    }
+                }
+
+                .menuMain {
+                    width: 97%;
+                    height: 85%;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    flex-direction: column;
+                    border: 1px solid black
+                }
+            }
+
+            .customerization {
+                width: 100%;
+                height: 27%;
+                margin-top: 2.5%;
+                border-radius: 10px;
+                display: flex;
+                justify-content: start;
+                align-items: center;
+                flex-direction: column;
+                background-color: $divColor;
+
+                .cuTop {
+                    width: 97%;
+                    height: 18%;
+                    margin: 2% 0 1% 0;
+                    border-bottom: 1px solid #343a3f;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+
+                    .cuLeft {
+                        width: 20%;
+                        font-size: 30px;
+                        font-weight: bold;
+                        letter-spacing: 3px;
+                        margin-left: 1%;
+                        font-family: "Noto Sans TC", sans-serif;
+                    }
+
+                    .cuRight {
+                        width: 26%;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        letter-spacing: 3px;
+
+                        .selCate {
+                            width: 66%;
+                            display: flex;
+                            justify-content: space-evenly;
+                            align-items: center;
+                            font-weight: bold;
+                            font-family: "Noto Sans TC", sans-serif;
+
+                            .countOp {
+                                min-width: 20%;
+                                letter-spacing: 0px;
+                                font-weight: 500;
+                                color: white;
+                                background-color: gray;
+                                border-radius: 30px;
+                                display: flex;
+                                justify-content: center;
+                                align-items: center;
+                            }
+                        }
+
+                        .saveBtn {
+                            width: 32.4%;
+                            height: 91%;
+                            border-radius: 5px;
+                            color: white;
+                            background-color: black;
+                            display: flex;
+                            justify-content: center;
+                            align-items: center;
+                            font-family: "Noto Sans TC", sans-serif;
+                        }
+                    }
+                }
+            }
+        }
 
         // .mealNameArea {
         //     width: 90%;

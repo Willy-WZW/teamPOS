@@ -25,7 +25,7 @@ export default {
             <span>公告設定</span>
         </div>
         <div class="busiSetting" :class="{ isSelected: selected == 'busiSetting' }" @click="selectRoute('busiSetting')">
-            <span>營業管理</span>
+            <span>桌位與訂位</span>
         </div>
     </div>
 </template>
@@ -44,45 +44,9 @@ $textColor: #697077;
     align-items: center;
     background-color: $bgColor;
 
-    .menuManage {
-        width: 10%;
-        height: 100%;
-        cursor: pointer;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        letter-spacing: 3px;
-        color: $textColor;
-        font-weight: bold;
-        font-family: "Noto Sans TC", sans-serif;
-    }
-
-    .workbench {
-        width: 10%;
-        height: 100%;
-        cursor: pointer;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        letter-spacing: 3px;
-        color: $textColor;
-        font-weight: bold;
-        font-family: "Noto Sans TC", sans-serif;
-    }
-
-    .announce {
-        width: 10%;
-        height: 100%;
-        cursor: pointer;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        letter-spacing: 3px;
-        color: $textColor;
-        font-weight: bold;
-        font-family: "Noto Sans TC", sans-serif;
-    }
-
+    .menuManage,
+    .workbench,
+    .announce,
     .busiSetting {
         width: 10%;
         height: 100%;
@@ -90,15 +54,35 @@ $textColor: #697077;
         display: flex;
         justify-content: center;
         align-items: center;
+        position: relative;
         letter-spacing: 3px;
         color: $textColor;
         font-weight: bold;
         font-family: "Noto Sans TC", sans-serif;
+        transition: transform 0.3s, color 0.3s, border-bottom 0.3s;
+    }
+
+    .menuManage::before,
+    .workbench::before,
+    .announce::before,
+    .busiSetting::before {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        height: 3px;
+        width: 0;
+        background-color: $selectedTextColor;
+        transition: width 0.3s ease-in-out;
     }
 
     .isSelected {
+        transform: translateY(-5px);
         color: $selectedTextColor;
-        border-bottom: 3px solid $selectedTextColor;
+    }
+
+    .isSelected::before{
+        width: 100%;
     }
 }
 </style>
