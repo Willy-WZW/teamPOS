@@ -48,6 +48,6 @@ import { RouterLink, RouterView } from 'vue-router'
   top: 0;
   left: 0;
   z-index: -1;
-  background-color: rgb(199, 199, 199);
+  background-color: rgba(199, 199, 199, 0.5);
 }
 </style>
