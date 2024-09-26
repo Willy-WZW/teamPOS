@@ -26,6 +26,10 @@ export default {
                 dateClick: this.handleDateClick,
                 displayEventTime: false,
                 events: [],
+                headerToolbar: {
+                    left:'title',
+                    right: 'prev,next'
+                },
 
             }
         };
@@ -77,9 +81,18 @@ export default {
                 };
             });
         },
-
         handleDateClick(info) {
+            const calendarApi = info.view.calendar;
+            calendarApi.gotoDate(info.date);
+
             this.selectDate = info.dateStr;
+
+            const previouslySelected = document.querySelector('.selected-date');
+            if (previouslySelected) {
+                previouslySelected.classList.remove('selected-date');
+            }
+            info.dayEl.classList.add('selected-date');
+
             this.displayedAnnouncements = this.allAnnouncements.filter(announce => {
                 const startDate = new Date(announce.announceStartTime).toISOString().split("T")[0];
                 const endDate = new Date(announce.announceEndTime).toISOString().split("T")[0];
@@ -101,13 +114,18 @@ export default {
                 <FullCalendar :options="calendarOptions" />
             </div>
             <div>
-                <div v-for="announce in displayedAnnouncements" :key="announce.announceId" class="announcement-item">
-                    <img :src="announce.announcePictureName" v-if="announce.announcePictureName"
-                        class="preview-image" />
-                    <h3>{{ announce.announceTitle }}</h3>
-                    <span>{{ announce.announceStartTime }}</span>
-                    <span>{{ announce.announceEndTime }}</span>
-                    <pre>{{ announce.announceContent }}</pre>
+                <div class="announcebox">
+                    <h2>近期活動</h2>
+                    <div v-for="announce in displayedAnnouncements" :key="announce.announceId"
+                        class="announcement-item">
+                        <img :src="announce.announcePictureName" v-if="announce.announcePictureName"
+                            class="preview-image" />
+                        <div class="announcetext">
+                            <h3>{{ announce.announceTitle }}</h3>
+                            <span>活動時間{{ announce.announceStartTime }}~</span>
+                            <span>{{ announce.announceEndTime }}</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -138,19 +156,83 @@ export default {
         overflow-y: scroll;
         display: flex;
         justify-content: start;
-        align-items: center;
-        flex-direction: column;
+        
+
 
         .calendar-container {
             width: 60%;
-            height: 500px;
+            margin-left: 5%;
         }
     }
 }
 
-.preview-image {
+.announcebox {
+    width: 350px;
+    margin-left: 15%;
+    border: 1px solid;
+    border-radius: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+.announcement-item {
     width: 300px;
     height: 300px;
-    object-fit: contain;
+}
+
+.preview-image {
+    width: 300px;
+    height: 200px;
+    object-fit: fill;
+    border-top-right-radius: 10px;
+    border-top-left-radius: 10px;
+}
+
+.announcetext {
+    padding-left: 5%;
+    margin-top: -2%;
+    border: 1px solid black;
+    border-top: none;
+    border-bottom-right-radius: 10px;
+    border-bottom-left-radius: 10px;
+}
+
+.fc-media-screen {
+    height: 850px;
+    
+}
+</style>
+
+<style>
+.fc-event {
+    pointer-events: none;
+}
+
+.selected-date {
+    border: 2px solid #0000ff;
+    background-color: rgba(0, 0, 255, 0.1);
+}
+.fc-toolbar-chunk .fc-button{
+    border-radius: 100%;
+}
+
+.fc-col-header-cell{
+    background-color: white;
+    border-radius: 10px;
+}
+.fc table, .fc table th, .fc table td {
+    border: none;
+    box-shadow: none; 
+}
+.fc .fc-scrollgrid-liquid{
+    border: none;
+}
+.fc .fc-daygrid-day-frame{
+    border: 1px solid black;
+}
+.fc-scrollgrid-sync-table{
+    margin-top: 2%;
 }
 </style>
