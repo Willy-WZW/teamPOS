@@ -20,55 +20,12 @@ export default{
             preStartDate: null,
             preEndDate: null,
             preAnalysis:null,
-            joinOrderList:[],
-            optionPie: {
-                tooltip: {
-                    trigger: 'item'
-                },
-                legend: {
-                    top: '10%',
-                    left: 'center',
-                    textStyle: {
-                        fontSize: 18,  // 設置圖例的字體大小
-                        color: '#000'                      
-                    }
-                },
-                series: [
-                    {
-                        name: 'Access From',
-                        type: 'pie',
-                        radius: ['40%', '70%'],
-                        avoidLabelOverlap: false,
-                        center: ['50%', '65%'],  // 將圓餅圖下移以增加與圖例的距離
-                        itemStyle: {
-                            borderRadius: 10,
-                            borderColor: '#fff',
-                            borderWidth: 2
-                        },
-                        label: {
-                            show: false,  // 確保標籤顯示
-                            fontSize: 16,  // 調整 name 字體大小
-                            fontWeight: 'bold',  // 設置字體粗細
-                            formatter: '{b}',  // b 代表 name，這樣只顯示 name 不會顯示 value
-                            position: 'outside'  // 確保標籤在圓餅外部
-                        },
-                        emphasis: {
-                            label: {
-                                show: true,
-                                fontSize: 20,
-                                fontWeight: 'bold'
-                            }
-                        },
-                        labelLine: {
-                            show: false,
-                            
-                        },
-                        data: [
 
-                        ]
-                    }
-                ]
-            },
+            
+            joinOrderList:[],
+            revenueUpRate:0,
+            ordersUpRate:0,
+
             optionLine:{
                 tooltip: {
                         trigger: 'axis',  // 當軸上的數據被觸發時顯示 tooltip
@@ -90,7 +47,7 @@ export default{
                 },
                 xAxis: {
                     type: 'category',
-                    data:[],
+                    data:["123"],
                     boundaryGap: false // 不留白，从原点开始
                 },
                 yAxis: {
@@ -120,8 +77,7 @@ export default{
                                 }])
                             }
                         },
-                        data: [],
-
+                        data: [20],
                     }
                 ]
             }
@@ -161,7 +117,7 @@ export default{
 
         this.$nextTick(() => {
             this.drawChart();  // 初始化图表
-    });
+        });
     },
     computed:{
         currentDay() {
@@ -401,9 +357,8 @@ export default{
     },
     methods:{
         drawChart() {
-            const myChart = echarts.init(document.getElementById("echart"))
+            const myChart = echarts.init(document.getElementById("echart"));
             if (myChart) {
-                const myChart = echarts.init(myChart);
                 myChart.setOption(this.optionLine);  
             } else {
                 console.error("Invalid DOM: chart container not found");
@@ -416,14 +371,12 @@ export default{
         calRevenueGrowth(){
             let revenueUpRate = (this.analysis.totalRevenue-this.preAnalysis.totalRevenue)/this.preAnalysis.totalRevenue*100
             revenueUpRate = Math.round(revenueUpRate)
-            return revenueUpRate
+            this.revenueUpRate = revenueUpRate
         },
         calOrdersGrowth(){
-            console.log(this.analysis)
-            console.log(this.preAnalysis)
             let ordersUpRate = (this.analysis.totalOrders - this.preAnalysis.totalOrders)/ this.preAnalysis.totalOrders*100
             ordersUpRate = Math.round(ordersUpRate)
-            return ordersUpRate
+            this.ordersUpRate = ordersUpRate
         },
 
         postStartDateAndEndDate(startDate, endDate){
@@ -511,7 +464,6 @@ export default{
                 <div class="leftRightContainer">
                     <i class='bx bx-chevron-left' @click="previousDay"></i>
                     <p>{{ currentDay }}</p>
-                    <p>{{ preCurrentDay }}</p>
                     <i class='bx bx-chevron-right' @click="nextDay"></i>
                 </div>
             </div>
@@ -519,7 +471,6 @@ export default{
                 <div class="leftRightContainer">
                     <i class='bx bx-chevron-left' @click="previousMonth"></i>
                     <p>{{ currentMonth }}</p>
-                    <p>{{ preCurrentMonth }}</p>
                     <i class='bx bx-chevron-right' @click="nextMonth"></i>
                 </div>
             </div>
@@ -527,7 +478,6 @@ export default{
                 <div class="leftRightContainer">
                     <i class='bx bx-chevron-left' @click="previousSeason"></i>
                     <p>{{ currentSeason }}</p> 
-                    <p>{{ preCurrentSeason }}</p>
                     <i class='bx bx-chevron-right' @click="nextSeason"></i>
                 </div>
             </div>
@@ -535,7 +485,6 @@ export default{
                 <div class="leftRightContainer">
                     <i class='bx bx-chevron-left' @click="previousYear"></i>
                     <p>{{ currentYear }}</p>
-                    <p>{{ preCurrentYear }}</p>
                     <i class='bx bx-chevron-right' @click="nextYear"></i>
                 </div>
             </div>
@@ -565,13 +514,13 @@ export default{
                             <!-- <p class="contentNumber">{{ preAnalysis.totalRevenue }}</p> -->
                         </div>
                         <div class="foot">
-                            <div class="contentRateUp" v-if="calRevenueGrowth()>=0">
+                            <div class="contentRateUp" v-if="revenueUpRate >=0">
                                 <i class='bx bx-trending-up'></i>
-                                <p>{{calRevenueGrowth()}}%</p>
+                                <p>{{revenueUpRate}}%</p>
                             </div>
-                            <div class="contentRateDown" v-if="calRevenueGrowth()<0">
+                            <div class="contentRateDown" v-if="revenueUpRate<0">
                                 <i class='bx bx-trending-down'></i>
-                                <p>{{calRevenueGrowth()}}%</p>
+                                <p>{{revenueUpRate}}%</p>
                             </div>
                             <p class="compareWhat" v-if="currentHead=='日'">Compare to last day</p>
                             <p class="compareWhat" v-if="currentHead=='月'">Compare to last month</p>
@@ -582,17 +531,16 @@ export default{
                     <div class="compareItem">
                         <p class="title">總銷售量</p>
                         <div class="content">
-                            <p class="contentNumber">{{ analysis.totalOrders }}</p>
-                            <!-- <p class="contentNumber">{{ preAnalysis.totalOrders }}</p> -->
+                            <p class="contentNumber" v-if="analysis && analysis.totalOrders !== null">{{ analysis.totalOrders }}</p>
                         </div>
                         <div class="foot">
-                            <div class="contentRateUp" v-if="calOrdersGrowth()>=0">
+                            <div class="contentRateUp" v-if="ordersUpRate>=0">
                                 <i class='bx bx-trending-up'></i>
-                                <p>{{calOrdersGrowth()}}%</p>
+                                <p>{{ordersUpRate}}%</p>
                             </div>
-                            <div class="contentRateDown" v-if="calOrdersGrowth()<0">
+                            <div class="contentRateDown" v-if="ordersUpRate<0">
                                 <i class='bx bx-trending-down'></i>
-                                <p>{{calOrdersGrowth()}}%</p>
+                                <p>{{ordersUpRate}}%</p>
                             </div>
                             <p class="compareWhat" v-if="currentHead=='日'">Compare to last day</p>
                             <p class="compareWhat" v-if="currentHead=='月'">Compare to last month</p>
@@ -605,7 +553,7 @@ export default{
                 </div>
                 <div class="chartContainer">
                     <h1>Revenue Growth</h1>
-                    <div class="echart" >
+                    <div id="echart" >
                     </div>
                 </div>
             </div>
@@ -619,7 +567,7 @@ export default{
                     <p>Name</p>
                 </div>
                 <div class="poppularDishes">
-                    <div class="dishItem" v-for="(dish,index) in analysis.popularDishes">
+                    <div class="dishItem" v-if="analysis && analysis.popularDishes!==null" v-for="(dish,index) in analysis.popularDishes">
                         <p class="rank">{{ String(index+1).padStart(2,"0")}}</p>
                         <img class="img" src="https://tokyo-kitchen.icook.network/uploads/recipe/cover/420886/dd9e8293a9b1a758.jpg" alt="">
                         <div class="content">
@@ -904,7 +852,7 @@ $down-font: #388e3c;
                     font-size: 25px;
                     margin: 0 0 10px 0;
                 }
-                .echart{
+                #echart{
                     width: 100%;
                     height: 100%;
                 }
