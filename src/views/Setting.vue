@@ -1,5 +1,6 @@
 <script>
 import LeftBar from '@/components/LeftBar.vue'
+import Header from '@/components/Header.vue'
 import Swal from 'sweetalert2';
 export default {
     data() {
@@ -15,7 +16,8 @@ export default {
         };
     },
     components: {
-        LeftBar
+        LeftBar,
+        Header
     },
     methods: {
         startTouch(event, index) {
@@ -99,6 +101,9 @@ export default {
             <LeftBar />
         </div>
         <div class="mainArea">
+            <div class="header">
+                <Header />
+            </div>
             <div class="menuCategory">
                 <h1>菜單分類</h1>
                 <div class="optionArea">
@@ -122,24 +127,13 @@ export default {
                 <div class="saveCategory">儲存</div>
                 <div class="editCategory">編輯</div>
             </div>
-            <div class="rightArea">
-                <div class="switchBtn">
-                    <div class="menuManage">
-                        <span>菜單管理</span>
-                    </div>
-                    <div class="workbench">
-                        <span>工作檯管理</span>
-                    </div>
-                    <div class="announce">
-                        <span>公告設定</span>
-                    </div>
-                </div>
-                <div class="menuArea">
-                    <div class="menuTop"></div>
-                    <div class="menuMain"></div>
-                </div>
-                <div class="customerization">customerization</div>
+            <!-- <div class="menuArea">
+                <div class="menuTop"></div>
+                <div class="menuMain"></div>
             </div>
+            <div class="customerization">customerization</div> -->
+
+
             <!-- <div class="mealNameArea">
                 <span>餐點名稱:</span>
                 <input type="text" placeholder="請輸入餐點名稱">
@@ -225,6 +219,14 @@ $divColor: #fff;
         flex-direction: column;
         position: relative;
 
+        .header {
+            width: 97%;
+            height: 6.3%;
+            position: absolute;
+            top: 2%;
+            left: 2%;
+        }
+
         .menuCategory {
             width: 21%;
             height: 87%;
@@ -240,6 +242,7 @@ $divColor: #fff;
 
             h1 {
                 margin: 1% auto;
+                letter-spacing: 3px;
                 font-family: "Noto Sans TC", sans-serif;
             }
 
@@ -369,91 +372,47 @@ $divColor: #fff;
             }
         }
 
-        .rightArea {
-            width: 73.5%;
-            height: 100%;
-            display: flex;
-            justify-content: start;
-            align-items: center;
-            flex-direction: column;
-            position: absolute;
-            top: 0;
-            right: 1.5%;
-            border: 1px solid green;
+        // .menuArea {
+        //     width: 100%;
+        //     height: 59%;
+        //     border-radius: 10px;
+        //     display: flex;
+        //     justify-content: start;
+        //     align-items: center;
+        //     flex-direction: column;
+        //     background-color: $divColor;
 
-            .switchBtn {
-                width: 100%;
-                height: 9.5%;
-                display: flex;
-                justify-content: space-evenly;
-                align-items: center;
+        //     .menuTop{
+        //         width: 97%;
+        //         height: 7%;
+        //         margin-top: 4%;
+        //         border: 1px solid #343a3f;
+        //         display: flex;
+        //         justify-content: center;
+        //         align-items: center;
+        //         flex-direction: column;
+        //     }
 
-                .menuManage{
-                    width: 15%;
-                    height: 31%;
-                    border-radius: 10px;
-                    font-weight: bold;
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    border: 1px solid black;
-                    font-family: "Noto Sans TC", sans-serif;
-                }
-                .workbench{
-                    width: 15%;
-                    height: 31%;
-                    border-radius: 10px;
-                    font-weight: bold;
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    border: 1px solid black;
-                    font-family: "Noto Sans TC", sans-serif;
-                }
-                .announce{
-                    width: 15%;
-                    height: 31%;
-                    border-radius: 10px;
-                    font-weight: bold;
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    border: 1px solid black;
-                    font-family: "Noto Sans TC", sans-serif;
-                }
-            }
+        //     .menuMain{
+        //         width: 97%;
+        //         height: 85%;
+        //         display: flex;
+        //         justify-content: center;
+        //         align-items: center;
+        //         flex-direction: column;
+        //         border: 1px solid black
+        //     }
+        // }
 
-            .menuArea {
-                width: 100%;
-                height: 59%;
-                border-radius: 10px;
-                display: flex;
-                justify-content: center;
-                align-items: start;
-                background-color: $divColor;
-
-                .menuTop{
-                    width: 97%;
-                    height: 7%;
-                    margin-top: 4%;
-                    border: 1px solid #343a3f;
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    flex-direction: column;
-                }
-            }
-
-            .customerization {
-                width: 100%;
-                height: 27%;
-                margin-top: 2.5%;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                border: 1px solid red;
-            }
-        }
+        // .customerization {
+        //     width: 100%;
+        //     height: 27%;
+        //     margin-top: 2.5%;
+        //     display: flex;
+        //     justify-content: center;
+        //     align-items: center;
+        //     border: 1px solid red;
+        // }
 
         // .mealNameArea {
         //     width: 90%;
