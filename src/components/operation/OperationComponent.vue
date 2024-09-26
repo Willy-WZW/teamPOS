@@ -20,11 +20,7 @@ export default{
             preStartDate: null,
             preEndDate: null,
             preAnalysis:null,
-
-            
             joinOrderList:[],
-            revenueUpRate:0,
-            ordersUpRate:0,
 
             optionLine:{
                 tooltip: {
@@ -128,6 +124,7 @@ export default{
             this.startDate = `${year}-${month}-${day}`;
             this.endDate = `${year}-${month}-${day}`;
             this.postStartDateAndEndDate(this.startDate, this.endDate)
+            this.preCurrentDay
 
             return `${year}年${month}月${day}日`;
         },
@@ -176,6 +173,7 @@ export default{
             this.startDate = `${year}-${month}-${firstDay}`;
             this.endDate = `${year}-${month}-${lastDay}`;
             this.postStartDateAndEndDate(this.startDate, this.endDate)
+            this.preCurrentMonth
 
             return `${year}年${month}月`;
         },
@@ -248,6 +246,7 @@ export default{
             this.startDate = `${year}-${monthStart}-${firstDay}`;
             this.endDate = `${year}-${monthEnd}-${lastDay}`;
             this.postStartDateAndEndDate(this.startDate, this.endDate)
+            this.preCurrentSeason
 
             return `${year}年${monthStart}月~${monthEnd}月`;
         },
@@ -317,6 +316,7 @@ export default{
             this.startDate = `${year}-01-${firstDay}`;
             this.endDate = `${year}-12-${lastDay}`;
             this.postStartDateAndEndDate(this.startDate, this.endDate)
+            this.preCurrentYear
 
             return `${year}年`;
         },
@@ -369,14 +369,16 @@ export default{
             this.currentHead = type
         },
         calRevenueGrowth(){
-            let revenueUpRate = (this.analysis.totalRevenue-this.preAnalysis.totalRevenue)/this.preAnalysis.totalRevenue*100
+            console.log(this.analysis.totalRevenue)
+            console.log(this.preAnalysis.totalRevenue)
+            let revenueUpRate = (this.analysis.totalRevenue-this.preAnalysis.totalRevenue)/(this.preAnalysis.totalRevenue) * 100
             revenueUpRate = Math.round(revenueUpRate)
-            this.revenueUpRate = revenueUpRate
+            return revenueUpRate
         },
         calOrdersGrowth(){
-            let ordersUpRate = (this.analysis.totalOrders - this.preAnalysis.totalOrders)/ this.preAnalysis.totalOrders*100
+            let ordersUpRate = (this.analysis.totalOrders - this.preAnalysis.totalOrders)/ (this.preAnalysis.totalOrders) * 100
             ordersUpRate = Math.round(ordersUpRate)
-            this.ordersUpRate = ordersUpRate
+            return ordersUpRate
         },
 
         postStartDateAndEndDate(startDate, endDate){
@@ -514,18 +516,18 @@ export default{
                             <!-- <p class="contentNumber">{{ preAnalysis.totalRevenue }}</p> -->
                         </div>
                         <div class="foot">
-                            <div class="contentRateUp" v-if="revenueUpRate >=0">
-                                <i class='bx bx-trending-up'></i>
-                                <p>{{revenueUpRate}}%</p>
+                            <div class="contentRateUp" v-if="analysis && analysis.totalRevenue !== null && preAnalysis && preAnalysis.totalRevenue !== null && calRevenueGrowth()>=0">
+                                <i class='bx bx-up-arrow-alt'></i>
+                                <p>{{calRevenueGrowth()}}%</p>
                             </div>
-                            <div class="contentRateDown" v-if="revenueUpRate<0">
-                                <i class='bx bx-trending-down'></i>
-                                <p>{{revenueUpRate}}%</p>
+                            <div class="contentRateDown" v-if="analysis && analysis.totalRevenue !== null && preAnalysis && preAnalysis.totalRevenue !== null && calRevenueGrowth()<0">
+                                <i class='bx bx-down-arrow-alt'></i>
+                                <p>{{calRevenueGrowth()}}%</p>
                             </div>
-                            <p class="compareWhat" v-if="currentHead=='日'">Compare to last day</p>
-                            <p class="compareWhat" v-if="currentHead=='月'">Compare to last month</p>
-                            <p class="compareWhat" v-if="currentHead=='季'">Compare to last season</p>
-                            <p class="compareWhat" v-if="currentHead=='年'">Compare to last year</p>
+                            <p class="compareWhat" v-if="currentHead=='日'">vs 昨日</p>
+                            <p class="compareWhat" v-if="currentHead=='月'">vs 前一月</p>
+                            <p class="compareWhat" v-if="currentHead=='季'">vs 前一季</p>
+                            <p class="compareWhat" v-if="currentHead=='年'">vs 前一年</p>
                         </div>    
                     </div>
                     <div class="compareItem">
@@ -534,33 +536,31 @@ export default{
                             <p class="contentNumber" v-if="analysis && analysis.totalOrders !== null">{{ analysis.totalOrders }}</p>
                         </div>
                         <div class="foot">
-                            <div class="contentRateUp" v-if="ordersUpRate>=0">
-                                <i class='bx bx-trending-up'></i>
-                                <p>{{ordersUpRate}}%</p>
+                            <div class="contentRateUp" v-if="analysis && analysis.totalOrders !== null && preAnalysis && preAnalysis.totalOrders !== null && calOrdersGrowth()>=0">
+                                <i class='bx bx-up-arrow-alt'></i>
+                                <p>{{calOrdersGrowth()}}%</p>
                             </div>
-                            <div class="contentRateDown" v-if="ordersUpRate<0">
-                                <i class='bx bx-trending-down'></i>
-                                <p>{{ordersUpRate}}%</p>
+                            <div class="contentRateDown" v-if="analysis && analysis.totalOrders !== null && preAnalysis && preAnalysis.totalOrders !== null && calOrdersGrowth()<0">
+                                <i class='bx bx-down-arrow-alt'></i>
+                                <p>{{calOrdersGrowth()}}%</p>
                             </div>
-                            <p class="compareWhat" v-if="currentHead=='日'">Compare to last day</p>
-                            <p class="compareWhat" v-if="currentHead=='月'">Compare to last month</p>
-                            <p class="compareWhat" v-if="currentHead=='季'">Compare to last season</p>
-                            <p class="compareWhat" v-if="currentHead=='年'">Compare to last year</p>
+                            <p class="compareWhat" v-if="currentHead=='日'">vs 昨日</p>
+                            <p class="compareWhat" v-if="currentHead=='月'">vs 前一月</p>
+                            <p class="compareWhat" v-if="currentHead=='季'">vs 前一季</p>
+                            <p class="compareWhat" v-if="currentHead=='年'">vs 前一年</p>
                         </div>    
-                    </div>
-                    <div class="compareItem">
                     </div>
                 </div>
                 <div class="chartContainer">
-                    <h1>Revenue Growth</h1>
+                    <h1>營運分析圖</h1>
                     <div id="echart" >
                     </div>
                 </div>
             </div>
             <div class="innerContainer2-Right">
                 <div class="title">
-                    <h1>Poppular Dishes</h1>
-                    <p>View All</p>
+                    <h1>人氣餐點排行</h1>
+                    <!-- <p>View All</p> -->
                 </div >
                 <div class="column">
                     <p>Rank</p>
@@ -588,6 +588,7 @@ export default{
 
 
 <style scoped lang ="scss">
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@100..900&display=swap');
 $up-background: #ffcdd2;
 $up-font: #c62828;
 $down-background: #c8e6c9;
@@ -598,24 +599,27 @@ $down-font: #388e3c;
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: "Poppins", sans-serif;
-
+    // font-family: "Poppins", sans-serif;
+    font-family: "Noto Sans TC", sans-serif;
 }
 
 .container{
+    
     width: 100%;
     height: 100%;
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: flex-start;
     justify-content: flex-start;
-    padding: 5% 0;
+    padding: 5% 0 10% 0;
+    // background-color: red;
     .innerContainer{
         width: 100%;
         height: 10%;
         display: flex;
         align-items: center;
         justify-content: space-between;
+        margin: 0 0 1% 0;
         .dashboardLeft{
             width: 100%;
             height: 45px;
@@ -721,11 +725,9 @@ $down-font: #388e3c;
     .innerContainer2{
         width: 100%;
         height: 100%;
-        background-color: #dcdddfaa;
         display: flex;
         align-items: flex-start;
         justify-content: flex-start;
-        padding: 20px 20px ;
         .innerContainer2-Left{
             width: 70%;
             height: 100%;
@@ -733,7 +735,6 @@ $down-font: #388e3c;
             flex-direction: column;
             align-items: flex-start;
             justify-content: flex-start;
-            background-color: white;
             border-radius: 12px;
             margin: 0 20px 0 0;
             .compareContainer{
@@ -742,19 +743,13 @@ $down-font: #388e3c;
                 display: flex;
                 align-items: center;
                 justify-content: flex-start;
+                border-radius: 6px;
+                background-color: white;
                 padding: 0 5%;
-                position: relative;
-                &:before{
-                    position: absolute;
-                    content: "";
-                    width: 100%;
-                    height: 1px;
-                    left: 0;
-                    bottom: 0;
-                    background-color: rgba(0, 0, 0, 0.232);
-                }
+                margin: 0 0 4% 0;
+
                 .compareItem{
-                    width: 35%;
+                    width: 50%;
                     height: 100%;
                     padding: 20px 20px;
                     display: flex;
@@ -765,12 +760,11 @@ $down-font: #388e3c;
                     &:nth-child(-n+2):before{
                         position: absolute;
                         content: "";
-                        width: 1px;                   /* 線的寬度，1px 即為細線 */
+                        width: 2px;                   /* 線的寬度，1px 即為細線 */
                         height: 80%;                 /* 讓線佔滿元素的高度 */
-                        top: 10%;                       /* 讓線從頂部開始 */
-                        right: 0;                     /* 將線放在元素的右邊 */
+                        top: 13%;                       /* 讓線從頂部開始 */
+                        left: 0;                     /* 將線放在元素的右邊 */
                         background-color: rgba(0, 0, 0, 0.232); /* 線的顏色 */
-                
                     }
                     .title{
                         font-size: 18px;
@@ -785,7 +779,6 @@ $down-font: #388e3c;
                             font-size: 50px;
                             margin: 0 15px 0 0;
                         }
-
                     }
                     .foot{
                         width: 100%;
@@ -837,17 +830,10 @@ $down-font: #388e3c;
                 flex-direction: column;
                 align-items: flex-start;
                 justify-content: flex-start;
+                border-radius: 6px;
+                background-color: white;
                 padding: 2% 5%;
-                position: relative;
-                &:before{
-                    position: absolute;
-                    content: "";
-                    width: 100%;
-                    height: 1px;
-                    left: 0;
-                    bottom: 0;
-                    background-color: rgba(0, 0, 0, 0.232);
-                }
+
                 h1{
                     font-size: 25px;
                     margin: 0 0 10px 0;
@@ -860,14 +846,14 @@ $down-font: #388e3c;
         }
         .innerContainer2-Right{
             width: 30%;
-            height: 100%;
+            height: 65%;
             display: flex;
             flex-direction: column;
             align-items: flex-start;
             justify-content: flex-start;
             background-color: white;
             border-radius: 12px;
-            padding: 30px 30px;
+            padding: 20px 20px;
             overflow-y: scroll;
 
             .title{
@@ -879,10 +865,10 @@ $down-font: #388e3c;
                 h1{
                     font-size: 25px;
                 }
-                p{  
-                    font-weight: 500;
-                    color: #066a68cf;
-                }
+                // p{  
+                //     font-weight: 500;
+                //     color: #066a68cf;
+                // }
             }
             .column{
                 display: flex;
