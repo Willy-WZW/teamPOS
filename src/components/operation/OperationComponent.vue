@@ -11,7 +11,62 @@ export default{
             dateForYear: new Date(),
             startDate: null,
             endDate: null,
-            analysis:null,
+            analysis: {
+                "totalRevenue": 600,
+                "totalOrders": 12,
+                "popularDishes": [
+                    {
+                        "name": "天堂漢堡",
+                        "orders": 1
+                    },
+                    {
+                        "name": "地獄漢堡",
+                        "orders": 1
+                    },
+                    {
+                        "name": "恐龍漢堡",
+                        "orders": 1
+                    },
+                    {
+                        "name": "水母漢堡",
+                        "orders": 1
+                    },
+                    {
+                        "name": "草尼碼漢堡",
+                        "orders": 1
+                    },
+                    {
+                        "name": "飛雷神漢堡",
+                        "orders": 1
+                    },
+                    {
+                        "name": "金妮漢堡",
+                        "orders": 2
+                    },
+                    {
+                        "name": "幻影俠客漢堡",
+                        "orders": 1
+                    },
+                    {
+                        "name": "天使破壞者漢堡",
+                        "orders": 1
+                    },
+                    {
+                        "name": "精靈射手漢堡",
+                        "orders": 1
+                    },
+                    {
+                        "name": "吐司漢堡",
+                        "orders": 1
+                    }
+                ],
+                "revenueGrowth": [
+                    {
+                        "day": "2024-09-26",
+                        "revenue": 600
+                    }
+                ]
+            },
 
             preDateForDay: new Date(new Date().setDate(new Date().getDate() - 1)),
             preDateForMonth: new Date(new Date().setMonth(new Date().getMonth() - 1)),
@@ -19,7 +74,17 @@ export default{
             preDateForYear: new Date(new Date().setYear(new Date().getFullYear() - 1)),
             preStartDate: null,
             preEndDate: null,
-            preAnalysis:null,
+            preAnalysis:{
+                "totalRevenue": 0,
+                "totalOrders": 0,
+                "popularDishes": [],
+                "revenueGrowth": [
+                    {
+                        "day": "2024-09-25",
+                        "revenue": 0
+                    }
+                ]
+            },
             joinOrderList:[],
 
             optionLine:{
