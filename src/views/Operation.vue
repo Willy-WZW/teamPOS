@@ -1,12 +1,14 @@
 <script>
 import LeftBar from '@/components/LeftBar.vue' 
+import OperationComponent from '@/components/operation/OperationComponent.vue';
 export default {
     data() {
         return {
         }
     },
     components: {
-        LeftBar
+        LeftBar,
+        OperationComponent
     },
 }
 </script>
@@ -17,7 +19,7 @@ export default {
             <LeftBar />
         </div>
         <div class="mainArea">
-
+            <OperationComponent />
         </div>
     </div>
 </template>
@@ -32,7 +34,7 @@ export default {
 
     .leftBar {
         width: 10%;
-        height: 100vh;
+        height: 100dvh;
         position: fixed;
         top: 0;
         left: 0;
@@ -41,8 +43,8 @@ export default {
     }
 
     .mainArea {
-        width: 100%;
-        height: 90%;
+        width: 90%;
+        height: 100dvh;
         overflow-y: scroll;
         display: flex;
         justify-content: start;
