@@ -13,7 +13,6 @@ export default{
             endDate: null,
             analysis:null,
 
-
             preDateForDay: new Date(new Date().setDate(new Date().getDate() - 1)),
             preDateForMonth: new Date(new Date().setMonth(new Date().getMonth() - 1)),
             preDateForSeason: new Date(new Date().setMonth(new Date().getMonth() - 2)),
@@ -21,10 +20,7 @@ export default{
             preStartDate: null,
             preEndDate: null,
             preAnalysis:null,
-
-
             joinOrderList:[],
-
             optionPie: {
                 tooltip: {
                     trigger: 'item'
@@ -134,32 +130,38 @@ export default{
     created(){
     },
     mounted() {
-
-        //給startDate、endDate賦值
         this.getTodayDate() 
-        
-        //根據給startDate、endDate 設定chart x軸範圍
         this.optionLine.xAxis.data = this.getPeriodDate(this.startDate, this.endDate) 
 
-        this.$nextTick(() => {
+        Promise.all([
             axios.post("http://localhost:8080/pos/analysis", {   
-                            "startDate":this.startDate,
-                            "endDate":this.endDate
+                "startDate": this.startDate,
+                "endDate": this.endDate
+            }),
+            axios.post("http://localhost:8080/pos/analysis", {   
+                "startDate": this.preStartDate,
+                "endDate": this.preEndDate
             })
-            .then(response => {
-                this.analysis = response.data.analysis
-                this.analysis.popularDishes = this.analysis.popularDishes.sort((a,b)=>{return b.orders-a.orders})
-            })
-            .then(()=>{
-                this.optionLine.series[0].data = [this.analysis.revenueGrowth[0].revenue]
-            })
-            .then(() => {
-                this.drawChart(); 
-            })
-            .catch(error=>{
-                console.error("Error fetching statistics:", error);
+        ])
+        .then(([response1, response2]) => {
+            this.analysis = response1.data.analysis;
+            this.analysis.popularDishes = this.analysis.popularDishes.sort((a, b) => b.orders - a.orders);
+
+            this.preAnalysis  = response2.data.analysis;
+        })
+        .then(()=>{
+            this.optionLine.xAxis.data = this.getPeriodDate(this.startDate, this.endDate)
+            this.optionLine.series[0].data = this.analysis.revenueGrowth.map(item=>{
+                return item.revenue
             })
         })
+        .catch(error => {
+            console.error("Error fetching statistics:", error);
+        });
+
+        this.$nextTick(() => {
+            this.drawChart();  // 初始化图表
+    });
     },
     computed:{
         currentDay() {
@@ -399,25 +401,27 @@ export default{
     },
     methods:{
         drawChart() {
-            const myChart = echarts.init(document.querySelector(".echart"))
-            myChart.setOption(this.optionLine)
+            const myChart = echarts.init(document.getElementById("echart"))
+            if (myChart) {
+                const myChart = echarts.init(myChart);
+                myChart.setOption(this.optionLine);  
+            } else {
+                console.error("Invalid DOM: chart container not found");
+            }
         },
 
         selectPeriod(type){
             this.currentHead = type
         },
-
         calRevenueGrowth(){
-            const analysis = this.analysis
-            const preAnalysis = this.preAnalysis
-            let revenueUpRate = (analysis.totalRevenue-preAnalysis.totalRevenue)/preAnalysis.totalRevenue*100
+            let revenueUpRate = (this.analysis.totalRevenue-this.preAnalysis.totalRevenue)/this.preAnalysis.totalRevenue*100
             revenueUpRate = Math.round(revenueUpRate)
             return revenueUpRate
         },
         calOrdersGrowth(){
-            const analysis = this.analysis
-            const preAnalysis = this.preAnalysis
-            let ordersUpRate = (analysis.totalOrders-preAnalysis.totalOrders)/preAnalysis.totalOrders*100
+            console.log(this.analysis)
+            console.log(this.preAnalysis)
+            let ordersUpRate = (this.analysis.totalOrders - this.preAnalysis.totalOrders)/ this.preAnalysis.totalOrders*100
             ordersUpRate = Math.round(ordersUpRate)
             return ordersUpRate
         },
@@ -495,64 +499,141 @@ export default{
 
 <div class="container">
     <div class="innerContainer">
-        <div class="dashboardContainer">
-            <div class="dashboardLeft">
-                <div class="navHead">
-                    <h1 class="headStyle" :class="{headStyleClick: currentHead == '日'}" @click="selectPeriod('日')">日</h1>
-                    <h1 class="headStyle" :class="{headStyleClick: currentHead == '月'}" @click="selectPeriod('月')">月</h1>
-                    <h1 class="headStyle" :class="{headStyleClick: currentHead == '季'}" @click="selectPeriod('季')">季</h1>
-                    <h1 class="headStyle" :class="{headStyleClick: currentHead == '年'}" @click="selectPeriod('年')">年</h1>
-                    <!-- <h1 class="headStyle" :class="{headStyleClick: currentHead == '自訂'}" @click="selectPeriod('自訂')">自訂</h1> -->
+        <div class="dashboardLeft">
+            <div class="navHead">
+                <h1 class="headStyle" :class="{headStyleClick: currentHead == '日'}" @click="selectPeriod('日')">日</h1>
+                <h1 class="headStyle" :class="{headStyleClick: currentHead == '月'}" @click="selectPeriod('月')">月</h1>
+                <h1 class="headStyle" :class="{headStyleClick: currentHead == '季'}" @click="selectPeriod('季')">季</h1>
+                <h1 class="headStyle" :class="{headStyleClick: currentHead == '年'}" @click="selectPeriod('年')">年</h1>
+                <!-- <h1 class="headStyle" :class="{headStyleClick: currentHead == '自訂'}" @click="selectPeriod('自訂')">自訂</h1> -->
+            </div>
+            <div class="echartContainer" v-if="currentHead=='日'">
+                <div class="leftRightContainer">
+                    <i class='bx bx-chevron-left' @click="previousDay"></i>
+                    <p>{{ currentDay }}</p>
+                    <p>{{ preCurrentDay }}</p>
+                    <i class='bx bx-chevron-right' @click="nextDay"></i>
                 </div>
-                <div class="echartContainer" v-if="currentHead=='日'">
-                    <div class="leftRightContainer">
-                        <i class='bx bxs-chevron-left-circle bx-tada' @click="previousDay"></i>
-                        <p>{{ currentDay }}</p>
-                        <p>{{ preCurrentDay }}</p>
-                        <i class='bx bxs-chevron-right-circle bx-tada' @click="nextDay"></i>
+            </div>
+            <div class="echartContainer" v-if="currentHead=='月'">
+                <div class="leftRightContainer">
+                    <i class='bx bx-chevron-left' @click="previousMonth"></i>
+                    <p>{{ currentMonth }}</p>
+                    <p>{{ preCurrentMonth }}</p>
+                    <i class='bx bx-chevron-right' @click="nextMonth"></i>
+                </div>
+            </div>
+            <div class="echartContainer" v-if="currentHead=='季'">
+                <div class="leftRightContainer">
+                    <i class='bx bx-chevron-left' @click="previousSeason"></i>
+                    <p>{{ currentSeason }}</p> 
+                    <p>{{ preCurrentSeason }}</p>
+                    <i class='bx bx-chevron-right' @click="nextSeason"></i>
+                </div>
+            </div>
+            <div class="echartContainer" v-if="currentHead=='年'">
+                <div class="leftRightContainer">
+                    <i class='bx bx-chevron-left' @click="previousYear"></i>
+                    <p>{{ currentYear }}</p>
+                    <p>{{ preCurrentYear }}</p>
+                    <i class='bx bx-chevron-right' @click="nextYear"></i>
+                </div>
+            </div>
+            <!-- <div class="echartContainer" v-if="currentHead=='自訂'">
+                <p>請選擇日期範圍</p>
+                <div class="leftRightContainer">
+                    <p>開始</p>
+                    <input type="date" v-model="startDate">
+                    <p>結束</p>
+                    <input type="date" v-model="startDate">
+                </div>
+            </div> -->
+            </div>
+        <div class="dashboardRight">
+            <i class='bx bxs-grid'></i>
+            <button>Export CSV</button>
+        </div>
+    </div>
+
+    <div class="innerContainer2">
+            <div class="innerContainer2-Left">
+                <div class="compareContainer">
+                    <div class="compareItem">
+                        <p class="title">總銷售額</p>
+                        <div class="content">
+                            <p class="contentNumber" v-if="analysis && analysis.totalRevenue !== null">${{ analysis.totalRevenue }}</p>
+                            <!-- <p class="contentNumber">{{ preAnalysis.totalRevenue }}</p> -->
+                        </div>
+                        <div class="foot">
+                            <div class="contentRateUp" v-if="calRevenueGrowth()>=0">
+                                <i class='bx bx-trending-up'></i>
+                                <p>{{calRevenueGrowth()}}%</p>
+                            </div>
+                            <div class="contentRateDown" v-if="calRevenueGrowth()<0">
+                                <i class='bx bx-trending-down'></i>
+                                <p>{{calRevenueGrowth()}}%</p>
+                            </div>
+                            <p class="compareWhat" v-if="currentHead=='日'">Compare to last day</p>
+                            <p class="compareWhat" v-if="currentHead=='月'">Compare to last month</p>
+                            <p class="compareWhat" v-if="currentHead=='季'">Compare to last season</p>
+                            <p class="compareWhat" v-if="currentHead=='年'">Compare to last year</p>
+                        </div>    
+                    </div>
+                    <div class="compareItem">
+                        <p class="title">總銷售量</p>
+                        <div class="content">
+                            <p class="contentNumber">{{ analysis.totalOrders }}</p>
+                            <!-- <p class="contentNumber">{{ preAnalysis.totalOrders }}</p> -->
+                        </div>
+                        <div class="foot">
+                            <div class="contentRateUp" v-if="calOrdersGrowth()>=0">
+                                <i class='bx bx-trending-up'></i>
+                                <p>{{calOrdersGrowth()}}%</p>
+                            </div>
+                            <div class="contentRateDown" v-if="calOrdersGrowth()<0">
+                                <i class='bx bx-trending-down'></i>
+                                <p>{{calOrdersGrowth()}}%</p>
+                            </div>
+                            <p class="compareWhat" v-if="currentHead=='日'">Compare to last day</p>
+                            <p class="compareWhat" v-if="currentHead=='月'">Compare to last month</p>
+                            <p class="compareWhat" v-if="currentHead=='季'">Compare to last season</p>
+                            <p class="compareWhat" v-if="currentHead=='年'">Compare to last year</p>
+                        </div>    
+                    </div>
+                    <div class="compareItem">
                     </div>
                 </div>
-                <div class="echartContainer" v-if="currentHead=='月'">
-                    <div class="leftRightContainer">
-                        <i class='bx bxs-chevron-left-circle bx-tada' @click="previousMonth"></i>
-                        <p>{{ currentMonth }}</p>
-                        <p>{{ preCurrentMonth }}</p>
-                        <i class='bx bxs-chevron-right-circle bx-tada' @click="nextMonth"></i>
+                <div class="chartContainer">
+                    <h1>Revenue Growth</h1>
+                    <div class="echart" >
                     </div>
                 </div>
-                <div class="echartContainer" v-if="currentHead=='季'">
-                    <div class="leftRightContainer">
-                        <i class='bx bxs-chevron-left-circle bx-tada' @click="previousSeason"></i>
-                        <p>{{ currentSeason }}</p> 
-                        <p>{{ preCurrentSeason }}</p>
-                        <i class='bx bxs-chevron-right-circle bx-tada' @click="nextSeason"></i>
-                    </div>
+            </div>
+            <div class="innerContainer2-Right">
+                <div class="title">
+                    <h1>Poppular Dishes</h1>
+                    <p>View All</p>
+                </div >
+                <div class="column">
+                    <p>Rank</p>
+                    <p>Name</p>
                 </div>
-                <div class="echartContainer" v-if="currentHead=='年'">
-                    <div class="leftRightContainer">
-                        <i class='bx bxs-chevron-left-circle bx-tada' @click="previousYear"></i>
-                        <p>{{ currentYear }}</p>
-                        <p>{{ preCurrentYear }}</p>
-                        <i class='bx bxs-chevron-right-circle bx-tada' @click="nextYear"></i>
+                <div class="poppularDishes">
+                    <div class="dishItem" v-for="(dish,index) in analysis.popularDishes">
+                        <p class="rank">{{ String(index+1).padStart(2,"0")}}</p>
+                        <img class="img" src="https://tokyo-kitchen.icook.network/uploads/recipe/cover/420886/dd9e8293a9b1a758.jpg" alt="">
+                        <div class="content">
+                            <h1 class="name">{{dish.name}}</h1>
+                            <div class="quantity">
+                                <p>Orders:</p>
+                                <p>{{ dish.orders }}</p>
+                            </div>
+                        </div>
                     </div>
+
                 </div>
-                <!-- <div class="echartContainer" v-if="currentHead=='自訂'">
-                    <p>請選擇日期範圍</p>
-                    <div class="leftRightContainer">
-                        <p>開始</p>
-                        <input type="date" v-model="startDate">
-                        <p>結束</p>
-                        <input type="date" v-model="startDate">
-                    </div>
-                </div> -->
-                </div>
-            <div class="dashboardRight">
-                <i class='bx bxs-grid'></i>
-                <button>Export CSV</button>
             </div>
         </div>
-
-    </div>
 </div>
 
 </template>
@@ -580,129 +661,344 @@ $down-font: #388e3c;
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
+    padding: 5% 0;
     .innerContainer{
         width: 100%;
-        height: 30%;
-        background-color: #dcdddfaa;
+        height: 10%;
         display: flex;
-        flex-direction: column;
         align-items: center;
-        justify-content: flex-start;
-        .dashboardContainer{
+        justify-content: space-between;
+        .dashboardLeft{
             width: 100%;
-            height: 50px;
+            height: 45px;
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            padding: 2% 5%;
-            position: relative;
-            &:before{
-                position: absolute;
-                content: "";
+            justify-content: flex-start;
+            .navHead{
                 width: 100%;
-                height: 1px;
-                left: 0;
-                bottom: 0;
-                background-color: rgba(0, 0, 0, 0.232);
-            }
-            
-            .dashboardLeft{
-                .navHead{
-                    width: 30%;
-                    height: 40px;
+                height: 100%;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                background-color: rgba(255, 255, 255, 0.7);
+                border-radius: 10px;
+                padding: 10px 10px;
+                margin: 0 30px 0 0;
+                position: relative;
+
+                .headStyle{
+                    width: 25%;
+                    font-size: 20px;
+                    text-align: center;
                     display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    background-color: rgba(130, 130, 130, 0.503);
-                    border-radius: 10px;
-                    margin: 30px 0 0 0;
-                    // padding: 0 10px;
-                    position: relative;
-                    .headStyle{
-                        width: 25%;
-                        height: 40px;
-                        font-size: 20px;
-                        text-align: center;
-                        display: flex;
-                        justify-content: center;  /* 水平居中 */
-                        align-items: center;      /* 垂直居中 */
-                        cursor: pointer;
+                    justify-content: center;  /* 水平居中 */
+                    align-items: center;      /* 垂直居中 */
+                    cursor: pointer;
 
-                        &:hover{
-                            color: white;
-                            background-color: rgba(0, 0, 255, 0.301);
-                            border-radius: 10px;
-                        }
-                    }
-
-                    .headStyleClick {
+                    &:hover{
                         color: white;
                         background-color: rgba(0, 0, 255, 0.301);
                         border-radius: 10px;
                     }
-
                 }
-                .echartContainer {
+
+                .headStyleClick {
+                    color: white;
+                    background-color: rgba(0, 0, 255, 0.301);
+                    border-radius: 10px;
+                }
+
+            }
+            .echartContainer {
+                width: 100%;
+                height: 100%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background-color: rgba(255, 255, 255, 0.7);
+                border-radius: 10px;
+                padding: 10px 10px;
+                .leftRightContainer{
                     width: 100%;
-                    height: 90px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    i{  
+                        width: 50px;
+                        display: flex;
+                        text-align: center;
+                        justify-content: center;
+                        background-color: rgba(0, 0, 0, 0.121);
+                        font-size: 30px;
+                        cursor: pointer;
+                        border-radius: 6px;
+                        padding: 2px 0 0 0;
+                    }
+                    p{
+                        font-size: 25px;
+                        margin: 0 10px;
+                    }
+                    input{
+                        width: 150px;
+                        height: 40px;
+                        border-radius: 12px;
+                    }
+                }
+            }
+        }
+        .dashboardRight{
+            width: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            i{
+                font-size: 25px;
+                margin: 0 10px 0 0;
+                cursor: pointer;
+
+            }
+
+            button{
+                width: 120px;
+                height: 40px;
+                font-size: 18px;
+                color: white;
+                border: none;
+                border-radius: 10px;
+                background-color: #2DB976;
+                cursor: pointer;
+            }
+        }
+    }
+    .innerContainer2{
+        width: 100%;
+        height: 100%;
+        background-color: #dcdddfaa;
+        display: flex;
+        align-items: flex-start;
+        justify-content: flex-start;
+        padding: 20px 20px ;
+        .innerContainer2-Left{
+            width: 70%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            justify-content: flex-start;
+            background-color: white;
+            border-radius: 12px;
+            margin: 0 20px 0 0;
+            .compareContainer{
+                width: 100%;
+                height: 30%;
+                display: flex;
+                align-items: center;
+                justify-content: flex-start;
+                padding: 0 5%;
+                position: relative;
+                &:before{
+                    position: absolute;
+                    content: "";
+                    width: 100%;
+                    height: 1px;
+                    left: 0;
+                    bottom: 0;
+                    background-color: rgba(0, 0, 0, 0.232);
+                }
+                .compareItem{
+                    width: 35%;
+                    height: 100%;
+                    padding: 20px 20px;
                     display: flex;
                     flex-direction: column;
-                    align-items: center;
-                    justify-content: flex-start;
-                    margin-top: 10px;
+                    align-items: flex-start;
+                    justify-content: center;
                     position: relative;
-                    &:before{
+                    &:nth-child(-n+2):before{
                         position: absolute;
                         content: "";
-                        width: 100%;
-                        height: 1px;
-                        left: 0;
-                        bottom: 0;
-                        background-color: rgba(0, 0, 0, 0.232);
+                        width: 1px;                   /* 線的寬度，1px 即為細線 */
+                        height: 80%;                 /* 讓線佔滿元素的高度 */
+                        top: 10%;                       /* 讓線從頂部開始 */
+                        right: 0;                     /* 將線放在元素的右邊 */
+                        background-color: rgba(0, 0, 0, 0.232); /* 線的顏色 */
+                
                     }
-                    .leftRightContainer{
-                        width: 100%;
-                        height: 40px;
+                    .title{
+                        font-size: 18px;
+                        color: #212528;
+                        font-weight: 600;
+                    }
+                    .content{
                         display: flex;
                         align-items: center;
                         justify-content: center;
-                        i{
-                            font-size: 40px;
-                            cursor: pointer;
+                        .contentNumber{
+                            font-size: 50px;
+                            margin: 0 15px 0 0;
                         }
-                        p{
-                            font-size: 25px;
-                            margin: 0 20px;
-                        }
-                        input{
-                            width: 150px;
-                            height: 40px;
+
+                    }
+                    .foot{
+                        width: 100%;
+                        display: flex;
+                        align-items: center;
+                        justify-content: flex-start;
+                        .contentRateUp{
+                            width: 80px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            text-align: center;
                             border-radius: 12px;
+                            background-color: $up-background;
+                            margin: 0 10px 0 0;
+                            p{
+                                color: $up-font;
+                            }
+                            i{
+                                color: $up-font;
+                            }
+                        }
+                        .contentRateDown{
+                            width: 80px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            text-align: center;
+                            border-radius: 12px;
+                            margin: 0 10px 0 0;
+                            background-color: $down-background;
+                            p{
+                                color: $down-font;
+                            }
+                            i{
+                                color: $down-font;
+                            }
+                        }
+                        .compareWhat{
+                            color: #5D6165;
                         }
                     }
                 }
             }
-            .dashboardRight{
+            .chartContainer{
+                width: 100%;
+                height: 100%;
+                display: flex;
+                flex-direction: column;
+                align-items: flex-start;
+                justify-content: flex-start;
+                padding: 2% 5%;
+                position: relative;
+                &:before{
+                    position: absolute;
+                    content: "";
+                    width: 100%;
+                    height: 1px;
+                    left: 0;
+                    bottom: 0;
+                    background-color: rgba(0, 0, 0, 0.232);
+                }
+                h1{
+                    font-size: 25px;
+                    margin: 0 0 10px 0;
+                }
+                .echart{
+                    width: 100%;
+                    height: 100%;
+                }
+            }
+        }
+        .innerContainer2-Right{
+            width: 30%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            justify-content: flex-start;
+            background-color: white;
+            border-radius: 12px;
+            padding: 30px 30px;
+            overflow-y: scroll;
+
+            .title{
+                width: 100%;
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
-                i{
+                margin: 0 0 10px 0;
+                h1{
                     font-size: 25px;
+                }
+                p{  
+                    font-weight: 500;
+                    color: #066a68cf;
+                }
+            }
+            .column{
+                display: flex;
+                align-items: center;
+                justify-content: flex-start;
+                color: #000000a5;
+                margin: 0 0 10px 0;
+                p{
                     margin: 0 10px 0 0;
-                    cursor: pointer;
+                }
+            }
 
+            .poppularDishes{
+                width: 100%;
+                height: 100%;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: flex-start;
+                // background-color: aquamarine;
+                .dishItem{
+                    width: 100%;
+                    height: 70px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: flex-start;
+                    // background-color: rgb(127, 142, 255);
+                    margin: 10px 0;
+                    padding: 10px 10px;
+
+                    .rank{
+                        margin: 0 20px 0 0;
+                    }
+                    .img{
+                        width: 60px;
+                        height: 60px;
+                        border-radius: 50px;
+                        margin: 0 20px 0 0;
+                    }
+                    .content{
+                        display: flex;
+                        flex-direction: column;
+                        align-items: flex-start;
+                        justify-content: flex-start;
+                        h1{
+                            font-size: 20px; 
+                        }
+                        .quantity{
+                            display: flex;
+                            align-items: center;
+                            justify-content: flex-start;
+                            p:nth-child(1){
+                                color: #000000aa;
+                                margin: 0 10px 0 0;
+                            }
+                            p:nth-child(2){
+                                font-weight: 500;
+                                color: rgba(255, 0, 0, 0.723);
+                            }
+                            
+                        }
+                    }
                 }
 
-                button{
-                    width: 120px;
-                    height: 40px;
-                    font-size: 18px;
-                    color: white;
-                    border: none;
-                    border-radius: 10px;
-                    background-color: #2DB976;
-                    cursor: pointer;
-                }
             }
         }
 
