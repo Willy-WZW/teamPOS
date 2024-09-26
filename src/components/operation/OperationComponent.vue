@@ -11,80 +11,81 @@ export default{
             dateForYear: new Date(),
             startDate: null,
             endDate: null,
-            analysis: {
-                "totalRevenue": 600,
-                "totalOrders": 12,
-                "popularDishes": [
-                    {
-                        "name": "天堂漢堡",
-                        "orders": 1
-                    },
-                    {
-                        "name": "地獄漢堡",
-                        "orders": 1
-                    },
-                    {
-                        "name": "恐龍漢堡",
-                        "orders": 1
-                    },
-                    {
-                        "name": "水母漢堡",
-                        "orders": 1
-                    },
-                    {
-                        "name": "草尼碼漢堡",
-                        "orders": 1
-                    },
-                    {
-                        "name": "飛雷神漢堡",
-                        "orders": 1
-                    },
-                    {
-                        "name": "金妮漢堡",
-                        "orders": 2
-                    },
-                    {
-                        "name": "幻影俠客漢堡",
-                        "orders": 1
-                    },
-                    {
-                        "name": "天使破壞者漢堡",
-                        "orders": 1
-                    },
-                    {
-                        "name": "精靈射手漢堡",
-                        "orders": 1
-                    },
-                    {
-                        "name": "吐司漢堡",
-                        "orders": 1
-                    }
-                ],
-                "revenueGrowth": [
-                    {
-                        "day": "2024-09-26",
-                        "revenue": 600
-                    }
-                ]
-            },
-
+            // analysis: {
+            //     "totalRevenue": 600,
+            //     "totalOrders": 12,
+            //     "popularDishes": [
+            //         {
+            //             "name": "天堂漢堡",
+            //             "orders": 1
+            //         },
+            //         {
+            //             "name": "地獄漢堡",
+            //             "orders": 1
+            //         },
+            //         {
+            //             "name": "恐龍漢堡",
+            //             "orders": 1
+            //         },
+            //         {
+            //             "name": "水母漢堡",
+            //             "orders": 1
+            //         },
+            //         {
+            //             "name": "草尼碼漢堡",
+            //             "orders": 1
+            //         },
+            //         {
+            //             "name": "飛雷神漢堡",
+            //             "orders": 1
+            //         },
+            //         {
+            //             "name": "金妮漢堡",
+            //             "orders": 2
+            //         },
+            //         {
+            //             "name": "幻影俠客漢堡",
+            //             "orders": 1
+            //         },
+            //         {
+            //             "name": "天使破壞者漢堡",
+            //             "orders": 1
+            //         },
+            //         {
+            //             "name": "精靈射手漢堡",
+            //             "orders": 1
+            //         },
+            //         {
+            //             "name": "吐司漢堡",
+            //             "orders": 1
+            //         }
+            //     ],
+            //     "revenueGrowth": [
+            //         {
+            //             "day": "2024-09-26",
+            //             "revenue": 600
+            //         }
+            //     ]
+            // },
+            analysis:null,
             preDateForDay: new Date(new Date().setDate(new Date().getDate() - 1)),
             preDateForMonth: new Date(new Date().setMonth(new Date().getMonth() - 1)),
             preDateForSeason: new Date(new Date().setMonth(new Date().getMonth() - 2)),
             preDateForYear: new Date(new Date().setYear(new Date().getFullYear() - 1)),
             preStartDate: null,
             preEndDate: null,
-            preAnalysis:{
-                "totalRevenue": 0,
-                "totalOrders": 0,
-                "popularDishes": [],
-                "revenueGrowth": [
-                    {
-                        "day": "2024-09-25",
-                        "revenue": 0
-                    }
-                ]
-            },
+            // preAnalysis:{
+            //     "totalRevenue": 0,
+            //     "totalOrders": 0,
+            //     "popularDishes": [],
+            //     "revenueGrowth": [
+            //         {
+            //             "day": "2024-09-25",
+            //             "revenue": 0
+            //         }
+            //     ]
+            // },
+            preAnalysis:null,
             joinOrderList:[],
 
             optionLine:{
@@ -567,7 +568,7 @@ export default{
             </div>
         <div class="dashboardRight">
             <i class='bx bxs-grid'></i>
-            <button>Export CSV</button>
+            <button>下載檔案</button>
         </div>
     </div>
 
@@ -664,29 +665,26 @@ $down-font: #388e3c;
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    // font-family: "Poppins", sans-serif;
     font-family: "Noto Sans TC", sans-serif;
 }
 
 .container{
-    
     width: 100%;
-    height: 100%;
+    height: 100dvh;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     justify-content: flex-start;
     padding: 5% 0 10% 0;
-    // background-color: red;
     .innerContainer{
         width: 100%;
         height: 10%;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        margin: 0 0 1% 0;
+        margin: 0 0 2% 0;
         .dashboardLeft{
-            width: 100%;
+            width: 88%;
             height: 45px;
             display: flex;
             align-items: center;
@@ -699,8 +697,8 @@ $down-font: #388e3c;
                 align-items: center;
                 background-color: rgba(255, 255, 255, 0.7);
                 border-radius: 10px;
-                padding: 10px 10px;
-                margin: 0 30px 0 0;
+                padding: 0 10px;
+                margin: 0 5% 0 0;
                 position: relative;
 
                 .headStyle{
@@ -734,7 +732,6 @@ $down-font: #388e3c;
                 justify-content: center;
                 background-color: rgba(255, 255, 255, 0.7);
                 border-radius: 10px;
-                padding: 10px 10px;
                 .leftRightContainer{
                     width: 100%;
                     display: flex;
@@ -794,7 +791,7 @@ $down-font: #388e3c;
         align-items: flex-start;
         justify-content: flex-start;
         .innerContainer2-Left{
-            width: 70%;
+            width: 65%;
             height: 100%;
             display: flex;
             flex-direction: column;
@@ -804,12 +801,13 @@ $down-font: #388e3c;
             margin: 0 20px 0 0;
             .compareContainer{
                 width: 100%;
-                height: 30%;
+                height: 25%;
                 display: flex;
                 align-items: center;
                 justify-content: flex-start;
                 border-radius: 6px;
                 background-color: white;
+                border: 2px solid rgba(0, 0, 0, 0.25);
                 padding: 0 5%;
                 margin: 0 0 4% 0;
 
@@ -821,14 +819,15 @@ $down-font: #388e3c;
                     flex-direction: column;
                     align-items: flex-start;
                     justify-content: center;
+                    margin: 0 0 0 4%;
                     position: relative;
                     &:nth-child(-n+2):before{
                         position: absolute;
                         content: "";
                         width: 2px;                   /* 線的寬度，1px 即為細線 */
-                        height: 80%;                 /* 讓線佔滿元素的高度 */
-                        top: 13%;                       /* 讓線從頂部開始 */
-                        left: 0;                     /* 將線放在元素的右邊 */
+                        height: 70%;                 /* 讓線佔滿元素的高度 */
+                        top: 20%;                       /* 讓線從頂部開始 */
+                        left: -2%;                     /* 將線放在元素的右邊 */
                         background-color: rgba(0, 0, 0, 0.232); /* 線的顏色 */
                     }
                     .title{
@@ -890,27 +889,32 @@ $down-font: #388e3c;
             }
             .chartContainer{
                 width: 100%;
-                height: 100%;
+                height: 600px;
                 display: flex;
                 flex-direction: column;
                 align-items: flex-start;
                 justify-content: flex-start;
                 border-radius: 6px;
                 background-color: white;
-                padding: 2% 5%;
+                border: 2px solid rgba(0, 0, 0, 0.25);
+                padding: 5% 4%;
 
                 h1{
                     font-size: 25px;
-                    margin: 0 0 10px 0;
+                    margin: 0 0 20px 0;
                 }
                 #echart{
                     width: 100%;
                     height: 100%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    border: 1px solid rgba(0, 0, 0, 0.25);
                 }
             }
         }
         .innerContainer2-Right{
-            width: 30%;
+            width: 35%;
             height: 65%;
             display: flex;
             flex-direction: column;
@@ -918,6 +922,7 @@ $down-font: #388e3c;
             justify-content: flex-start;
             background-color: white;
             border-radius: 12px;
+            border: 2px solid rgba(0, 0, 0, 0.25);
             padding: 20px 20px;
             overflow-y: scroll;
 

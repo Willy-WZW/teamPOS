@@ -43,13 +43,14 @@ export default {
     }
 
     .mainArea {
-        width: 90%;
+        width: 100%;
         height: 100dvh;
         overflow-y: scroll;
         display: flex;
         justify-content: start;
         align-items: center;
         flex-direction: column;
+        padding: 0 4%
     }
 }
 </style>
