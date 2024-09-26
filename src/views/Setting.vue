@@ -52,7 +52,7 @@ export default {
         },
         addCgInput() {
             this.cgInput.push(
-                { text: "", translateX: 0 },
+                { text: ""},
             )
         },
         clearOption(collapse) {
@@ -134,7 +134,10 @@ export default {
                         <span>公告設定</span>
                     </div>
                 </div>
-                <div class="menuArea">menuArea</div>
+                <div class="menuArea">
+                    <div class="menuTop"></div>
+                    <div class="menuMain"></div>
+                </div>
                 <div class="customerization">customerization</div>
             </div>
             <!-- <div class="mealNameArea">
@@ -193,6 +196,8 @@ export default {
 </template>
 
 <style scoped lang="scss">
+$divColor: #fff;
+
 .big {
     width: 100%;
     height: 100dvh;
@@ -382,7 +387,6 @@ export default {
                 display: flex;
                 justify-content: space-evenly;
                 align-items: center;
-                border: 1px solid red;
 
                 .menuManage{
                     width: 15%;
@@ -422,10 +426,22 @@ export default {
             .menuArea {
                 width: 100%;
                 height: 59%;
+                border-radius: 10px;
                 display: flex;
                 justify-content: center;
-                align-items: center;
-                border: 1px solid red;
+                align-items: start;
+                background-color: $divColor;
+
+                .menuTop{
+                    width: 97%;
+                    height: 7%;
+                    margin-top: 4%;
+                    border: 1px solid #343a3f;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    flex-direction: column;
+                }
             }
 
             .customerization {
