@@ -70,14 +70,13 @@ $textColor: #697077;
         position: absolute;
         bottom: 0;
         left: 0;
-        height: 3px;
+        height: 5px;
         width: 0;
         background-color: $selectedTextColor;
         transition: width 0.3s ease-in-out;
     }
 
     .isSelected {
-        transform: translateY(-5px);
         color: $selectedTextColor;
     }
 

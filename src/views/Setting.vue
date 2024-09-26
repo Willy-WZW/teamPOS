@@ -141,7 +141,10 @@ export default {
                             <div class="saveBtn">儲存</div>
                         </div>
                     </div>
-                    <div class="menuMain"></div>
+                    <div class="menuMain">
+                        <div class="addMenuDiv">+&nbsp&nbsp新增餐點</div>
+                        <div class="menuItem"></div>
+                    </div>
                 </div>
                 <div class="customerization">
                     <div class="cuTop">
@@ -218,6 +221,7 @@ export default {
 
 <style scoped lang="scss">
 $divColor: #fff;
+$addDiv: #343a3f;
 
 .big {
     width: 100%;
@@ -484,10 +488,25 @@ $divColor: #fff;
                     width: 97%;
                     height: 85%;
                     display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    flex-direction: column;
-                    border: 1px solid black
+                    overflow-y: scroll;
+                    flex-wrap: wrap;
+
+                    .addMenuDiv {
+                        width: 22%;
+                        height: 52%;
+                        margin: 0 4% 1% 0;
+                        border-radius: 10px;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        color: white;
+                        background-color: $addDiv;
+                        font-size: 25px;
+                        font-family: "Noto Sans TC", sans-serif;
+                    }
+                    .addMenuDiv:nth-child(4n){
+                            margin: 0 0 1% 0;
+                        }
                 }
             }
 
