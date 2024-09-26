@@ -7,6 +7,7 @@ export default {
         return {
             startX: 0,
             translateX: 0,
+            supply: true,
             categories: [
                 { text: "", translateX: 0 },
             ],
@@ -56,6 +57,9 @@ export default {
             this.cgInput.push(
                 { text: "" },
             )
+        },
+        switchSta() {
+            this.supply = !this.supply
         },
         clearOption(collapse) {
             collapse.options.forEach(option => {
@@ -143,7 +147,26 @@ export default {
                     </div>
                     <div class="menuMain">
                         <div class="addMenuDiv">+&nbsp&nbsp新增餐點</div>
-                        <div class="menuItem"></div>
+                        <div class="menuItem">
+                            <div class="itemPic"> </div>
+                            <div class="itemName">青醬蛤蠣義大利麵</div>
+                            <div class="itemPrice">$ 250</div>
+                            <div class="itemWorksta">
+                                <span>工作檯</span>
+                                <select>
+                                    <option value="0">工作檯選擇</option>
+                                </select>
+                            </div>
+                            <div class="itembot">
+                                <div class="itemStatus" :class="{ flip: !supply }" @click="switchSta()">
+                                    <span>{{ supply ? "供應中" : "售完" }}</span>
+                                </div>
+                                <div class="itemIcon">
+                                    <i class="fa-solid fa-square-pen"></i>
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="customerization">
@@ -504,9 +527,113 @@ $addDiv: #343a3f;
                         font-size: 25px;
                         font-family: "Noto Sans TC", sans-serif;
                     }
-                    .addMenuDiv:nth-child(4n){
-                            margin: 0 0 1% 0;
+
+                    .addMenuDiv:nth-child(4n) {
+                        margin: 0 0 1% 0;
+                    }
+
+                    .menuItem {
+                        display: grid;
+                        grid-template-columns: repeat(6, 1fr);
+                        grid-template-rows: repeat(8, 1fr);
+                        grid-column-gap: 8px;
+                        grid-row-gap: 6px;
+                        width: 22%;
+                        height: 52%;
+                        margin: 0 4% 1% 0;
+                        border-radius: 10px;
+                        border: 1px solid black;
+
+                        .itemPic {
+                            grid-area: 1 / 1 / 5 / 7;
+                            border: dotted;
+                            margin: 4% 4% 0 4%;
                         }
+
+                        .itemName {
+                            grid-area: 5 / 1 / 6 / 7;
+                            display: flex;
+                            align-items: center;
+                            font-weight: bold;
+                            letter-spacing: 3px;
+                            font-family: "Noto Sans TC", sans-serif;
+                            margin: 0 4%;
+                        }
+
+                        .itemPrice {
+                            grid-area: 6 / 1 / 7 / 7;
+                            display: flex;
+                            align-items: center;
+                            font-weight: bold;
+                            font-family: "Noto Sans TC", sans-serif;
+                            margin: 0 4%;
+                        }
+
+                        .itemWorksta {
+                            grid-area: 7 / 1 / 8 / 7;
+                            display: flex;
+                            align-items: center;
+                            color: #697077;
+                            font-family: "Noto Sans TC", sans-serif;
+                            margin: 0 4%;
+
+                            span {
+                                margin-right: 12%;
+                            }
+
+                            select {
+                                width: 60%;
+                                font-family: "Noto Sans TC", sans-serif;
+                            }
+                        }
+
+                        .itembot {
+                            grid-area: 8 / 1 / 9 / 7;
+                            margin: 0 4%;
+                            display: flex;
+
+                            .itemStatus {
+                                width: 60%;
+                                margin-right: 5%;
+                                margin-bottom: 2%;
+                                border-radius: 5px;
+                                letter-spacing: 3px;
+                                cursor: pointer;
+                                font-size: 25px;
+                                font-weight: bold;
+                                color: white;
+                                background-color: green;
+                                border: 1px solid green;
+                                display: flex;
+                                justify-content: center;
+                                align-items: center;
+                                transition: transform 0.7s, background-color 0.5s;
+                            }
+                            .flip {
+                                transform: rotateX(360deg);
+                                background-color: red;
+                                color: white;
+                            }
+
+
+                            .itemIcon {
+                                width: 35%;
+                                display: flex;
+                                justify-content: space-between;
+                                align-items: center;
+
+                                .fa-solid {
+                                    font-size: 25px;
+                                }
+                            }
+                        }
+
+                    }
+
+                    .menuItem:nth-child(4n) {
+                        margin: 0 0 1% 0;
+                    }
+
                 }
             }
 
