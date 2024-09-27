@@ -14,7 +14,6 @@
     "@fullcalendar/vue3": "^6.1.15",
     "axios": "^1.7.7",
     "echarts": "^5.5.1",
-    "element-plus": "^2.8.2",
     "fullcalendar": "^6.1.15",
     "package.json": "file:",
     "pinia": "^2.1.7",
