@@ -2,18 +2,19 @@
 import LeftBar from '@/components/LeftBar.vue'
 import Header from '@/components/Header.vue'
 import Swal from 'sweetalert2';
+import { options } from '@fullcalendar/core/preact';
 export default {
     data() {
         return {
             startX: 0,
             translateX: 0,
-            supply: true,
+            selectedType: 'checkbox',
             categories: [
                 { text: "", translateX: 0 },
             ],
             cgInput: [],
-            activeNames: [],
-            collapses: [],
+            menuList: [],
+            custList: [],
         };
     },
     components: {
@@ -55,45 +56,43 @@ export default {
         },
         addCgInput() {
             this.cgInput.push(
-                { text: "" },
+                { category: "" },
             )
         },
-        switchSta() {
-            this.supply = !this.supply
+        switchSta(menu) {
+            menu.supply = !menu.supply
         },
-        clearOption(collapse) {
-            collapse.options.forEach(option => {
-                option.text = ""
+        addMenu() {
+            this.menuList.push({
+                name: "", // 餐點名稱
+                price: "", // 餐點金額
+                workstation: "0", // 工作檯
+                supply: true, // 供應狀態
             });
         },
-        addOptionBox(collapse) {
-            collapse.options.push({ text: '' })
+        removeMenu(index) {
+            this.menuList.splice(index, 1);
         },
-        removeOption(collapse, opIndex) {
-            if (collapse.options.length > 2) {
-                collapse.options.splice(opIndex, 1)
-            }
-        },
-        addCustomization() {
-            const newIndex = this.collapses.length + 1;
-            const newCollapse = {
-                name: newIndex.toString(),
+        addCust() {
+            this.custList.push({
                 title: "",
-                type: "radio",
+                selectedType: 'checkbox',
+                options: "",
+                price: "",
                 options: [
-                    { text: "" },
-                    { text: "" },
-                ]
-            };
-            this.collapses.push(newCollapse);
-            // this.activeNames.push(newCollapse.name);
+                    { text: "", price: "" }
+                ],
+            })
         },
-        deleteThisCollapse(index) {
-            this.collapses.splice(index, 1)
+        removeCust(index) {
+            this.custList.splice(index, 1)
         },
-        updateTitle(collapse, index) {
-            this.collapses[index].title = collapse.title;
-        }
+        addOption(custIndex) {
+            this.custList[custIndex].options.push({
+                text: "", // 選項內容
+                price: "" // 選項金額
+            });
+        },
     }
 }
 
@@ -124,7 +123,7 @@ export default {
                         </div>
                     </div>
                     <div class="inputOp" v-for="(item, cgIndex) in cgInput" :key="cgIndex">
-                        <input type="text" placeholder="輸入菜單分類">
+                        <input type="text" v-model="item.category" placeholder="輸入菜單分類">
                     </div>
                     <i class="fa-solid fa-circle-plus" @click="addCgInput()"></i>
                 </div>
@@ -146,26 +145,30 @@ export default {
                         </div>
                     </div>
                     <div class="menuMain">
-                        <div class="addMenuDiv">+&nbsp&nbsp新增餐點</div>
-                        <div class="menuItem">
+                        <div class="addMenuDiv" @click="addMenu()">+&nbsp&nbsp新增餐點</div>
+                        <div class="menuItem" v-for="(menu, index) in menuList" :key="index">
                             <div class="itemPic">
                                 <i class="fa-solid fa-upload"></i>
                             </div>
-                            <div class="itemName">青醬蛤蠣義大利麵</div>
-                            <div class="itemPrice">$ 250</div>
+                            <div class="itemName">
+                                <input type="text" v-model="menu.name" placeholder="輸入餐點名稱">
+                            </div>
+                            <div class="itemPrice">
+                                <input type="text" v-model="menu.price" placeholder="餐點金額">
+                            </div>
                             <div class="itemWorksta">
                                 <span>工作檯</span>
-                                <select>
+                                <select v-model="menu.workstation">
                                     <option value="0">工作檯選擇</option>
                                 </select>
                             </div>
                             <div class="itembot">
-                                <div class="itemStatus" :class="{ flip: !supply }" @click="switchSta()">
-                                    <span>{{ supply ? "供應中" : "售完" }}</span>
+                                <div class="itemStatus" :class="{ flip: !menu.supply }" @click="switchSta(menu)">
+                                    <span>{{ menu.supply ? "供應中" : "售完" }}</span>
                                 </div>
                                 <div class="itemIcon">
                                     <i class="fa-solid fa-square-pen"></i>
-                                    <i class="fa-solid fa-trash-can"></i>
+                                    <i class="fa-solid fa-trash-can" @click="removeMenu(index)"></i>
                                 </div>
                             </div>
                         </div>
@@ -185,7 +188,34 @@ export default {
                         </div>
                     </div>
                     <div class="custItem">
-                        <div class="addItem">+&nbsp&nbsp新增客製化選項</div>
+                        <div class="addItem" @click="addCust()">+&nbsp&nbsp新增客製化選項</div>
+                        <div class="custInput" v-for="(cust, index) in custList" :key="index">
+                            <div class="cuTitle">
+                                <input type="text" v-model="cust.Title" placeholder="客製化標題">
+                                <select v-model="selectedType">
+                                    <option value="checkbox">多選</option>
+                                    <option value="radio">單選</option>
+                                </select>
+                            </div>
+                            <div class="titleOption">
+                                <div class="oneOption" v-for="(option, opIndex) in cust.options" :key="opIndex">
+                                    <div class="optionL">
+                                        <input type="checkbox" v-if="selectedType == 'checkbox'" disabled>
+                                        <input type="radio" v-if="selectedType == 'radio'" disabled>
+                                        <input type="text" v-model="option.options" class="inText"
+                                            :placeholder="'選項' + (opIndex + 1)">
+                                    </div>
+                                    <div class="optionPrice">
+                                        <span>$</span>
+                                        <input type="text" v-model="option.price" class="inPrice" placeholder="金額">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="cuInputCtrl">
+                                <i class="fa-solid fa-trash-can" @click="removeCust(index)"></i>
+                                <i class="fa-solid fa-circle-plus" @click="addOption(index)"></i>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -198,6 +228,7 @@ $divColor: #fff;
 $addDiv: #343a3f;
 $suppliable: #1ce34e;
 $soldOut: #e02d11;
+$borderBot: #697077;
 
 .big {
     width: 100%;
@@ -518,6 +549,12 @@ $soldOut: #e02d11;
                             letter-spacing: 3px;
                             font-family: "Noto Sans TC", sans-serif;
                             margin: 0 4%;
+
+                            input {
+                                max-width: 100%;
+                                font-size: 20px;
+                                font-family: "Noto Sans TC", sans-serif;
+                            }
                         }
 
                         .itemPrice {
@@ -527,12 +564,19 @@ $soldOut: #e02d11;
                             font-weight: bold;
                             font-family: "Noto Sans TC", sans-serif;
                             margin: 0 4%;
+
+                            input {
+                                max-width: 60%;
+                                font-size: 15px;
+                                font-family: "Noto Sans TC", sans-serif;
+                            }
                         }
 
                         .itemWorksta {
                             grid-area: 7 / 1 / 8 / 7;
                             display: flex;
                             align-items: center;
+                            border-bottom: 1px solid $borderBot;
                             color: #697077;
                             font-family: "Noto Sans TC", sans-serif;
                             margin: 0 4%;
@@ -693,6 +737,107 @@ $soldOut: #e02d11;
                         justify-content: center;
                         align-items: center;
                     }
+
+                    .custInput {
+                        display: grid;
+                        grid-template-columns: repeat(4, 1fr);
+                        grid-template-rows: repeat(4, 1fr);
+                        grid-column-gap: 4px;
+                        grid-row-gap: 4px;
+                        min-width: 25%;
+                        max-width: 25%;
+                        height: 100%;
+                        margin-right: 3%;
+                        border-radius: 10px;
+                        border: 1px solid $borderBot;
+                    }
+
+                    .cuTitle {
+                        grid-area: 1 / 1 / 2 / 5;
+                        width: 98%;
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        margin: 0 1%;
+
+                        input {
+                            width: 69%;
+                            font-size: 15px;
+                            margin-left: 2%;
+                        }
+                    }
+
+                    .titleOption {
+                        grid-area: 2 / 1 / 4 / 5;
+                        width: 98%;
+                        display: flex;
+                        justify-content: start;
+                        align-items: center;
+                        flex-direction: column;
+                        overflow-y: scroll;
+                        overflow-x: hidden;
+                        margin: 0 1%;
+
+                        .oneOption {
+                            width: 100%;
+                            max-height: 30px;
+                            display: flex;
+                            justify-content: space-between;
+                            align-items: center;
+
+                            .optionL {
+                                width: 70%;
+                                margin-left: 1%;
+                                display: flex;
+                                justify-content: start;
+                                align-items: center;
+
+                                .inText {
+                                    max-width: 89%;
+                                    font-size: 15px;
+                                    margin-left: 2%;
+                                    margin-top: 1%;
+                                    font-family: "Noto Sans TC", sans-serif;
+                                }
+                            }
+
+                            .optionPrice {
+                                width: 30%;
+                                display: flex;
+                                justify-content: end;
+                                align-items: center;
+
+                                .inPrice {
+                                    max-width: 60%;
+                                    font-size: 15px;
+                                    margin: 1% 5%;
+                                    font-family: "Noto Sans TC", sans-serif;
+                                }
+                            }
+                        }
+
+                    }
+
+                    .cuInputCtrl {
+                        grid-area: 4 / 1 / 5 / 5;
+                        border-top: 1px solid $borderBot;
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+
+                        .fa-solid {
+                            font-size: 20px;
+                        }
+
+                        .fa-trash-can {
+                            margin-left: 3%;
+                        }
+
+                        .fa-circle-plus {
+                            margin-right: 3%;
+                        }
+                    }
+
                 }
             }
         }
