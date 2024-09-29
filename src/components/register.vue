@@ -16,6 +16,7 @@ export default {
                 phone: '',
                 birthday: '',
                 password: '',
+                email: ''
 
             },
             confirmPassword: ''
@@ -52,6 +53,7 @@ export default {
                 phone: this.user.phone,
                 birthday: this.user.birthday,
                 pwd: this.user.password,
+                email: this.user.email,
             };
 
             // 將物件轉換為 JSON 字符串
@@ -117,6 +119,11 @@ export default {
                 <div class="input-group">
                     <label for="birthday">生日</label>
                     <input v-model="user.birthday" type="date" id="birthday" placeholder="請輸入生日" required
+                        autocomplete="off" />
+                </div>
+                <div class="input-group">
+                    <label for="email">電子郵件</label>
+                    <input v-model="user.email" type="email" id="email" placeholder="請輸入電子郵件" required
                         autocomplete="off" />
                 </div>
                 <div class="input-group">

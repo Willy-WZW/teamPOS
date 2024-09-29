@@ -9,7 +9,7 @@ const route = useRoute();
 const showMainArea = ref(true); // 控制 .big 和 .mainArea 的顯示
 
 // 定義一個陣列，存儲需要隱藏的路由名稱
-const hiddenRoutes = ['index', 'register']; // 可以在這裡添加更多路由名稱
+const hiddenRoutes = ['index', 'register','forgotPassword']; // 可以在這裡添加更多路由名稱
 
 // 監聽當前路由的變化
 watch(route, (newRoute) => {

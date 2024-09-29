@@ -3,7 +3,9 @@ import { RouterLink } from 'vue-router';
 export default {
     data() {
         return {
-            timeCode: ''
+            timeCode: '',
+            userName: '',
+            role: '', //會員的話顯示等級 員工的話顯示權限
         }
     },
     methods: {
@@ -47,11 +49,61 @@ export default {
         goHistory() {
             this.$router.push("./history")
         },
-        goStaffInfo(){
+        goStaffInfo() {
             this.$router.push("./staffInfo")
+        },
+        goUserInfo() {
+            this.$router.push("./userInfo")
+        },
+        getUserData() { //抓會員資料
+            const memberId = sessionStorage.getItem('memberId');  //登入的時候已經把memberId寫在session了
+
+            if (memberId) {
+                // 使用 fetch 發送 GET 請求
+                fetch(`http://localhost:8080/api/member/${memberId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! Status: ${response.status}`);
+                        }
+                        return response.json(); // 解析回應為 JSON 格式
+                    })
+                    .then(data => {
+                        console.log(data);
+
+                        // 客人的話回傳等級
+                        this.userName = data.member.name;
+                        this.role = "等級" + data.member.memberLevel;
+                    })
+                    .catch(error => {
+                        console.error("取得使用者資料失敗:", error);
+                    });
+
+            } else {
+                console.error("Session 中的 memberId 不存在，無法取得使用者資料");
+            }
+        },
+        getStaffData() {//抓員工資料
+
         }
     },
     mounted() {
+
+        const memberId = sessionStorage.getItem('memberId');
+        const staffNumber = sessionStorage.getItem('staffNumber');
+
+        if (memberId) {
+            //抓使用者資料
+            this.getUserData();
+        } else if (staffNumber) {
+            //抓員工資料
+            this.getStaffData();
+        }
+
         // 初始化時間
         this.updateTime()
 
@@ -118,24 +170,31 @@ export default {
                 <i class="fa-solid fa-user"></i>
                 <h3>員工管理</h3>
             </div>
-        </div>
-        <div class="user">
-            <div class="userInfo">
+            <div class="history" @click="goUserInfo()" :class="{ 'selected': this.$route.path == '/userInfo' }">
                 <i class="fa-solid fa-user-injured"></i>
-                <h3>謝新達</h3>
-                <p>主持人</p>
+                <h3>{{ this.userName }}</h3>
+                <p>{{ this.role }}</p>
+
+            </div>
+            <RouterLink to="/" class="logout-button">登出</RouterLink>
+        </div>
+        <!-- <div class="user">
+            <div class="userInfo" @click="$router.push('/userInfo')">
+                <i class="fa-solid fa-user-injured"></i>
+                <h3>{{ this.userName }}</h3>
+                <p>{{ this.role }}</p>
             </div>
             <span>
                 <RouterLink to="/">登出</RouterLink>
             </span>
-        </div>
+        </div> -->
     </div>
 </template>
 
 <style scoped lang="scss">
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@100..900&display=swap');
 $selectedColor: #1563ffe1;
-$fontAndIconColor:rgba(0, 0, 0, 0.7);
+$fontAndIconColor: rgba(0, 0, 0, 0.7);
 $bgColor: aliceblue;
 $boxShadow: rgba(0, 0, 0, 0.4);
 
@@ -171,40 +230,11 @@ $boxShadow: rgba(0, 0, 0, 0.4);
         align-items: center;
         flex-direction: column;
         color: $fontAndIconColor;
-        // border: 1px solid black;
 
-
-        .setting {
+        // 新增通用按鈕樣式
+        .button-common {
             width: 100%;
-            height: 12.5%;
-            cursor: pointer;
-            border-radius: 5px;
-            display: flex;
-            justify-content: space-evenly;
-            align-items: center;
-            flex-direction: column;
-            font-family: "Noto Sans TC", sans-serif;
-            // box-shadow: -2px 2px 5px $boxShadow;
-            box-shadow: -2px 1px 5px $boxShadow;
-            &:active{
-                background-color: rgba(169, 217, 253, 0.563);;
-                transition: background-color 0.1s ease; /* 颜色过渡效果 */
-            }
-            .fa-gear {
-                margin-top: 13px;
-                scale: 2;
-            }
-
-            h3 {
-                margin-left: 3px;
-                padding-top: 10px;
-                letter-spacing: 3px;
-            }
-        }
-
-        .operation {
-            width: 100%;
-            height: 12.5%;
+            height: 80px; // 固定高度
             cursor: pointer;
             border-radius: 5px;
             display: flex;
@@ -212,222 +242,55 @@ $boxShadow: rgba(0, 0, 0, 0.4);
             align-items: center;
             flex-direction: column;
             font-family: "Noto Sans TC", sans-serif;
-            // box-shadow: -2px 2px 5px $boxShadow;
             box-shadow: -2px 1px 5px $boxShadow;
-            &:active{
-                background-color: rgba(169, 217, 253, 0.563);;
-                transition: background-color 0.1s ease; /* 颜色过渡效果 */
+            transition: all 0.3s ease;
+            margin-bottom: 10px; // 增加按鈕之間的間距
+
+            &:active {
+                background-color: rgba(169, 217, 253, 0.563);
             }
-            .fa-chart-simple {
-                margin-top: 13px;
-                scale: 2;
+
+            i, .material-symbols-outlined {
+                font-size: 24px; // 統一圖標大小
+                margin-bottom: 5px;
             }
 
             h3 {
-                margin-left: 3px;
-                padding-top: 10px;
-                letter-spacing: 3px;
+                font-size: 16px; // 統一文字大小
+                margin: 0;
+                padding: 0;
+                letter-spacing: 2px;
             }
         }
 
-        .order {
-            width: 100%;
-            height: 12.5%;
-            cursor: pointer;
-            border-radius: 5px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            font-family: "Noto Sans TC", sans-serif;
-            // box-shadow: -2px 2px 5px $boxShadow;
-            box-shadow: -2px 1px 5px $boxShadow;
-            &:active{
-                background-color: rgba(169, 217, 253, 0.563);;
-                transition: background-color 0.1s ease; /* 颜色过渡效果 */
-            }
-            .fa-utensils {
-                margin-top: 13px;
-                scale: 2;
-            }
-
-            h3 {
-                margin-left: 3px;
-                padding-top: 10px;
-                letter-spacing: 3px;
-            }
-        }
-
-        .orderStatus {
-            width: 100%;
-            height: 12.5%;
-            cursor: pointer;
-            border-radius: 5px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            font-family: "Noto Sans TC", sans-serif;
-            // box-shadow: -2px 2px 5px $boxShadow;
-            box-shadow: -2px 1px 5px $boxShadow;
-            &:active{
-                background-color: rgba(169, 217, 253, 0.563);;
-                transition: background-color 0.1s ease; /* 颜色过渡效果 */
-            }
-            .fa-list-check {
-                margin-top: 13px;
-                scale: 2;
-            }
-
-            h3 {
-                margin-left: 3px;
-                padding-top: 10px;
-            }
-        }
-
-        .tableChechout {
-            width: 100%;
-            height: 12.5%;
-            cursor: pointer;
-            border-radius: 5px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            font-family: "Noto Sans TC", sans-serif;
-            // box-shadow: -2px 2px 5px $boxShadow;
-            box-shadow: -2px 1px 5px $boxShadow;
-            &:active{
-                background-color: rgba(169, 217, 253, 0.563);;
-                transition: background-color 0.1s ease; /* 颜色过渡效果 */
-            }
-            .material-symbols-outlined {
-                margin-top: 13px auto 0 auto;
-                scale: 1.2;
-            }
-        }
-
-        .event {
-            width: 100%;
-            height: 12.5%;
-            cursor: pointer;
-            border-radius: 5px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            font-family: "Noto Sans TC", sans-serif;
-            // box-shadow: -2px 2px 5px $boxShadow;
-            box-shadow: -2px 1px 5px $boxShadow;
-            &:active{
-                background-color: rgba(169, 217, 253, 0.563);;
-                transition: background-color 0.1s ease; /* 颜色过渡效果 */
-            }
-            .fa-calendar-check {
-                margin-top: 13px;
-                scale: 2;
-            }
-
-            h3 {
-                margin-left: 3px;
-                padding-top: 10px;
-                letter-spacing: 3px;
-            }
-        }
-
-        .workstation {
-            width: 100%;
-            height: 12.5%;
-            cursor: pointer;
-            border-radius: 5px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            font-family: "Noto Sans TC", sans-serif;
-            // box-shadow: -2px 2px 5px $boxShadow;
-            box-shadow: -2px 1px 5px $boxShadow;
-            &:active{
-                background-color: rgba(169, 217, 253, 0.563);;
-                transition: background-color 0.1s ease; /* 颜色过渡效果 */
-            }
-            .fa-fire-burner {
-                margin-top: 13px;
-                scale: 2;
-            }
-
-            h3 {
-                margin-left: 3px;
-                padding-top: 10px;
-                letter-spacing: 3px;
-            }
-        }
-
-        .history {
-            width: 100%;
-            height: 12.5%;
-            cursor: pointer;
-            border-radius: 5px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            font-family: "Noto Sans TC", sans-serif;
-            // box-shadow: -2px 2px 5px $boxShadow;
-            box-shadow: -2px 1px 5px $boxShadow;
-            &:active{
-                background-color: rgba(169, 217, 253, 0.563);;
-                transition: background-color 0.3s ease; /* 颜色过渡效果 */
-            }
-            .fa-clock-rotate-left {
-                margin-top: 13px;
-                scale: 2;
-            }
-
-            h3 {
-                margin-left: 3px;
-                padding-top: 10px;
-            }
+        // 為每個按鈕應用通用樣式
+        .setting, .operation, .order, .orderStatus, .tableChechout, .event, .workstation, .history {
+            @extend .button-common;
         }
 
         .selected {
-            // background-color: rgb(200, 200, 200);
-            // box-shadow: 5px 0.1px 1px $boxShadow;
             background-color: rgb(182, 223, 255);
-            box-shadow: 5px 0.1px 1px $selectedColor ;
-            transform: translateX(20px); 
-            transition: transform 0.5s ease-in;
+            box-shadow: 5px 0.1px 1px $selectedColor;
+            transform: translateX(20px);
             color: $selectedColor;
-
         }
     }
 
-    .user {
-        width: 80%;
-        height: 150px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        flex-direction: column;
+    .logout-button {
+        margin-top: 15px;
+        padding: 10px 20px;
+        background-color: #ff4d4d;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        text-align: center;
+        font-weight: bold;
+        transition: background-color 0.3s ease;
 
-        .userInfo {
-            width: 100%;
-            height: 70%;
-            display: flex;
-            justify-content: space-evenly;
-            align-items: center;
-            flex-direction: column;
-            border-bottom: 1px solid black;
-            .fa-user-injured{
-                scale: 2;
-                margin-bottom: 5px;
-            }
-            p{
-                margin-bottom: 5px;
-                color: rgb(101, 101, 101);
-            }
+        &:hover {
+            background-color: #ff1a1a;
         }
     }
-
 }
 </style>

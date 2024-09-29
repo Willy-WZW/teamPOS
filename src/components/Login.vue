@@ -44,10 +44,13 @@ export default {
                                 title: data.message,
                                 icon: 'success',
                                 confirmButtonText: '確定',
+                            }).then( () => {
+                                sessionStorage.setItem('memberId', data.memberId);
+                                this.$router.push('/system'); 
+
                             });
 
-                            sessionStorage.setItem('memberId', data.memberId);
-                            this.$router.push('/system'); 
+                            
                         } else {
                             Swal.fire({
                                 title: data.message,
@@ -148,7 +151,7 @@ export default {
                         autocomplete="off" />
                 </div>
                 <div class="forgot-password">
-                    <a href="#">忘記密碼？</a>
+                    <router-link  to="/forgotPassword">忘記密碼？</router-link>
                 </div>
                 <button type="submit" class="login-btn">登入</button>
             </form>

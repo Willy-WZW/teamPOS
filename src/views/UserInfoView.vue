@@ -1,6 +1,7 @@
 <script>
 import LeftBar from '@/components/LeftBar.vue'
-import StaffInfo from '../components/StaffInfo.vue'
+import UserInfo from "../components/UserInfo.vue";
+
 
 export default {
     data() {
@@ -10,11 +11,8 @@ export default {
     },
     components: {
         LeftBar,
-        StaffInfo
+        UserInfo
     },
-    methods: {
-
-    }
 }
 </script>
 
@@ -24,7 +22,7 @@ export default {
             <LeftBar />
         </div>
         <div class="mainArea">
-            <StaffInfo />
+            <UserInfo />
         </div>
     </div>
 </template>
