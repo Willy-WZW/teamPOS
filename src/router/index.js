@@ -1,6 +1,6 @@
-import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from '../views/HomeView.vue'
-import IndexView from '../views/IndexView.vue'
+import { createRouter, createWebHistory } from 'vue-router';
+import HomeView from '../views/HomeView.vue';
+import IndexView from '../views/IndexView.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -13,9 +13,6 @@ const router = createRouter({
     {
       path: '/setting',
       name: 'setting',
-      // route level code-splitting
-      // this generates a separate chunk (About.[hash].js) for this route
-      // which is lazy-loaded when the route is visited.
       component: () => import('../views/Setting.vue')
     },
     {
@@ -78,11 +75,12 @@ const router = createRouter({
       name: 'userInfo',
       component: () => import('../views/UserInfoView.vue')
     },
+    {
       path: '/workbench',
       name: 'workbench',
       component: () => import('../views/Workbench.vue')
-    }
+    } 
   ]
-})
+});
 
-export default router
+export default router;

@@ -161,7 +161,7 @@ $radius: 5px;
     justify-content: center;
     align-items: center;
     height: 100vh;
-    background-color: $bg-color;
+    // background-color: $bg-color;
     // background-image: url('background-circles.png');
     background-size: cover;
 
