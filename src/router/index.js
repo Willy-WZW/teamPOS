@@ -57,6 +57,11 @@ const router = createRouter({
       name: 'system',
       component: () => import('../views/System.vue')
     },
+    {
+      path: '/workbench',
+      name: 'workbench',
+      component: () => import('../views/Workbench.vue')
+    }
   ]
 })
 
