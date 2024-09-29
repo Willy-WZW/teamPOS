@@ -47,6 +47,9 @@ export default {
         goHistory() {
             this.$router.push("./history")
         },
+        goStaffInfo(){
+            this.$router.push("./staffInfo")
+        }
     },
     mounted() {
         // 初始化時間
@@ -110,6 +113,10 @@ export default {
             <div class="history" @click="goHistory()" :class="{ 'selected': this.$route.path == '/history' }">
                 <i class="fa-solid fa-clock-rotate-left"></i>
                 <h3>歷史紀錄</h3>
+            </div>
+            <div class="history" @click="goStaffInfo()" :class="{ 'selected': this.$route.path == '/staffInfo' }">
+                <i class="fa-solid fa-user"></i>
+                <h3>員工管理</h3>
             </div>
         </div>
         <div class="user">
