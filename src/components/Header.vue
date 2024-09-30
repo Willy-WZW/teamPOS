@@ -1,12 +1,28 @@
 <script>
 export default {
-    data() {
-        return {
-            selected: 'menuManage',
+    data(){
+        return{
+            selected: "menuManage"
         }
     },
     methods: {
-        selectRoute(option) {
+        selectMenu() {
+            this.$emit('changeComponent', 'AddMenu');
+            this.selectRoute('menuManage');
+        },
+        selectWorkbench() {
+            this.$emit('changeComponent', 'Workbench');
+            this.selectRoute('workbench');
+        },
+        selectAnnounce() {
+            this.$emit('changeComponent', 'Announce');
+            this.selectRoute('announce');
+        },
+        selectBusiSetting() {
+            this.$emit('changeComponent', 'BusiSetting');
+            this.selectRoute('busiSetting');
+        },
+        selectRoute(option){
             this.selected = option
             this.$router.push({ name: option });  // 根據選擇的選項動態切換內容區域
         }
@@ -16,16 +32,20 @@ export default {
 
 <template>
     <div class="headerBar">
+<<<<<<< HEAD
         <div class="menuManage" :class="{ isSelected: selected == 'menuManage' }" @click="selectRoute('setting')">
+=======
+        <div class="menuManage" :class="{isSelected: selected === 'menuManage'}" @click="selectMenu">
+>>>>>>> 8f2dd86238c5d72c306777a0be16c26d7a9226b5
             <span>菜單管理</span>
         </div>
-        <div class="workbench" :class="{ isSelected: selected == 'workbench' }" @click="selectRoute('workbench')">
+        <div class="workbench":class="{isSelected: selected === 'workbench'}" @click="selectWorkbench">
             <span>工作檯</span>
         </div>
-        <div class="announce" :class="{ isSelected: selected == 'announce' }" @click="selectRoute('announce')">
+        <div class="announce":class="{isSelected: selected === 'announce'}" @click="selectAnnounce">
             <span>公告設定</span>
         </div>
-        <div class="busiSetting" :class="{ isSelected: selected == 'busiSetting' }" @click="selectRoute('busiSetting')">
+        <div class="busiSetting":class="{isSelected: selected === 'busiSetting'}" @click="selectBusiSetting">
             <span>桌位與訂位</span>
         </div>
     </div>
@@ -81,7 +101,7 @@ $textColor: #697077;
         color: $selectedTextColor;
     }
 
-    .isSelected::before{
+    .isSelected::before {
         width: 100%;
     }
 }

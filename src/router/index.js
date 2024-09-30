@@ -1,20 +1,18 @@
-import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from '../views/HomeView.vue'
+import { createRouter, createWebHistory } from 'vue-router';
+import HomeView from '../views/HomeView.vue';
+import IndexView from '../views/IndexView.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
       path: '/',
-      name: 'home',
-      component: HomeView
+      name: 'index',
+      component: IndexView
     },
     {
       path: '/setting',
       name: 'setting',
-      // route level code-splitting
-      // this generates a separate chunk (About.[hash].js) for this route
-      // which is lazy-loaded when the route is visited.
       component: () => import('../views/Setting.vue')
     },
     {
@@ -58,11 +56,32 @@ const router = createRouter({
       component: () => import('../views/System.vue')
     },
     {
+<<<<<<< HEAD
       path: '/busiSetting',
       name: 'busiSetting',
       component: () => import('../views/BusiSetting.vue')
+=======
+      path: '/register',
+      name: 'register',
+      component: () => import('../views/RegisterView.vue')
+    },
+    {
+      path: '/staffInfo',
+      name: 'staffInfo',
+      component: () => import('../views/StaffInfoView.vue')
+    },
+    {
+      path: '/forgotPassword',
+      name: 'forgotPassword',
+      component: () => import('../views/ForgotPasswordView.vue')
+    },
+    {
+      path: '/userInfo',
+      name: 'userInfo',
+      component: () => import('../views/UserInfoView.vue')
+>>>>>>> 8f2dd86238c5d72c306777a0be16c26d7a9226b5
     },
   ]
-})
+});
 
-export default router
+export default router;

@@ -174,7 +174,7 @@ export default{
             })
         })
         .catch(error => {
-            console.error("Error fetching statistics:", error);
+            console.error("Error fetching analysis:", error);
         });
 
         this.$nextTick(() => {
@@ -682,7 +682,7 @@ $down-font: #388e3c;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        margin: 0 0 2% 0;
+        margin: 0 0 0 0;
         .dashboardLeft{
             width: 88%;
             height: 45px;
@@ -697,6 +697,7 @@ $down-font: #388e3c;
                 align-items: center;
                 background-color: rgba(255, 255, 255, 0.7);
                 border-radius: 10px;
+                border: 2px solid rgba(0, 0, 0, 0.25);
                 padding: 0 10px;
                 margin: 0 5% 0 0;
                 position: relative;
@@ -732,6 +733,7 @@ $down-font: #388e3c;
                 justify-content: center;
                 background-color: rgba(255, 255, 255, 0.7);
                 border-radius: 10px;
+                border: 2px solid rgba(0, 0, 0, 0.25);
                 .leftRightContainer{
                     width: 100%;
                     display: flex;
@@ -798,7 +800,7 @@ $down-font: #388e3c;
             align-items: flex-start;
             justify-content: flex-start;
             border-radius: 12px;
-            margin: 0 20px 0 0;
+            margin: 0 1% 0 0;
             .compareContainer{
                 width: 100%;
                 height: 25%;
@@ -809,7 +811,7 @@ $down-font: #388e3c;
                 background-color: white;
                 border: 2px solid rgba(0, 0, 0, 0.25);
                 padding: 0 5%;
-                margin: 0 0 4% 0;
+                margin: 0 0 2% 0;
 
                 .compareItem{
                     width: 50%;
