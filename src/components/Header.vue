@@ -24,6 +24,7 @@ export default {
         },
         selectRoute(option){
             this.selected = option
+            this.$router.push({ name: option });  // 根據選擇的選項動態切換內容區域
         }
     }
 }
@@ -31,7 +32,11 @@ export default {
 
 <template>
     <div class="headerBar">
+<<<<<<< HEAD
+        <div class="menuManage" :class="{ isSelected: selected == 'menuManage' }" @click="selectRoute('setting')">
+=======
         <div class="menuManage" :class="{isSelected: selected === 'menuManage'}" @click="selectMenu">
+>>>>>>> 8f2dd86238c5d72c306777a0be16c26d7a9226b5
             <span>菜單管理</span>
         </div>
         <div class="workbench":class="{isSelected: selected === 'workbench'}" @click="selectWorkbench">
