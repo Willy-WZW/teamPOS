@@ -10,11 +10,14 @@ export default {
             tableList: [], // 桌位列表，從後端獲取資料
             newTable: { table_number: '', table_capacity: '', table_status: 'AVAILABLE' }, // 新增桌號的初始值
             capacityOptions: ['2人桌', '4人桌', '6人桌', '8人桌', '10人桌'], // 可選的容納人數
+            showNewTableRow: false, // 控制新增桌號行是否顯示
         };
     },
+
     mounted() {
         this.loadInitialTableData();
     },
+
     methods: {
          // 加載初始的桌位數據
         async loadInitialTableData () {
@@ -39,58 +42,17 @@ export default {
         },
 
         // 切換選單
-        selectMenu(item) {
+        selectMenu (item) {
             this.selectedMenu = item;
         },
 
-        // 新增桌位，並添加到 tableList 中
-        addTable() {
-            // 測試輸出 newTable 的內容
-            console.log('新桌號資料：', this.newTable);
-
-            // 檢查桌號是否符合格式（大寫字母+兩個數字）
-            const tableNumberPattern = /^[A-Z]\d{2}$/;
-            if (!this.newTable.table_number.trim().match(tableNumberPattern)) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: '桌號格式錯誤',
-                    text: '桌號必須是一個大寫字母加兩個數字（如 A01）。',
-                });
-                return;
-            }
-
-            if (this.newTable.table_number.trim() !== '' && this.newTable.table_capacity !== '') {
-                const existingTable = this.tableList.find(table => table.table_number === this.newTable.table_number);
-
-                if (existingTable) {
-                    Swal.fire({
-                        icon: 'warning',
-                        title: '錯誤',
-                        text: '該桌號已存在，請選擇其他桌號',
-                    });
-                    return;
-                }
-
-                // 將新桌號加入 tableList
-                this.tableList.push({
-                    table_number: this.newTable.table_number,
-                    table_capacity: this.newTable.table_capacity,
-                    table_status: 'AVAILABLE'  // 預設狀態
-                });
-
-                // 清空 newTable 以便下次輸入
-                this.newTable = { table_number: '', table_capacity: '', table_status: 'AVAILABLE' };
-            } else {
-                Swal.fire({
-                    icon: 'warning',
-                    title: '錯誤',
-                    text: '請輸入桌號並選擇容納人數',
-                });
-            }
+        // 顯示新增桌號欄位
+        addTableRow() {
+            this.showNewTableRow = true;  // 點擊+號後顯示新增桌號行
         },
 
         // 刪除桌位
-        removeTable(index) {
+        removeTable (index) {
             const table = this.tableList[index];
             
             // 檢查狀態，如果是 RESERVED 或 ACTIVE，則禁止刪除
@@ -108,37 +70,96 @@ export default {
             this.tableList.splice(index, 1);
         },
 
+        // 刪除新增桌號欄位
+        deleteNewTable () {
+            this.newTable = { table_number: '', table_capacity: '', table_status: 'AVAILABLE' };
+            this.showNewTableRow = false;
+        },
+
+        // 儲存操作，包括新增桌位
         async saveChanges() {
             try {
-                // 在儲存前先檢查 newTable 是否還有內容
-                if (this.newTable.table_number.trim() !== '' || this.newTable.table_capacity !== '') {
-                    // 如果還有資料，提醒使用者必須按+號新增
-                    Swal.fire({
-                        icon: 'warning',
-                        title: '未完成新增操作',
-                        text: '請先按「+」新增桌號，才能儲存變更。',
-                        confirmButtonText: '確定'
+                // 如果顯示了新增桌位的行，才檢查 newTable 是否有輸入正確的桌號和容納人數
+                if (this.showNewTableRow) {
+                    if (!this.newTable.table_number.trim() || !this.newTable.table_capacity) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: '錯誤',
+                            text: '請輸入桌號並選擇容納人數',
+                        });
+                        return; // 阻止儲存操作
+                    }
+
+                    // 檢查桌號是否符合格式（大寫字母+兩個數字）
+                    const tableNumberPattern = /^[A-Z]\d{2}$/;
+                    if (!this.newTable.table_number.trim().match(tableNumberPattern)) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: '桌號格式錯誤',
+                            text: '桌號必須是一個大寫字母加兩個數字（如 A01）。',
+                        });
+                        return; // 阻止儲存操作
+                    }
+
+                    const existingTable = this.tableList.find(table => table.table_number === this.newTable.table_number);
+                    if (existingTable) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: '錯誤',
+                            text: '該桌號已存在，請選擇其他桌號',
+                        });
+                        return; // 阻止儲存操作
+                    }
+
+                    // 將新桌號加入 tableList
+                    this.tableList.push({
+                        table_number: this.newTable.table_number,
+                        table_capacity: this.newTable.table_capacity,
+                        table_status: 'AVAILABLE'  // 預設狀態
                     });
-                    return; // 阻止儲存操作
-                }
 
-                // 1. 判斷新增的桌位（只存在於 `tableList` 中的桌位）
-                const newTables = this.tableList.filter(table => !this.originalTableList.some(orig => orig.table_number === table.table_number));
-                
-                // 發送新增桌位請求
-                for (const table of newTables) {
-                    // 構造正確的請求數據
+                    // 發送新增桌位請求
                     const requestData = {
-                        tableNumber: table.table_number,  // 確保字段名稱與後端一致
-                        tableCapacity: parseInt(table.table_capacity),  // 確保傳遞的是數字
-                        tableStatus: 'AVAILABLE'  // 預設狀態
+                        tableNumber: this.newTable.table_number,
+                        tableCapacity: parseInt(this.newTable.table_capacity),
+                        tableStatus: 'AVAILABLE'
                     };
-
-                    // 發送 POST 請求
                     await axios.post('http://localhost:8080/tableManagement/createTable', requestData);
                 }
 
-                // 發送刪除桌位請求
+                // 2. 處理已修改的桌位（僅修改容納人數，桌號未變）
+                const updatedTables = this.tableList.filter(table => {
+                    const originalTable = this.originalTableList.find(orig => orig.table_number === table.table_number);
+                    return originalTable && originalTable.table_capacity !== table.table_capacity;  // 僅容納人數不同的桌位
+                });
+
+                for (const table of updatedTables) {
+                    // 檢查桌位狀態是否為 RESERVED 或 ACTIVE，阻止變更
+                    if (table.table_status === 'RESERVED' || table.table_status === 'ACTIVE') {
+                        Swal.fire({
+                            icon: 'error',
+                            title: '無法修改',
+                            text: `桌位 ${table.table_number} 已被預訂或正在使用，無法進行修改。`,
+                            confirmButtonText: '確認'
+                        }).then(() => {
+                            this.loadInitialTableData(); // 警告視窗關閉後重新加載數據
+                        });
+                        return; // 終止操作
+                    }
+
+                    // 刪除舊桌位並重新創建新桌位
+                    await axios.delete(`http://localhost:8080/tableManagement/deleteTable/${table.table_number}`);
+
+                    // 創建新桌位（替代原來的桌位）
+                    const requestData = {
+                        tableNumber: table.table_number,
+                        tableCapacity: parseInt(table.table_capacity),
+                        tableStatus: 'AVAILABLE'
+                    };
+                    await axios.post('http://localhost:8080/tableManagement/createTable', requestData);
+                }
+
+                // 3. 處理刪除桌位
                 const deletedTables = this.originalTableList.filter(orig => !this.tableList.some(table => table.table_number === orig.table_number));
                 for (const table of deletedTables) {
                     await axios.delete(`http://localhost:8080/tableManagement/deleteTable/${table.table_number}`);
@@ -150,7 +171,6 @@ export default {
                     icon: 'success',
                     title: '儲存成功',
                     text: '所有變更已成功儲存。',
-                    confirmButtonText: '確定'
                 });
             } catch (error) {
                 console.error('儲存桌位變更時發生錯誤:', error);
@@ -158,101 +178,147 @@ export default {
                     icon: 'error',
                     title: '儲存失敗',
                     text: '儲存過程中發生錯誤，請稍後再試。',
-                    confirmButtonText: '確定'
                 });
             }
         },
 
         // 取消操作
-        cancelChanges() {
-            // 恢復為初始數據
-            this.tableList = JSON.parse(JSON.stringify(this.originalTableList)); // 還原初始桌位數據
-            alert('已取消變更');
+        cancelChanges () {
+            Swal.fire({
+                icon: 'warning',
+                title: '取消變更',
+                text: '已取消變更桌位操作。',
+            });
+
+            // 還原 tableList 為原始數據
+            this.tableList = JSON.parse(JSON.stringify(this.originalTableList)); 
+
+            // 隱藏新增桌號行，並重置 newTable
+            this.showNewTableRow = false;
+            this.newTable = { table_number: '', table_capacity: '', table_status: 'AVAILABLE' };
+
+            // 清空所有輸入匡
+            document.querySelectorAll('.tableNumber').forEach(input => input.value = '');
+
+            document.querySelectorAll('.tableCapacity').forEach(select => select.selectedIndex = 0);
         }
     }
 };
 </script>
 
 <template>
-            <div class="managementArea">
-                <div class="managementList">
-                    <ul>
-                        <li v-for="(item, index) in managementItems" :key="index" :class="{ active: selectedMenu === item }" @click="selectMenu(item)">
-                            {{ item }}
-                        </li>
-                    </ul>
-                </div>
+<!-- 桌號、訂位管理區域 -->
+<div class="managementArea">
+    <div class="managementList">
+        <ul>
+            <li v-for="(item, index) in managementItems" :key="index" :class="{ active: selectedMenu === item }" @click="selectMenu(item)">
+                {{ item }}
+            </li>
+        </ul>
+    </div>
+</div>
+
+<!-- 桌號、訂位管理內容顯示區域 -->
+<div class="managementContentArea">
+    <!-- 顯示桌號管理區域 -->
+    <div v-if="selectedMenu === '桌號管理'">
+        <!-- 顯示桌號標題 -->
+        <h2 class="tableNumberTitle">桌號管理</h2>
+    
+        <!-- 顯示桌號注意事項 -->
+        <p class="reminderText">桌號必須是一個大寫字母加兩個數字（如 A01）</p>
+        
+        <!-- 顯示桌號表格區域 -->
+        <div class="tableArea">
+            <!-- 顯示桌號表格列表 -->
+            <table class="tableList">
+                <!-- 桌號列表頭 -->
+                <thead>
+                    <tr>
+                        <th>桌號</th>
+                        <th>容納人數</th>
+                        <th>編輯</th>
+                    </tr>
+                </thead>
+
+                <!-- 桌號列表內容 -->
+                <tbody>
+                    <!-- 桌號列表行 -->
+                    <tr v-for="(table, index) in tableList" :key="index">
+                        <!-- 桌號 -->
+                        <td>
+                            <input class="tableNumber" v-model="table.table_number" type="text" placeholder="輸入桌號" />
+                        </td>
+
+                        <!-- 容納人數 -->
+                        <td>
+                            <select class="tableCapacity" v-model="table.table_capacity" >
+                                <option value="" disabled>選擇容納人數</option>
+                                <option v-for="option in capacityOptions" :key="option" :value="option">
+                                    {{ option }}
+                                </option>
+                            </select>
+                        </td>
+
+                        <!-- 刪除 Button -->
+                        <td>
+                            <button class="trashButton" @click="removeTable(index)">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+    
+                    <!-- 新增桌號行 -->
+                    <tr v-if="showNewTableRow">
+                        <!-- 桌號 -->
+                        <td>
+                            <input class="tableNumber" v-model="newTable.table_number" type="text" placeholder="輸入桌號" />
+                        </td>
+
+                        <!-- 容納人數 -->
+                        <td>
+                            <select class="tableCapacity" v-model="newTable.table_capacity">
+                                <option value="" disabled>選擇容納人數</option>
+                                <option v-for="option in capacityOptions" :key="option" :value="option">
+                                    {{ option }}
+                                </option>
+                            </select>
+                        </td>
+
+                        <!-- 刪除 Button -->
+                        <td>
+                            <button class="trashButton" @click="deleteNewTable">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- 新增 Button -->
+            <div class="addButtonArea">
+                <button class="addButton" @click="addTableRow">
+                    <i class="fa-solid fa-circle-plus"></i>
+                </button>
             </div>
+        </div>
+    </div>
+    
+    <!-- 顯示訂位時段管理區域 -->
+    <div v-if="selectedMenu === '訂位時段管理'">
+        <!-- 顯示訂位時段標題 -->
+        <h2 class="tableNumberTitle">訂位時段管理</h2>
 
-            <div class="managementContentArea">
-                <h2 class="title">{{ selectedMenu }}</h2>
+        <!-- 顯示訂位時段注意事項 -->
+        <p>請依照步驟依序設定</p>
+    </div>
 
-                <p class="reminderText">桌號必須是一個大寫字母加兩個數字（如 A01）</p>
-
-                <div class="tableArea">
-                    <table class="tableList">
-                        <thead>
-                            <tr>
-                                <th>桌號</th>
-                                <th>容納人數</th>
-                                <th>編輯</th>
-                            </tr>
-                        </thead>
-
-                        <tbody>
-                            <tr v-for="(table, index) in tableList" :key="index">
-                                <td>
-                                    <input class="tableNumber" v-model="table.table_number" type="text" placeholder="輸入桌號" />
-                                </td>
-                                <td>
-                                    <select class="tableCapacity" v-model="table.table_capacity" >
-                                        <option value="" disabled>選擇容納人數</option>
-                                        <option v-for="option in capacityOptions" :key="option" :value="option">
-                                            {{ option }}
-                                        </option>
-                                    </select>
-                                </td>
-                                <td>
-                                    <button class="trashButton" @click="removeTable(index)">
-                                        <i class="fa-solid fa-trash"></i>
-                                    </button>
-                                </td>
-                            </tr>
-
-                            <!-- 新增桌號行 -->
-                            <tr>
-                                <td>
-                                    <input class="tableNumber" v-model="newTable.table_number" type="text" placeholder="輸入桌號" />
-                                </td>
-                                <td>
-                                    <select class="tableCapacity" v-model="newTable.table_capacity">
-                                        <option value="" disabled>選擇容納人數</option>
-                                        <option v-for="option in capacityOptions" :key="option" :value="option">
-                                            {{ option }}
-                                        </option>
-                                    </select>
-                                </td>
-                                <td>
-                                    <button class="trashButton" @click="removeTable(index)">
-                                        <i class="fa-solid fa-trash"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <div class="addButtonArea">
-                        <button class="addButton" @click="addTable">
-                            <i class="fa-solid fa-circle-plus"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- 底部操作按鈕 -->
-                <div class="buttonArea">
-                    <button class="cancelButton" @click="cancelChanges">取消</button>
-                    <button class="saveButton" @click="saveChanges">儲存</button>
-                </div>
-            </div>
+    <!-- 取消、儲存操作按鈕區域 -->
+    <div class="buttonArea">
+        <button class="cancelButton" @click="cancelChanges">取消</button>
+        <button class="saveButton" @click="saveChanges">儲存</button>
+    </div>
+</div>
 </template>
 
 <style scoped lang="scss">
@@ -312,7 +378,7 @@ $soldOut: #e02d11;
     top: 0%;
     right: 0%;
 
-    .title {
+    .tableNumberTitle {
         font-size: 25px;
         letter-spacing: 4px;
         margin-bottom: 10px;
