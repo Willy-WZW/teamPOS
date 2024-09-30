@@ -1,6 +1,4 @@
 <script>
-import LeftBar from '@/components/LeftBar.vue';
-import Header from '@/components/Header.vue';
 import axios from 'axios';
 import Swal from 'sweetalert2';
 
@@ -13,10 +11,6 @@ export default {
             newTable: { table_number: '', table_capacity: '', table_status: 'AVAILABLE' }, // 新增桌號的初始值
             capacityOptions: ['2人桌', '4人桌', '6人桌', '8人桌', '10人桌'], // 可選的容納人數
         };
-    },
-    components: {
-        LeftBar,
-        Header
     },
     mounted() {
         this.loadInitialTableData();
@@ -180,16 +174,6 @@ export default {
 </script>
 
 <template>
-    <div class="big">
-        <div class="leftBar">
-            <LeftBar />
-        </div>
-
-        <div class="mainArea">
-            <div class="header">
-                <Header />
-            </div>
-
             <div class="managementArea">
                 <div class="managementList">
                     <ul>
@@ -269,8 +253,6 @@ export default {
                     <button class="saveButton" @click="saveChanges">儲存</button>
                 </div>
             </div>
-        </div>
-    </div>
 </template>
 
 <style scoped lang="scss">
@@ -279,219 +261,178 @@ $addDiv: #343a3f;
 $suppliable: #1ce34e;
 $soldOut: #e02d11;
 
-.big {
-    width: 100%;
-    height: 100dvh;
+.managementArea {
+    width: 19%;
+    height: 100%;
+    border-radius: 10px;
+    background-color: $divColor;
     display: flex;
-    justify-content: center;
+    justify-content: start;
     align-items: center;
+    flex-direction: column;
 
-    .leftBar {
-        width: 10%;
-        height: 100vh;
-        position: fixed;
-        top: 0;
-        left: 0;
-        display: flex;
-        align-items: center;
+    .managementList {
+        width: 100%;
+        padding: 10px 0;
+
+        ul {
+            list-style-type: none;
+
+            li {
+                border-right: 4px solid transparent; /* 預設無邊框 */
+                font-size: 20px;
+                font-weight: bolder;
+                text-align: center;
+                padding: 10px;
+                margin: 20px 0px;
+                cursor: pointer;
+                transition: all 0.3s;
+
+                &.active {
+                    background-color: #DDE1E6;  /* 點擊後的底色 */
+                    border-right-color: #000; /* 點擊後的左側框線 */
+                }
+
+                &:hover {
+                    background-color: #ececec;
+                }
+            }
+        }
+    }
+}
+
+.managementContentArea {
+    width: 80%;
+    height: 100%;
+    border-radius: 10px;
+    background-color: $divColor;
+    flex: 1;
+    padding: 20px 35px;
+    position: absolute;
+    top: 0%;
+    right: 0%;
+
+    .title {
+        font-size: 25px;
+        letter-spacing: 4px;
+        margin-bottom: 10px;
     }
 
-    .mainArea {
+    .reminderText {
+        margin-bottom: 20px;
+        color: black;
+        opacity: 0.6;
+    }
+
+    .tableArea {
         width: 100%;
-        height: 100%;
-        overflow-y: scroll;
-        display: flex;
-        justify-content: start;
-        align-items: start;
-        flex-direction: column;
-        position: relative;
+        height: 85%;
+        border: 2px solid #ccc; /* 表格外框邊線 */
+        padding: 15px 10px;
+        max-height: 650px;
+        overflow-y: auto;
 
-        .header {
-            width: 96%;
-            height: 6.3%;
-            position: absolute;
-            top: 2%;
-            left: 2%;
-        }
+        .tableList {
+            width: 100%;
+            border-collapse: collapse; /* 使用 separate 來啟用 border-spacing */
+            table-layout: fixed; /* 讓表格的列寬固定 */
 
-        .managementArea {
-            width: 18%;
-            height: 87%;
-            border-radius: 10px;
-            background-color: $divColor;
-            display: flex;
-            justify-content: start;
-            align-items: center;
-            flex-direction: column;
-            position: absolute;
-            top: 9.5%;
-            left: 2%;
-
-            .managementList {
-                width: 100%;
-                padding: 10px 0;
-
-                ul {
-                    list-style-type: none;
-                    padding: 0;
-
-                    li {
-                        border-right: 4px solid transparent; /* 預設無邊框 */
-                        font-size: 20px;
-                        font-weight: bolder;
-                        text-align: center;
-                        padding: 10px;
-                        margin: 20px 0px;
-                        cursor: pointer;
-                        transition: all 0.3s;
-
-                        &.active {
-                            background-color: #DDE1E6;  /* 點擊後的底色 */
-                            border-right-color: #000; /* 點擊後的左側框線 */
-                        }
-
-                        &:hover {
-                            background-color: #ececec;
-                        }
-                    }
-                }
-            }
-        }
-
-        .managementContentArea {
-            width: 77%;
-            height: 87%;
-            border-radius: 10px;
-            background-color: $divColor;
-            flex: 1;
-            padding: 20px 35px;
-            position: absolute;
-            top: 9.5%;
-            right: 2%;
-
-            .title {
-                font-size: 25px;
+            thead {
+                height: 55px;
+                background-color: #dde1e680;
                 letter-spacing: 4px;
-                margin-bottom: 10px;
             }
 
-            .reminderText {
-                margin-bottom: 15px;
-                color: black;
-                opacity: 0.6;
-            }
-
-            .tableArea {
-                width: 100%;
-                height: 85%;
-                border: 2px solid #ccc; /* 表格外框邊線 */
-                padding: 15px 10px;
-                max-height: 650px;
-                overflow-y: auto;
-
-                .tableList {
-                    width: 100%;
-                    border-collapse: collapse; /* 使用 separate 來啟用 border-spacing */
-                    table-layout: fixed; /* 讓表格的列寬固定 */
-
-                    thead {
-                        height: 55px;
-                        background-color: #dde1e680;
-                        letter-spacing: 4px;
-                    }
-
-                    tbody {
-                        tr {
-                            height: 65px;
-                            border-bottom: 1px dashed #C1C7CD; /* 設置虛線的底線 */
-                        }
-
-                        td {
-                            padding: 5px; /* 減少內邊距以減小行高 */
-                            text-align: center;
-                            vertical-align: middle; /* 垂直居中內容 */
-
-                            .tableNumber {
-                                width: 80%;
-                                height: 35px;
-                                border: none;
-                                background-color: transparent;
-                                font-size: 20px;
-                                text-align: center;
-                                outline: none;
-                            }
-
-                            .tableCapacity {
-                                width: 80%;
-                                height: 35px;
-                                border-radius: 10px;
-                                border: 1px solid #C1C7CD;
-                                letter-spacing: 5px;
-                                padding-left: 10px;
-                                appearance: none; /* 隱藏默認的箭頭 */
-                                background: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyLjcxNzUgNi41NDc1QzEzLjE3OTcgNi4xNDcyIDEzLjI4MjIgNS40MTMgMTIuOTg3MiA0LjkzMjVDMTIuNjkzMiA0LjQ1MjUgMTIuMDEwNCA0LjQ1MjUgMTEuNzE3IDQuOTMyNUw4IDkuMzM1NEw0LjI4MjUgNC45MzI1QzMuOTg5NiA0LjQ1MjUgMy4zMDY4IDQuNDUyNSAyLjAxMjggNC45MzI1QzEuNzE4OCA1LjQxMyAxLjgyMTEgNi4xNDcyIDIuMjg0MTIgNi41NDc1TDcuMzE1MTIgMTEuNTA2QzcuNzU4NDEgMTEuOTYxIDguMjQxNiAxMS45NjEgOC42ODY4IDExLjUwNkMxMC4xNzA4IDEwLjI1NyAxMS41OTExIDguOTAzNTggMTIuNzE3NSA3LjY2MjVIMTIuNzE3NVoiIGZpbGw9IiMyMjIyMjIiLz4KPC9zdmc+') no-repeat; /* 使用 base64 格式的箭頭圖標 */
-                                background-position: calc(100% - 15px) center; /* 調整箭頭的位置，讓它距離左邊更近 */
-                                background-size: 15px; /* 調整箭頭大小 */
-                                outline: none;
-                                cursor: pointer;
-                            }
-
-                            .trashButton {
-                                border: none;
-                                background-color: transparent;
-                                font-size: 30px;
-                                cursor: pointer;
-                            }
-                        }
-                    }
+            tbody {
+                tr {
+                    height: 65px;
+                    border-bottom: 1px dashed #C1C7CD; /* 設置虛線的底線 */
                 }
 
-                .addButtonArea {
-                    width: 100%;
-                    height: 10%;
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
+                td {
+                    padding: 5px; /* 減少內邊距以減小行高 */
+                    text-align: center;
+                    vertical-align: middle; /* 垂直居中內容 */
 
-                    .addButton {
+                    .tableNumber {
+                        width: 80%;
+                        height: 35px;
                         border: none;
                         background-color: transparent;
-                        font-size: 25px;
-                        margin-top: 15px;
+                        font-size: 20px;
+                        text-align: center;
+                        outline: none;
+                    }
+
+                    .tableCapacity {
+                        width: 80%;
+                        height: 35px;
+                        border-radius: 10px;
+                        border: 1px solid #C1C7CD;
+                        letter-spacing: 5px;
+                        padding-left: 10px;
+                        appearance: none; /* 隱藏默認的箭頭 */
+                        background: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyLjcxNzUgNi41NDc1QzEzLjE3OTcgNi4xNDcyIDEzLjI4MjIgNS40MTMgMTIuOTg3MiA0LjkzMjVDMTIuNjkzMiA0LjQ1MjUgMTIuMDEwNCA0LjQ1MjUgMTEuNzE3IDQuOTMyNUw4IDkuMzM1NEw0LjI4MjUgNC45MzI1QzMuOTg5NiA0LjQ1MjUgMy4zMDY4IDQuNDUyNSAyLjAxMjggNC45MzI1QzEuNzE4OCA1LjQxMyAxLjgyMTEgNi4xNDcyIDIuMjg0MTIgNi41NDc1TDcuMzE1MTIgMTEuNTA2QzcuNzU4NDEgMTEuOTYxIDguMjQxNiAxMS45NjEgOC42ODY4IDExLjUwNkMxMC4xNzA4IDEwLjI1NyAxMS41OTExIDguOTAzNTggMTIuNzE3NSA3LjY2MjVIMTIuNzE3NVoiIGZpbGw9IiMyMjIyMjIiLz4KPC9zdmc+') no-repeat; /* 使用 base64 格式的箭頭圖標 */
+                        background-position: calc(100% - 15px) center; /* 調整箭頭的位置，讓它距離左邊更近 */
+                        background-size: 15px; /* 調整箭頭大小 */
+                        outline: none;
+                        cursor: pointer;
+                    }
+
+                    .trashButton {
+                        border: none;
+                        background-color: transparent;
+                        font-size: 30px;
                         cursor: pointer;
                     }
                 }
             }
+        }
 
-            .buttonArea {
-                margin-top: 30px;
-                display: flex;
-                justify-content: flex-end;
+        .addButtonArea {
+            width: 100%;
+            height: 10%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
 
-                .cancelButton {
-                    width: 15%;
-                    border-radius: 10px;
-                    border: 2px solid rgb(32, 33, 42);
-                    background-color: transparent;
-                    font-size: 16px;
-                    letter-spacing: 5px;
-                    padding: 10px 20px;
-                    cursor: pointer;
-                }
-
-                .saveButton {
-                    width: 15%;
-                    border-radius: 10px;
-                    border: none;
-                    background-color: rgb(52, 58, 63);
-                    color: #f2f4f8;
-                    font-size: 16px;
-                    letter-spacing: 5px;
-                    margin-left: 40px;
-                    padding: 10px 20px;
-                    cursor: pointer;
-                }
+            .addButton {
+                border: none;
+                background-color: transparent;
+                font-size: 25px;
+                margin-top: 15px;
+                cursor: pointer;
             }
+        }
+    }
+
+    .buttonArea {
+        margin-top: 25px;
+        display: flex;
+        justify-content: flex-end;
+
+        .cancelButton {
+            width: 15%;
+            border-radius: 10px;
+            border: 2px solid rgb(32, 33, 42);
+            background-color: transparent;
+            font-size: 16px;
+            letter-spacing: 5px;
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+
+        .saveButton {
+            width: 15%;
+            border-radius: 10px;
+            border: none;
+            background-color: rgb(52, 58, 63);
+            color: #f2f4f8;
+            font-size: 16px;
+            letter-spacing: 5px;
+            margin-left: 40px;
+            padding: 10px 20px;
+            cursor: pointer;
         }
     }
 }

@@ -56,11 +56,6 @@ const router = createRouter({
       component: () => import('../views/System.vue')
     },
     {
-<<<<<<< HEAD
-      path: '/busiSetting',
-      name: 'busiSetting',
-      component: () => import('../views/BusiSetting.vue')
-=======
       path: '/register',
       name: 'register',
       component: () => import('../views/RegisterView.vue')
@@ -79,7 +74,6 @@ const router = createRouter({
       path: '/userInfo',
       name: 'userInfo',
       component: () => import('../views/UserInfoView.vue')
->>>>>>> 8f2dd86238c5d72c306777a0be16c26d7a9226b5
     },
   ]
 });
