@@ -153,7 +153,7 @@ $box-color: #fff;
 $primary-color: #333;
 $border-color: #ddd;
 $hover-color: #555;
-$font-size-base: 16px;
+$font-size-base: 14px; // 縮小字體大小
 $radius: 5px;
 
 .register-container {
@@ -161,44 +161,42 @@ $radius: 5px;
     justify-content: center;
     align-items: center;
     height: 100vh;
-    // background-color: $bg-color;
-    // background-image: url('background-circles.png');
     background-size: cover;
 
     .register-box {
         background-color: $box-color;
-        padding: 2.5rem;
+        padding: 1.5rem; // 減少 padding
         border-radius: 10px;
         box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         text-align: center;
-        width: 30rem;
+        width: 24rem; // 縮小寬度
 
         .logo {
-            width: 10.25rem;
-            margin-bottom: 1.25rem;
+            width: 8rem; // 縮小 logo
+            margin-bottom: 1rem;
         }
 
         h2 {
-            margin-bottom: 1.25rem;
-            font-size: 1.5rem;
+            margin-bottom: 1rem; // 減少標題與表單間距
+            font-size: 1.25rem; // 縮小標題字體
             color: $primary-color;
         }
 
         form {
             .input-group {
-                margin-bottom: 1.25rem;
+                margin-bottom: 1rem; // 減少欄位間距
                 text-align: left;
 
                 label {
                     display: block;
-                    margin-bottom: 0.3125rem;
+                    margin-bottom: 0.25rem;
                     color: $primary-color;
                     font-size: $font-size-base;
                 }
 
                 input {
                     width: 100%;
-                    padding: 0.625rem;
+                    padding: 0.5rem; // 減少欄位內部間距
                     font-size: $font-size-base;
                     border: 1px solid $border-color;
                     border-radius: $radius;
@@ -208,7 +206,7 @@ $radius: 5px;
 
             .register-btn {
                 width: 100%;
-                padding: 0.625rem;
+                padding: 0.5rem; // 減少按鈕內部間距
                 font-size: $font-size-base;
                 background-color: $primary-color;
                 color: $box-color;
@@ -225,19 +223,15 @@ $radius: 5px;
         .login-link {
             display: inline-block;
             margin-top: 1rem;
-            /* 調整上邊距 */
-            padding: 0.625rem;
+            padding: 0.5rem; // 減少返回按鈕內部間距
             font-size: $font-size-base;
             background-color: $hover-color;
-            /* 使用 hover 顏色作為背景 */
             color: $box-color;
             border-radius: $radius;
             text-decoration: none;
-            /* 去掉下劃線 */
 
             &:hover {
                 background-color: darken($hover-color, 10%);
-                /* 當滑鼠懸停時加深顏色 */
             }
         }
     }
