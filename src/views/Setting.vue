@@ -1,10 +1,11 @@
 <script>
 import LeftBar from '@/components/LeftBar.vue'
 import Header from '@/components/Header.vue'
-import AddMenu from '@/components/AddMenu.vue';
+import AddMenu from '@/components/AddMenu.vue'
 import Workbench from '@/components/Workbench.vue';
+import BusiSetting from '@/components/BusiSetting.vue';
 
-export default {
+export default { 
     data() {
         return {
             selectedComponent: 'AddMenu',
@@ -15,6 +16,7 @@ export default {
         Header,
         AddMenu,
         Workbench,
+        BusiSetting
     },
     methods: {
         handleComponentChange(component) {
