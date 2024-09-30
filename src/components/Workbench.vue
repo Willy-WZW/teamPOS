@@ -162,26 +162,25 @@ export default {
 </script>
 
 <template>
-    <div class="big">
-        <div class="menuCategory">
-            <h1>工作檯分類</h1>
-            <div class="optionArea">
-                <div v-for="(category, index) in categories" :key="index" class="cOption">
-                    <span v-if="!isEditing">{{ category.workstationName }}</span>
-                    <input v-if="isEditing" type="text" v-model="category.workstationName" placeholder="請輸入工作站名稱" />
-                    <i class="fa-regular fa-circle-xmark" v-if="!isEditing"
-                        @click="removeWorkstation(category.workstationId)"></i>
-                </div>
-                <div class="inputOp" v-for="(input, index) in cgInput" :key="index">
-                    <input type="text" v-model="input.text" placeholder="請輸入工作站名稱" />
-                </div>
-                <i class="fa-solid fa-circle-plus" @click="addCgInput()"></i>
+
+    <div class="menuCategory">
+        <h1>工作檯分類</h1>
+        <div class="optionArea">
+            <div v-for="(category, index) in categories" :key="index" class="cOption">
+                <span v-if="!isEditing">{{ category.workstationName }}</span>
+                <input v-if="isEditing" type="text" v-model="category.workstationName" placeholder="請輸入工作站名稱" />
+                <i class="fa-regular fa-circle-xmark" v-if="!isEditing"
+                    @click="removeWorkstation(category.workstationId)"></i>
             </div>
-            <div @click="isEditing ? updateWorkstation() : createWorkstation()" class="saveCategory">
-                {{ isEditing ? '更新' : '儲存' }}
+            <div class="inputOp" v-for="(input, index) in cgInput" :key="index">
+                <input type="text" v-model="input.text" placeholder="請輸入工作站名稱" />
             </div>
-            <div @click="editCategory" class="editCategory">編輯</div>
+            <i class="fa-solid fa-circle-plus" @click="addCgInput()"></i>
         </div>
+        <div @click="isEditing ? updateWorkstation() : createWorkstation()" class="saveCategory">
+            {{ isEditing ? '更新' : '儲存' }}
+        </div>
+        <div @click="editCategory" class="editCategory">編輯</div>
     </div>
 </template>
 
@@ -192,14 +191,14 @@ $addDiv: #343a3f;
 
 .menuCategory {
     width: 21%;
-    height: 87%;
+    height: 100%;
     border-radius: 10px;
     display: flex;
     justify-content: start;
     align-items: center;
     flex-direction: column;
     position: absolute;
-    top: 9.5%;
+    top: 0%;
     left: 2%;
     background-color: white;
 
