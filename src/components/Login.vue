@@ -17,8 +17,6 @@ export default {
 
             //會員
             if (isMember) {
-                console.log('會員登入');
-
                 // 準備要傳送的資料
                 const loginData = {
                     phone: this.account,
@@ -29,7 +27,7 @@ export default {
                 const jsonData = JSON.stringify(loginData);
 
                 // Fetch API 傳送 jsonData 到後端
-                console.log('要傳送的資料:', jsonData);
+                // console.log('要傳送的資料:', jsonData);
                 fetch('http://localhost:8080/api/member/checklogin', {
                     method: 'POST',
                     headers: {
@@ -58,7 +56,7 @@ export default {
                                 confirmButtonText: '確定',
                             });
                         }
-                        console.log('成功:', data);
+                        // console.log('成功:', data);
                     })
                     .catch((error) => {
                         console.error('錯誤:', error);
@@ -70,52 +68,52 @@ export default {
                     });
 
             } else if (isStaff) {
-                console.log('員工登入');
 
-                // // 準備要傳送的資料
-                // const userData = {
-                //     account: this.account, // 假設員工帳號使用的是 account
-                //     pwd: this.password,
-                // };
+                // 準備要傳送的資料
+                const userData = {
+                    staffNumber: this.account, 
+                    pwd: this.password,
+                };
 
-                // // 將物件轉換為 JSON 字符串
-                // const jsonData = JSON.stringify(userData);
+                // 將物件轉換為 JSON 字符串
+                const jsonData = JSON.stringify(userData);
 
-                // // Fetch API 傳送 jsonData 到後端
-                // console.log('要傳送的資料:', jsonData);
-                // fetch('http://localhost:8080/api/staff/checklogin', { // 假設員工登入的 API 路徑
-                //     method: 'POST',
-                //     headers: {
-                //         'Content-Type': 'application/json',
-                //     },
-                //     body: jsonData
-                // })
-                //     .then(response => response.json())
-                //     .then(data => {
-                //         if (data.code == "200") {
-                //             Swal.fire({
-                //                 title: data.message,
-                //                 icon: 'success',
-                //                 confirmButtonText: '確定',
-                //             });
-                //             this.$router.push('/'); // 修正
-                //         } else {
-                //             Swal.fire({
-                //                 title: data.message,
-                //                 icon: 'error',
-                //                 confirmButtonText: '確定',
-                //             });
-                //         }
-                //         console.log('成功:', data);
-                //     })
-                //     .catch((error) => {
-                //         console.error('錯誤:', error);
-                //         Swal.fire({
-                //             title: '網絡錯誤，請重試！',
-                //             icon: 'error',
-                //             confirmButtonText: '確定',
-                //         });
-                //     });
+                // Fetch API 傳送 jsonData 到後端
+                console.log('要傳送的資料:', jsonData);
+                fetch('http://localhost:8080/api/staff/checklogin', { // 假設員工登入的 API 路徑
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: jsonData
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.code == "200") {
+                            Swal.fire({
+                                title: data.message,
+                                icon: 'success',
+                                confirmButtonText: '確定',
+                            });
+                            sessionStorage.setItem('staffNumber', data.staffNumber);
+                            this.$router.push('/system'); 
+                        } else {
+                            Swal.fire({
+                                title: data.message,
+                                icon: 'error',
+                                confirmButtonText: '確定',
+                            });
+                        }
+                        console.log('成功:', data);
+                    })
+                    .catch((error) => {
+                        console.error('錯誤:', error);
+                        Swal.fire({
+                            title: '網絡錯誤，請重試！',
+                            icon: 'error',
+                            confirmButtonText: '確定',
+                        });
+                    });
             } else {
                 //都不是就是錯
                 Swal.fire({

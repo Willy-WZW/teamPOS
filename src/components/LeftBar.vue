@@ -73,7 +73,6 @@ export default {
                         return response.json(); // 解析回應為 JSON 格式
                     })
                     .then(data => {
-                        console.log(data);
 
                         // 客人的話回傳等級
                         this.userName = data.member.name;
@@ -88,8 +87,40 @@ export default {
             }
         },
         getStaffData() {//抓員工資料
+            const staffNumber = sessionStorage.getItem('staffNumber');  //登入的時候已經把staffNumber寫在session了
 
-        }
+            if (staffNumber) {
+                // 使用 fetch 發送 GET 請求
+                fetch(`http://localhost:8080/api/staff/${staffNumber}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! Status: ${response.status}`);
+                        }
+                        return response.json(); // 解析回應為 JSON 格式
+                    })
+                    .then(data => {
+
+                        // 客人的話回傳等級
+                        this.userName = data.staff.name;
+                        this.role = "權限:" + data.staff.authorization;
+                    })
+                    .catch(error => {
+                        console.error("取得員工資料失敗:", error);
+                    });
+
+            } else {
+                console.error("Session 中的 staffNumber 不存在，無法取得員工資料");
+            }
+        },
+        logout() {
+            sessionStorage.clear(); // 清除所有 sessionStorage 資料
+            this.$router.push("/"); // 跳轉至首頁或登錄頁面
+        },
     },
     mounted() {
 
@@ -176,7 +207,7 @@ export default {
                 <p>{{ this.role }}</p>
 
             </div>
-            <RouterLink to="/" class="logout-button">登出</RouterLink>
+            <RouterLink to="/" class="logout-button" @click="logout">登出</RouterLink>
         </div>
         <!-- <div class="user">
             <div class="userInfo" @click="$router.push('/userInfo')">
@@ -250,7 +281,8 @@ $boxShadow: rgba(0, 0, 0, 0.4);
                 background-color: rgba(169, 217, 253, 0.563);
             }
 
-            i, .material-symbols-outlined {
+            i,
+            .material-symbols-outlined {
                 font-size: 24px; // 統一圖標大小
                 margin-bottom: 5px;
             }
@@ -264,7 +296,14 @@ $boxShadow: rgba(0, 0, 0, 0.4);
         }
 
         // 為每個按鈕應用通用樣式
-        .setting, .operation, .order, .orderStatus, .tableChechout, .event, .workstation, .history {
+        .setting,
+        .operation,
+        .order,
+        .orderStatus,
+        .tableChechout,
+        .event,
+        .workstation,
+        .history {
             @extend .button-common;
         }
 

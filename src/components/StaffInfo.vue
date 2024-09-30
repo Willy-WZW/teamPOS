@@ -1,28 +1,33 @@
 <script>
+import Swal from 'sweetalert2';
+
 export default {
     data() {
         return {
-            employees: [
-                { id: 'A001', name: '王小明', phone: '0910110001', password: '************', email: 'wangming@email.com', role: '內場' },
-                { id: 'A002', name: '李小花', phone: '0910220002', password: '************', email: 'lixiaohua@email.com', role: '外場' },
-            ],
+            employees: [],
             newEmployee: {
                 id: '',
                 name: '',
                 phone: '',
                 password: '',
                 email: '',
-                role: '',
+                authorization: '',
             },
+            authorizations: [ //這裡還沒改
+                { code: '1', label: '內場' },
+                { code: '2', label: '外場' },
+                { code: '3', label: '管理' }
+            ],
             searchQuery: '',
             editingId: null,
             showAddRow: false,
             currentPage: 1,
             pageSize: 5,
+            isAddingOrEditing: false,
         };
     },
     computed: {
-        //模糊搜尋
+        // 模糊搜尋
         filteredEmployees() {
             const query = this.searchQuery.toLowerCase();
             return this.employees.filter(employee =>
@@ -35,8 +40,8 @@ export default {
             return this.filteredEmployees.slice(start, start + this.pageSize);
         },
         nextEmployeeId() {
-            const maxId = Math.max(...this.employees.map(e => parseInt(e.id.slice(1))), 0);
-            return `A${String(maxId + 1).padStart(3, '0')}`;
+            const maxId = Math.max(...this.employees.map(e => parseInt(e.id.slice(4))), 0); // 切掉前綴 "TEST"
+            return `TEST${String(maxId + 1).padStart(3, '0')}`; // 返回新編號
         },
         totalPages() {
             return Math.ceil(this.filteredEmployees.length / this.pageSize);
@@ -44,38 +49,250 @@ export default {
     },
     methods: {
         toggleAddEmployee() {
-            if (this.showAddRow) {
-                this.addEmployee();
-            } else {
-                this.showAddRow = true;
-            }
+            // 始終顯示新增行
+            this.showAddRow = !this.showAddRow;
+            this.isAddingOrEditing = this.showAddRow; // 設置狀態
         },
         addEmployee() {
             if (this.showAddRow) {
-                this.newEmployee.id = this.nextEmployeeId;
-                this.employees.push({ ...this.newEmployee });
-                this.resetNewEmployee();
+                this.newEmployee.id = this.nextEmployeeId; // 設定員工編號
+                const employeeData = {
+                    name: this.newEmployee.name,
+                    phone: this.newEmployee.phone,
+                    pwd: this.newEmployee.password,
+                    authorization: this.newEmployee.authorization,
+                    email: this.newEmployee.email
+                };
+
+                // 發送 API 請求新增員工
+                fetch("http://localhost:8080/api/staff/register", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(employeeData)
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! Status: ${response.status}`);
+                        }
+                        return response.json(); // 解析回應的 JSON
+                    })
+                    .then(data => {
+                        // 顯示 SweetAlert 成功提示
+                        if (data.code == 200) {
+                            Swal.fire({
+                                title: data.message, // 假設 API 返回的訊息
+                                icon: 'success',
+                                confirmButtonText: '確定',
+                            });
+
+                            
+                            this.employees.push({ ...this.newEmployee, id: this.newEmployee.id }); // 將新增的員工加入本地狀態
+                            this.allStaffInfo();
+                            this.resetNewEmployee(); // 重置新增員工的資料
+                        } else {
+                            Swal.fire({
+                                title: '新增員工失敗',
+                                text: data.message, // 顯示錯誤訊息
+                                icon: 'error',
+                                confirmButtonText: '確定',
+                            });
+
+                            this.isAddingOrEditing = true; // 維持編輯狀態
+                        }
+
+                        // 檢查是否需要跳到下一頁
+                        if (this.filteredEmployees.length % this.pageSize == 1) {
+                            this.changePage(this.currentPage + 1);
+                        }
+                    })
+                    .catch(error => {
+                        console.error("新增員工失敗:", error);
+                        // 顯示 SweetAlert 錯誤提示
+                        Swal.fire({
+                            title: '新增員工失敗',
+                            text: error.message, // 顯示錯誤訊息
+                            icon: 'error',
+                            confirmButtonText: '確定',
+                        });
+
+                        this.isAddingOrEditing = true; // 維持編輯狀態
+                    });
             }
         },
         resetNewEmployee() {
-            this.newEmployee = { id: '', name: '', phone: '', password: '', email: '', role: '' };
-            this.showAddRow = false;
+            this.newEmployee = { id: '', name: '', phone: '', password: '', email: '', authorization: '' };
+            this.showAddRow = false; // 新增完成後隱藏新增行
+            this.isAddingOrEditing = false; // 重置狀態
         },
         deleteEmployee(id) {
-            this.employees = this.employees.filter(emp => emp.id !== id);
+            // 確認刪除
+            Swal.fire({
+                title: '確定要刪除這位員工嗎?',
+                text: "這個動作無法復原！",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: '是的，刪除它！',
+                cancelButtonText: '取消'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // 發送 API 請求刪除員工
+                    fetch(`http://localhost:8080/api/staff/delete`, {
+                        method: 'POST',
+                        body: id
+                    })
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error(`HTTP error! Status: ${response.status}`);
+                            }
+                            return response.json(); // 解析回應的 JSON
+                        })
+                        .then(data => {
+                            // 顯示 SweetAlert 成功提示
+                            if (data.code === 200) {
+                                Swal.fire({
+                                    title: data.message, // 假設 API 返回的訊息
+                                    icon: 'success',
+                                    confirmButtonText: '確定',
+                                });
+
+                                this.employees = this.employees.filter(emp => emp.id !== id); // 從本地狀態中移除
+                            } else {
+                                Swal.fire({
+                                    title: '刪除員工失敗',
+                                    text: data.message, // 顯示錯誤訊息
+                                    icon: 'error',
+                                    confirmButtonText: '確定',
+                                });
+                            }
+                        })
+                        .catch(error => {
+                            console.error("刪除員工失敗:", error);
+                            // 顯示 SweetAlert 錯誤提示
+                            Swal.fire({
+                                title: '刪除員工失敗',
+                                text: error.message, // 顯示錯誤訊息
+                                icon: 'error',
+                                confirmButtonText: '確定',
+                            });
+                        });
+                }
+            });
         },
         startEditing(id) {
+            const employee = this.employees.find(emp => emp.id === id);
             this.editingId = id;
+            this.newEmployee = { ...employee }; // 將選中的員工資料填入新增員工表單
+            this.isAddingOrEditing = true; // 設置狀態
         },
         saveEditing() {
-            this.editingId = null;
+            const updatedData = {
+                staffNumber: this.editingId,
+                name: this.newEmployee.name,
+                phone: this.newEmployee.phone,
+                email: this.newEmployee.email,
+                authorization: this.newEmployee.authorization
+            };
+
+            // 發送 API 請求更新員工資料
+            fetch("http://localhost:8080/api/staff/updateInfo", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(updatedData)
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    return response.json(); // 解析回應的 JSON
+                })
+                .then(data => {
+                    // 顯示 SweetAlert 成功提示
+                    if (data.code === 200) {
+                        Swal.fire({
+                            title: data.message, // 假設 API 返回的訊息
+                            icon: 'success',
+                            confirmButtonText: '確定',
+                        });
+
+                        this.allStaffInfo();
+                        this.cancelEditing(); // 重置狀態
+                    } else {
+                        Swal.fire({
+                            title: '更新員工失敗',
+                            text: data.message, // 顯示錯誤訊息
+                            icon: 'error',
+                            confirmButtonText: '確定',
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error("更新員工失敗:", error);
+                    // 顯示 SweetAlert 錯誤提示
+                    Swal.fire({
+                        title: '更新員工失敗',
+                        text: error.message, // 顯示錯誤訊息
+                        icon: 'error',
+                        confirmButtonText: '確定',
+                    });
+                });
         },
         cancelEditing() {
             this.editingId = null;
+            this.isAddingOrEditing = false; // 重置狀態
+            this.resetNewEmployee(); // 清空新增員工表單
         },
         changePage(page) {
             this.currentPage = page;
+        },
+        allStaffInfo() {
+            Promise.all([
+                fetch("http://localhost:8080/api/staff/all", {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                }),
+                fetch("http://localhost:8080/api/authorizations", { // 獲取授權選項
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+            ])
+                .then(async ([staffResponse, authResponse]) => {
+                    if (!staffResponse.ok) {
+                        throw new Error(`HTTP error! Status: ${staffResponse.status}`);
+                    }
+                    const staffData = await staffResponse.json();
+                    this.employees = staffData.staffData.map(staff => ({
+                        id: staff.staffNumber,
+                        name: staff.name,
+                        phone: staff.phone,
+                        password: staff.pwd,
+                        email: staff.email,
+                        authorization: staff.authorization === '12' ? '內場' : '外場',
+                    }));
+
+                    // 取得授權選項
+                    if (!authResponse.ok) {
+                        throw new Error(`HTTP error! Status: ${authResponse.status}`);
+                    }
+                    const authData = await authResponse.json();
+                    this.authorizations = authData.authorizations; // 假設返回的 JSON 有 authorizations
+                })
+                .catch(error => {
+                    console.error("取得使用者資料失敗:", error);
+                });
         }
+    },
+    mounted() {
+        this.allStaffInfo();
     }
 };
 </script>
@@ -107,40 +324,33 @@ export default {
                             <td>{{ employee.id }}</td>
                             <td>
                                 <div class="cell-content">
-                                    <input v-if="editingId === employee.id" v-model="employee.name"
+                                    <input v-if="editingId === employee.id" v-model="newEmployee.name"
                                         class="edit-input" />
                                     <span v-else>{{ employee.name }}</span>
                                 </div>
                             </td>
                             <td>
                                 <div class="cell-content">
-                                    <input v-if="editingId === employee.id" v-model="employee.phone"
+                                    <input v-if="editingId === employee.id" v-model="newEmployee.phone"
                                         class="edit-input" />
                                     <span v-else>{{ employee.phone }}</span>
                                 </div>
                             </td>
                             <td>
                                 <div class="cell-content">
-                                    <input v-if="editingId === employee.id" v-model="employee.password" type="password"
-                                        class="edit-input" />
-                                    <span v-else>************</span>
+                                    <span>************</span>
                                 </div>
                             </td>
                             <td>
                                 <div class="cell-content">
-                                    <input v-if="editingId === employee.id" v-model="employee.email"
+                                    <input v-if="editingId === employee.id" v-model="newEmployee.email"
                                         class="edit-input" />
                                     <span v-else>{{ employee.email }}</span>
                                 </div>
                             </td>
                             <td>
                                 <div class="cell-content">
-                                    <select v-if="editingId === employee.id" v-model="employee.role" class="edit-input">
-                                        <option value="內場">內場</option>
-                                        <option value="外場">外場</option>
-                                        <option value="管理">管理</option>
-                                    </select>
-                                    <span v-else>{{ employee.role }}</span>
+                                    <span>{{ employee.authorization }}</span> <!-- 不可編輯的授權 -->
                                 </div>
                             </td>
                             <td>
@@ -166,17 +376,18 @@ export default {
                         </tr>
                         <tr v-if="showAddRow" class="new-employee-row">
                             <td>{{ nextEmployeeId }}</td>
-                            <td><input v-model="newEmployee.name" placeholder="輸入姓名" class="edit-input"></td>
+                            <td><input v-model="newEmployee.name" placeholder="輸入姓名" class="edit-input"
+                                    maxlength="16px"></td>
                             <td><input v-model="newEmployee.phone" placeholder="輸入電話" class="edit-input"></td>
                             <td><input v-model="newEmployee.password" placeholder="輸入密碼" type="password"
                                     class="edit-input"></td>
                             <td><input v-model="newEmployee.email" placeholder="輸入email" class="edit-input"></td>
                             <td>
-                                <select v-model="newEmployee.role" class="edit-input">
+                                <select v-model="newEmployee.authorization" class="edit-input">
                                     <option value="">選擇授權</option>
-                                    <option value="內場">內場</option>
-                                    <option value="外場">外場</option>
-                                    <option value="管理">管理</option>
+                                    <option v-for="auth in authorizations" :value="auth.code" :key="auth.code">
+                                        {{ auth.label }}
+                                    </option>
                                 </select>
                             </td>
                             <td>
@@ -196,13 +407,15 @@ export default {
             </div>
 
             <div class="center-add-btn">
-                <button @click="toggleAddEmployee" class="add-btn">
-                    <i class="fas fa-user-plus"></i> {{ showAddRow ? '確認新增' : '新增員工' }}
+                <button @click="toggleAddEmployee" class="add-btn" :disabled="isAddingOrEditing">
+                    <i class="fas fa-user-plus"></i> 新增員工
                 </button>
             </div>
         </div>
     </div>
 </template>
+
+
 
 <style lang="scss" scoped>
 .employee-management-container {
@@ -224,7 +437,6 @@ export default {
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 
         h2 {
-            margin-bottom: 24px;
             color: #333;
             font-size: 28px;
         }
@@ -252,6 +464,7 @@ export default {
 
                 th,
                 td {
+                    width: 8%;
                     padding: 12px 16px;
                     text-align: center;
                     background-color: transparent;
