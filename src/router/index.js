@@ -57,6 +57,11 @@ const router = createRouter({
       name: 'system',
       component: () => import('../views/System.vue')
     },
+    {
+      path: '/busiSetting',
+      name: 'busiSetting',
+      component: () => import('../views/BusiSetting.vue')
+    },
   ]
 })
 
