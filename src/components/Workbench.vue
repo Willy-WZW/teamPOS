@@ -235,6 +235,9 @@ $addDiv: #343a3f;
                 font-family: "Noto Sans TC", sans-serif;
                 margin-left: 2.5%;
             }
+            .fa-circle-xmark{
+                cursor: pointer;
+            }
         }
 
         .inputOp {

@@ -511,6 +511,7 @@ $borderBot: #697077;
                         background-color: $addDiv;
                         font-size: 25px;
                         font-family: "Noto Sans TC", sans-serif;
+                        cursor: pointer;
                     }
 
                     .addMenuDiv:nth-child(4n) {
@@ -737,6 +738,7 @@ $borderBot: #697077;
                         display: flex;
                         justify-content: center;
                         align-items: center;
+                        cursor: pointer;
                     }
 
                     .custInput {
