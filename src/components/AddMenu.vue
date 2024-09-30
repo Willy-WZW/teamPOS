@@ -146,12 +146,15 @@ export default{
                 <h1>菜單分類</h1>
                 <div class="optionArea">
                     <div class="cOption" v-for="(category, cIndex) in categories" :key="cIndex"
-                        :style="{ transform: `translate(${28 + category.translateX}px)` }"
+                        :style="{ transform: `translate(${37 + category.translateX}px)` }"
                         @touchstart="startTouch($event, cIndex)" @touchmove="moveTouch($event, cIndex)"
                         @touchend="endTouch(cIndex)">
                         <div class="opContent">
                             <span>{{ category.category }}</span>
-                            <div class="countOp">55</div>
+                            <div class="groupOne">
+                                <div class="countOp">55</div>
+                                <i class="fa-regular fa-circle-xmark"></i>
+                            </div>
                         </div>
                         <div @click="confirmDelete" class="deleteOp">
                             <span>刪除</span>
@@ -227,7 +230,7 @@ export default{
                         <div class="custInput" v-for="(cust, index) in custList" :key="index">
                             <div class="cuTitle">
                                 <input type="text" v-model="cust.Title" placeholder="客製化標題">
-                                <select v-model="selectedType">
+                                <select v-model="cust.selectedType">
                                     <option value="checkbox">多選</option>
                                     <option value="radio">單選</option>
                                 </select>
@@ -235,8 +238,8 @@ export default{
                             <div class="titleOption">
                                 <div class="oneOption" v-for="(option, opIndex) in cust.options" :key="opIndex">
                                     <div class="optionL">
-                                        <input type="checkbox" v-if="selectedType == 'checkbox'" disabled>
-                                        <input type="radio" v-if="selectedType == 'radio'" disabled>
+                                        <input type="checkbox" v-if="cust.selectedType === 'checkbox'" disabled>
+                                        <input type="radio" v-if="cust.selectedType === 'radio'" disabled>
                                         <input type="text" v-model="option.options" class="inText"
                                             :placeholder="'選項' + (opIndex + 1)">
                                     </div>
@@ -295,14 +298,12 @@ $borderBot: #697077;
                 overflow-x: hidden;
 
                 .cOption {
-                    width: 125%;
+                    width: 130%;
                     height: 6%;
                     display: flex;
                     justify-content: space-between;
                     align-items: center;
                     flex-direction: column;
-                    top: 0;
-                    left: 0;
                     border-radius: 5px;
                     margin-bottom: 5%;
                     overflow-y: scroll;
@@ -325,21 +326,29 @@ $borderBot: #697077;
                             margin-left: 2.5%;
                         }
 
-                        .countOp {
-                            min-width: 15%;
-                            height: 50%;
+
+                        .groupOne{
+                            width: 30%;
+                            height: 100%;
                             display: flex;
-                            justify-content: center;
+                            justify-content: end;
                             align-items: center;
-                            margin-right: 2.5%;
-                            border-radius: 30px;
-                            color: white;
-                            background-color: gray;
+                            .countOp {
+                                min-width: 45%;
+                                height: 60%;
+                                display: flex;
+                                justify-content: center;
+                                align-items: center;
+                                margin-right: 6.5%;
+                                border-radius: 30px;
+                                color: white;
+                                background-color: gray;
+                            }
                         }
                     }
 
                     .deleteOp {
-                        width: 20%;
+                        width: 18%;
                         height: 100%;
                         letter-spacing: 2px;
                         position: absolute;
@@ -497,6 +506,7 @@ $borderBot: #697077;
                     height: 85%;
                     display: flex;
                     overflow-y: scroll;
+                    scrollbar-width: none;
                     flex-wrap: wrap;
 
                     .addMenuDiv {
@@ -648,8 +658,8 @@ $borderBot: #697077;
 
             .customerization {
                 width: 100%;
-                height: 27%;
-                margin-top: 2.5%;
+                height: 31%;
+                margin-top: 1.5%;
                 border-radius: 10px;
                 display: flex;
                 justify-content: start;
@@ -724,6 +734,7 @@ $borderBot: #697077;
                     justify-content: start;
                     align-items: center;
                     overflow-x: scroll;
+                    scrollbar-width: none;
                     white-space: nowrap;
 
                     .addItem {
@@ -779,6 +790,7 @@ $borderBot: #697077;
                         flex-direction: column;
                         overflow-y: scroll;
                         overflow-x: hidden;
+                        scrollbar-width: none;
                         margin: 0 1%;
 
                         .oneOption {
