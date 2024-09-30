@@ -41,17 +41,19 @@
                         </select>
                         <div class="">
                             <p>卡拉雞腿堡</p>
-                            <p>$100</p>
+                            <p>$10000</p>
+                        </div>
+                        <div class="addButton">
+                            <i class='bx bxs-plus-circle' ></i>
                         </div>
                     </div>        
                 </div>
             </div>
-
         </div>
     
     </div>
 </template>
 
 
-<style>
+<style scoped lang="scss">
 </style>
