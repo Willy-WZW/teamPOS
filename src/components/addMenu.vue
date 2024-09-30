@@ -1,26 +1,19 @@
 <script>
-import LeftBar from '@/components/LeftBar.vue'
-import Header from '@/components/Header.vue'
 import Swal from 'sweetalert2';
-export default {
-    data() {
-        return {
+import axios from 'axios';
+export default{
+    data(){
+        return{
             startX: 0,
-            translateX: 0,
-            supply: true,
+            // translateX: 0,
+            selectedType: 'checkbox',
             categories: [
-                { text: "", translateX: 0 },
+                // { text: "", translateX: 0 },
             ],
             cgInput: [],
-            activeNames: [],
-            collapses: [],
-            
-            showComboArea:true
-        };
-    },
-    components: {
-        LeftBar,
-        Header
+            menuList: [],
+            custList: [],
+        }
     },
     methods: {
         startTouch(event, index) {
@@ -57,60 +50,99 @@ export default {
         },
         addCgInput() {
             this.cgInput.push(
-                { text: "" },
+                { category: "" },
             )
         },
-        switchSta() {
-            this.supply = !this.supply
+        switchSta(menu) {
+            menu.supply = !menu.supply
         },
-        clearOption(collapse) {
-            collapse.options.forEach(option => {
-                option.text = ""
+        addMenu() {
+            this.menuList.push({
+                name: "", // 餐點名稱
+                price: "", // 餐點金額
+                workstation: "0", // 工作檯
+                supply: true, // 供應狀態
             });
         },
-        addOptionBox(collapse) {
-            collapse.options.push({ text: '' })
+        removeMenu(index) {
+            this.menuList.splice(index, 1);
         },
-        removeOption(collapse, opIndex) {
-            if (collapse.options.length > 2) {
-                collapse.options.splice(opIndex, 1)
+        addCust() {
+            this.custList.push({
+                title: "",// 客製化標題
+                selectedType: 'checkbox', // 客製化選擇
+                options: [ //客製化選項
+                    { text: "", price: "" }
+                ],
+            })
+        },
+        removeCust(index) {
+            this.custList.splice(index, 1)
+        },
+        addOption(custIndex) {
+            this.custList[custIndex].options.push({
+                text: "", // 選項內容
+                price: "" // 選項金額
+            });
+        },
+        async saveCategory() {
+            const categoryData = this.cgInput.map(item => ({ category: item.category }));
+
+            try {
+                for (const category of categoryData) {
+                    const response = await axios.post("http://localhost:8080/category/create", category);
+
+                    if (response.data.code === 200) {
+                        const newCategory = { text: category.category, translateX: 0 };
+                        Swal.fire({
+                            title: '成功',
+                            text: '成功新增菜單分類',
+                            icon: 'success',
+                            confirmButtonText: '好的'
+                        })
+                    } else {
+                        Swal.fire({
+                            title: '錯誤',
+                            text: '菜單分類已存在',
+                            icon: 'error',
+                            confirmButtonText: '好的'
+                        })
+                    }
+                }
+                this.cgInput = []
+            } catch (error) {
+                console.error('儲存分類時發生錯誤：', error);
+                Swal.fire({
+                    title: '錯誤',
+                    text: '請稍後再嘗試',
+                    icon: 'error',
+                    confirmButtonText: '好的'
+                })
             }
         },
-        addCustomization() {
-            const newIndex = this.collapses.length + 1;
-            const newCollapse = {
-                name: newIndex.toString(),
-                title: "",
-                type: "radio",
-                options: [
-                    { text: "" },
-                    { text: "" },
-                ]
-            };
-            this.collapses.push(newCollapse);
-            // this.activeNames.push(newCollapse.name);
+        fetchCategories() {
+            axios.get("http://localhost:8080/category/all")
+                .then(response => {
+                    this.categories = response.data.map(category => ({
+                        ...category,
+                        translateX: 0  // 初始化 translateX 為 0
+                    }));
+                    console.log(response.data); // 所有 Categories 資料
+                })
+                .catch(error => {
+                    console.error('獲取分類時發生錯誤:', error);
+                });
         },
-        deleteThisCollapse(index) {
-            this.collapses.splice(index, 1)
-        },
-        updateTitle(collapse, index) {
-            this.collapses[index].title = collapse.title;
-        }
+    },
+    mounted() {
+        this.fetchCategories(); // 載入時獲取分類
     }
 }
-
 </script>
 
 <template>
-    <div class="big">
-        <div class="leftBar">
-            <LeftBar />
-        </div>
-        <div class="mainArea">
-            <div class="header">
-                <Header />
-            </div>
-            <div class="menuCategory">
+    <div class="addMenu">
+        <div class="menuCategory">
                 <h1>菜單分類</h1>
                 <div class="optionArea">
                     <div class="cOption" v-for="(category, cIndex) in categories" :key="cIndex"
@@ -118,94 +150,23 @@ export default {
                         @touchstart="startTouch($event, cIndex)" @touchmove="moveTouch($event, cIndex)"
                         @touchend="endTouch(cIndex)">
                         <div class="opContent">
-                            <span>餐點名稱{{ category.name }}</span>
-                            <div class="countOp">55{{ category.count }}</div>
+                            <span>{{ category.category }}</span>
+                            <div class="countOp">55</div>
                         </div>
                         <div @click="confirmDelete" class="deleteOp">
                             <span>刪除</span>
                         </div>
                     </div>
                     <div class="inputOp" v-for="(item, cgIndex) in cgInput" :key="cgIndex">
-                        <input type="text" placeholder="輸入菜單分類">
+                        <input type="text" v-model="item.category" placeholder="輸入菜單分類">
                     </div>
                     <i class="fa-solid fa-circle-plus" @click="addCgInput()"></i>
                 </div>
-                <div class="saveCategory">儲存</div>
+                <div class="saveCategory" @click="saveCategory()">儲存</div>
                 <div class="editCategory">編輯</div>
             </div>
             <div class="menuAndCust">
-                <div class="menuArea" v-if="showComboArea">
-                    <div class="menuTop">
-                        <div class="mtLeft">
-                            <span>餐點</span>
-                        </div>
-                        <div class="mtRight">
-                            <div class="selCate">
-                                <span>套餐</span>
-                                <div class="countOp">55</div>
-                            </div>
-                            <div class="saveBtn">儲存</div>
-                        </div>
-                    </div>
-                    <div class="menuMain">
-                        <div class="addMenuDiv">+&nbsp&nbsp新增套餐</div>
-                        <div class="menuItem">
-                            <h1>套餐名稱</h1>
-                            <div>
-                                <label for="meal1">餐點選單</label>
-                                <select id="meal1">
-                                    <option value="豬排漢堡">豬排漢堡</option>
-                                    <option value="雞排漢堡">雞排漢堡</option>
-                                    <option value="美味蟹堡">美味蟹堡</option>
-                                </select>
-                                <div>
-                                    <p>卡拉雞腿堡</p>
-                                    <p>$160</p>
-                                </div>
-                            </div>
-                            <div>
-                                <label for="meal2">餐點選單</label>
-                                <select id="meal2">
-                                    <option value="紅茶">紅茶</option>
-                                    <option value="奶茶">奶茶</option>
-                                </select>
-                                <div>
-                                    <div>
-                                        <p>紅茶</p>
-                                        <p>$25</p>
-                                    </div>
-                                    <div>
-                                        <p>奶茶</p>
-                                        <p>$30</p>
-                                    </div>
-                                </div>
-                            </div>   
-                            <div class="itemIcon">
-                                    <i class="fa-solid fa-square-pen"></i>
-                            </div>
-                                <!-- <div class="itemPic"></div>
-                            <div class="itemName">青醬蛤蠣義大利麵</div>
-                            <div class="itemPrice">$ 250</div>
-                            <div class="itemWorksta">
-                                <span>工作檯</span>
-                                <select>
-                                    <option value="0">工作檯選擇</option>
-                                </select>
-                            </div>
-                            <div class="itembot">
-                                <div class="itemStatus" :class="{ flip: !supply }" @click="switchSta()">
-                                    <span>{{ supply ? "供應中" : "售完" }}</span>
-                                </div>
-                                <div class="itemIcon">
-                                    <i class="fa-solid fa-square-pen"></i>
-                                    <i class="fa-solid fa-trash-can"></i>
-                                </div>
-                            </div> -->
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="menuArea" v-if="!showComboArea">
+                <div class="menuArea">
                     <div class="menuTop">
                         <div class="mtLeft">
                             <span>餐點</span>
@@ -219,30 +180,35 @@ export default {
                         </div>
                     </div>
                     <div class="menuMain">
-                        <div class="addMenuDiv">+&nbsp&nbsp新增餐點</div>
-                        <div class="menuItem">
-                            <div class="itemPic"> </div>
-                            <div class="itemName">青醬蛤蠣義大利麵</div>
-                            <div class="itemPrice">$ 250</div>
+                        <div class="addMenuDiv" @click="addMenu()">+&nbsp&nbsp新增餐點</div>
+                        <div class="menuItem" v-for="(menu, index) in menuList" :key="index">
+                            <div class="itemPic">
+                                <i class="fa-solid fa-upload"></i>
+                            </div>
+                            <div class="itemName">
+                                <input type="text" v-model="menu.name" placeholder="輸入餐點名稱">
+                            </div>
+                            <div class="itemPrice">
+                                <input type="text" v-model="menu.price" placeholder="餐點金額">
+                            </div>
                             <div class="itemWorksta">
                                 <span>工作檯</span>
-                                <select>
+                                <select v-model="menu.workstation">
                                     <option value="0">工作檯選擇</option>
                                 </select>
                             </div>
                             <div class="itembot">
-                                <div class="itemStatus" :class="{ flip: !supply }" @click="switchSta()">
-                                    <span>{{ supply ? "供應中" : "售完" }}</span>
+                                <div class="itemStatus" :class="{ flip: !menu.supply }" @click="switchSta(menu)">
+                                    <span>{{ menu.supply ? "供應中" : "售完" }}</span>
                                 </div>
                                 <div class="itemIcon">
                                     <i class="fa-solid fa-square-pen"></i>
-                                    <i class="fa-solid fa-trash-can"></i>
+                                    <i class="fa-solid fa-trash-can" @click="removeMenu(index)"></i>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                
                 <div class="customerization">
                     <div class="cuTop">
                         <div class="cuLeft">
@@ -256,66 +222,60 @@ export default {
                             <div class="saveBtn">儲存</div>
                         </div>
                     </div>
-                    <div class="menuMain"></div>
+                    <div class="custItem">
+                        <div class="addItem" @click="addCust()">+&nbsp&nbsp新增客製化選項</div>
+                        <div class="custInput" v-for="(cust, index) in custList" :key="index">
+                            <div class="cuTitle">
+                                <input type="text" v-model="cust.Title" placeholder="客製化標題">
+                                <select v-model="selectedType">
+                                    <option value="checkbox">多選</option>
+                                    <option value="radio">單選</option>
+                                </select>
+                            </div>
+                            <div class="titleOption">
+                                <div class="oneOption" v-for="(option, opIndex) in cust.options" :key="opIndex">
+                                    <div class="optionL">
+                                        <input type="checkbox" v-if="selectedType == 'checkbox'" disabled>
+                                        <input type="radio" v-if="selectedType == 'radio'" disabled>
+                                        <input type="text" v-model="option.options" class="inText"
+                                            :placeholder="'選項' + (opIndex + 1)">
+                                    </div>
+                                    <div class="optionPrice">
+                                        <span>$</span>
+                                        <input type="text" v-model="option.price" class="inPrice" placeholder="金額">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="cuInputCtrl">
+                                <i class="fa-solid fa-trash-can" @click="removeCust(index)"></i>
+                                <i class="fa-solid fa-circle-plus" @click="addOption(index)"></i>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-
-
-
-        </div>
     </div>
 </template>
 
 <style scoped lang="scss">
 $divColor: #fff;
 $addDiv: #343a3f;
+$suppliable: #1ce34e;
+$soldOut: #e02d11;
+$borderBot: #697077;
 
-.big {
-    width: 100%;
-    height: 100dvh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-
-    .leftBar {
-        width: 10%;
-        height: 100vh;
-        position: fixed;
-        top: 0;
-        left: 0;
-        display: flex;
-        align-items: center;
-    }
-
-    .mainArea {
+    .addMenu{
         width: 100%;
         height: 100%;
-        overflow-y: scroll;
-        display: flex;
-        justify-content: start;
-        align-items: start;
-        flex-direction: column;
-        position: relative;
-
-        .header {
-            width: 96%;
-            height: 6.3%;
-            position: absolute;
-            top: 2%;
-            left: 2%;
-        }
-
+        
         .menuCategory {
-            width: 21%;
-            height: 87%;
+            width: 21.7%;
+            height: 100%;
             border-radius: 10px;
             display: flex;
             justify-content: start;
             align-items: center;
             flex-direction: column;
-            position: absolute;
-            top: 9.5%;
-            left: 2%;
             background-color: white;
 
             h1 {
@@ -418,6 +378,7 @@ $addDiv: #343a3f;
                 .fa-circle-plus {
                     font-size: 30px;
                     cursor: pointer;
+                    margin-top: 1%;
                 }
             }
 
@@ -451,15 +412,15 @@ $addDiv: #343a3f;
         }
 
         .menuAndCust {
-            width: 73.5%;
-            height: 87%;
+            width: 76.5%;
+            height: 100%;
             display: flex;
             justify-content: center;
             align-items: center;
             flex-direction: column;
             position: absolute;
-            top: 9.5%;
-            right: 2%;
+            top: 0;
+            right: 0;
 
             .menuArea {
                 width: 100%;
@@ -570,8 +531,15 @@ $addDiv: #343a3f;
 
                         .itemPic {
                             grid-area: 1 / 1 / 5 / 7;
+                            display: flex;
+                            justify-content: center;
+                            align-items: center;
                             border: dotted;
                             margin: 4% 4% 0 4%;
+
+                            .fa-upload {
+                                font-size: 30px;
+                            }
                         }
 
                         .itemName {
@@ -582,6 +550,12 @@ $addDiv: #343a3f;
                             letter-spacing: 3px;
                             font-family: "Noto Sans TC", sans-serif;
                             margin: 0 4%;
+
+                            input {
+                                max-width: 100%;
+                                font-size: 20px;
+                                font-family: "Noto Sans TC", sans-serif;
+                            }
                         }
 
                         .itemPrice {
@@ -591,12 +565,19 @@ $addDiv: #343a3f;
                             font-weight: bold;
                             font-family: "Noto Sans TC", sans-serif;
                             margin: 0 4%;
+
+                            input {
+                                max-width: 60%;
+                                font-size: 15px;
+                                font-family: "Noto Sans TC", sans-serif;
+                            }
                         }
 
                         .itemWorksta {
                             grid-area: 7 / 1 / 8 / 7;
                             display: flex;
                             align-items: center;
+                            border-bottom: 1px solid $borderBot;
                             color: #697077;
                             font-family: "Noto Sans TC", sans-serif;
                             margin: 0 4%;
@@ -617,31 +598,34 @@ $addDiv: #343a3f;
                             display: flex;
 
                             .itemStatus {
-                                width: 60%;
+                                width: 50%;
                                 margin-right: 5%;
                                 margin-bottom: 2%;
                                 border-radius: 5px;
                                 letter-spacing: 3px;
                                 cursor: pointer;
-                                font-size: 25px;
+                                font-size: 17px;
                                 font-weight: bold;
                                 color: white;
-                                background-color: green;
-                                border: 1px solid green;
+                                background-color: $suppliable;
+                                border: 1px solid $suppliable;
                                 display: flex;
                                 justify-content: center;
                                 align-items: center;
                                 transition: transform 0.7s, background-color 0.5s;
                             }
+
                             .flip {
                                 transform: rotateX(360deg);
-                                background-color: red;
+                                background-color: $soldOut;
+                                border-color: $soldOut;
                                 color: white;
                             }
 
 
                             .itemIcon {
                                 width: 35%;
+                                margin-left: 8%;
                                 display: flex;
                                 justify-content: space-between;
                                 align-items: center;
@@ -731,146 +715,132 @@ $addDiv: #343a3f;
                         }
                     }
                 }
+
+                .custItem {
+                    width: 97%;
+                    height: 65%;
+                    display: flex;
+                    justify-content: start;
+                    align-items: center;
+                    overflow-x: scroll;
+                    white-space: nowrap;
+
+                    .addItem {
+                        min-width: 25%;
+                        height: 100%;
+                        margin-right: 3%;
+                        border-radius: 10px;
+                        font-size: 25px;
+                        font-family: "Noto Sans TC", sans-serif;
+                        color: white;
+                        background-color: $addDiv;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                    }
+
+                    .custInput {
+                        display: grid;
+                        grid-template-columns: repeat(4, 1fr);
+                        grid-template-rows: repeat(4, 1fr);
+                        grid-column-gap: 4px;
+                        grid-row-gap: 4px;
+                        min-width: 25%;
+                        max-width: 25%;
+                        height: 100%;
+                        margin-right: 3%;
+                        border-radius: 10px;
+                        border: 1px solid $borderBot;
+                    }
+
+                    .cuTitle {
+                        grid-area: 1 / 1 / 2 / 5;
+                        width: 98%;
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        margin: 0 1%;
+
+                        input {
+                            width: 69%;
+                            font-size: 15px;
+                            margin-left: 2%;
+                        }
+                    }
+
+                    .titleOption {
+                        grid-area: 2 / 1 / 4 / 5;
+                        width: 98%;
+                        display: flex;
+                        justify-content: start;
+                        align-items: center;
+                        flex-direction: column;
+                        overflow-y: scroll;
+                        overflow-x: hidden;
+                        margin: 0 1%;
+
+                        .oneOption {
+                            width: 100%;
+                            max-height: 30px;
+                            display: flex;
+                            justify-content: space-between;
+                            align-items: center;
+
+                            .optionL {
+                                width: 70%;
+                                margin-left: 1%;
+                                display: flex;
+                                justify-content: start;
+                                align-items: center;
+
+                                .inText {
+                                    max-width: 89%;
+                                    font-size: 15px;
+                                    margin-left: 2%;
+                                    margin-top: 1%;
+                                    font-family: "Noto Sans TC", sans-serif;
+                                }
+                            }
+
+                            .optionPrice {
+                                width: 30%;
+                                display: flex;
+                                justify-content: end;
+                                align-items: center;
+
+                                .inPrice {
+                                    max-width: 60%;
+                                    font-size: 15px;
+                                    margin: 1% 5%;
+                                    font-family: "Noto Sans TC", sans-serif;
+                                }
+                            }
+                        }
+
+                    }
+
+                    .cuInputCtrl {
+                        grid-area: 4 / 1 / 5 / 5;
+                        border-top: 1px solid $borderBot;
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+
+                        .fa-solid {
+                            font-size: 20px;
+                        }
+
+                        .fa-trash-can {
+                            margin-left: 3%;
+                        }
+
+                        .fa-circle-plus {
+                            margin-right: 3%;
+                        }
+                    }
+
+                }
             }
         }
-
-        // .mealNameArea {
-        //     width: 90%;
-        //     padding-bottom: 5px;
-        //     font-size: 20px;
-        //     border-bottom: 2px solid black;
-
-        //     span {
-        //         margin-right: 5px;
-        //     }
-
-        //     input {
-        //         width: 50%;
-        //         border: none;
-        //         color: transparent;
-        //         font-size: 20px;
-        //         margin-right: 30px;
-        //         color: black;
-        //     }
-
-        //     select {
-        //         font-size: 20px;
-        //         margin-right: 20px;
-        //     }
-
-        //     .price {
-        //         width: 120px;
-        //         color: black;
-        //     }
-        // }
-
-        // .mealImage {
-        //     width: 90%;
-        //     margin-top: 5px;
-
-        //     input {
-        //         cursor: pointer;
-        //         width: 70px;
-        //     }
-
-        //     span {
-        //         margin-right: 5px;
-        //     }
-        // }
-
-        // .mealDescription {
-        //     width: 90%;
-        //     margin-top: 5px;
-
-        //     .mealDes {
-        //         width: 80%;
-        //         height: 80px;
-        //         font-size: 18px;
-        //     }
-        // }
-
-        // .collTitle {
-        //     width: 230px;
-        //     font-size: 26px;
-        //     margin-left: 10px;
-        // }
-
-        // .el-collapse {
-        //     width: 90%;
-        //     margin: 30px auto;
-        //     --el-collapse-header-font-size: 20px;
-        //     --el-collapse-header-bg-color: #b0f079;
-
-        //     .el-collapse-item {
-        //         margin-bottom: 10px;
-        //     }
-
-        //     .editOption {
-        //         width: 100%;
-        //         display: flex;
-        //         justify-content: space-around;
-        //         align-items: center;
-        //         margin: 2% auto;
-
-        //         select {
-        //             font-size: 30px;
-        //         }
-
-        //         .fa-plus {
-        //             font-size: 40px;
-        //             cursor: pointer;
-        //         }
-
-        //         .fa-file-circle-xmark {
-        //             font-size: 40px;
-        //             cursor: pointer;
-        //         }
-
-        //     }
-
-        //     .option {
-        //         width: 100%;
-        //         margin: 2% auto;
-        //         display: flex;
-        //         align-items: center;
-
-        //         input[type=checkbox],
-        //         input[type=radio] {
-        //             margin: 0 30px;
-        //             scale: 2;
-        //         }
-
-        //         .markupOption {
-        //             width: 60%;
-        //             font-size: 40px;
-        //             margin-right: 100px
-        //         }
-
-        //         .markup {
-        //             width: 15%;
-        //             font-size: 40px;
-        //             margin-right: 70px;
-        //         }
-
-        //         .fa-trash {
-        //             font-size: 40px;
-        //             cursor: pointer;
-        //         }
-        //     }
-        // }
-
-        // .addOption {
-        //     width: 90%;
-        //     margin-top: 30px;
-        //     display: flex;
-        //     justify-content: center;
-
-        //     .fa-square-plus {
-        //         font-size: 40px;
-        //         cursor: pointer;
-        //     }
-        // }
     }
-
-}
 </style>
