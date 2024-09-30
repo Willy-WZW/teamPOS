@@ -19,7 +19,7 @@ export default {
             openingTime: '',
             closingTime: '',
             diningDuration: '',
-            reservationTimeSlots: [],
+            timeSlots: ['11:00', '12:30', '14:00', '17:00', '18:30', '20:00'],  // 預覽的時間段
             weekDays: [
             { name: '星期一', selected: false },
             { name: '星期二', selected: false },
@@ -380,85 +380,87 @@ export default {
     <!-- 顯示訂位管理注意事項 -->
     <p class="reminderText">請依照步驟依序設定</p>
 
-    <!-- 顯示桌號表格區域 -->
-    <div class="tableArea">
-            <!-- 顯示桌號表格列表 -->
-            <table class="tableList">
-                <!-- 桌號列表頭 -->
-                <thead>
-                    <tr>
-                        <th>桌號</th>
-                        <th>容納人數</th>
-                        <th>編輯</th>
-                    </tr>
-                </thead>
+    <!-- 顯示訂位管理表格區域 -->
+    <div class="reserveArea">
+        <!-- 營業時間設定 -->
+        <div class="businessHoursSection">
+            <div class="sectionHeader">
+                <div class="sectionNumber">1</div>
 
-                <!-- 桌號列表內容 -->
-                <tbody>
-                    <!-- 桌號列表行 -->
-                    <tr v-for="(table, index) in tableList" :key="index">
-                        <!-- 桌號 -->
-                        <td>
-                            <input class="tableNumber" v-model="table.table_number" type="text" placeholder="輸入桌號" />
-                        </td>
-
-                        <!-- 容納人數 -->
-                        <td>
-                            <select class="tableCapacity" v-model="table.table_capacity" >
-                                <option value="" disabled>選擇容納人數</option>
-                                <option v-for="option in capacityOptions" :key="option" :value="option">
-                                    {{ option }}
-                                </option>
-                            </select>
-                        </td>
-
-                        <!-- 刪除 Button -->
-                        <td>
-                            <button class="trashButton" @click="removeTable(index)">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
-                        </td>
-                    </tr>
-    
-                    <!-- 新增桌號行 -->
-                    <tr v-if="showNewTableRow">
-                        <!-- 桌號 -->
-                        <td>
-                            <input class="tableNumber" v-model="newTable.table_number" type="text" placeholder="輸入桌號" />
-                        </td>
-
-                        <!-- 容納人數 -->
-                        <td>
-                            <select class="tableCapacity" v-model="newTable.table_capacity">
-                                <option value="" disabled>選擇容納人數</option>
-                                <option v-for="option in capacityOptions" :key="option" :value="option">
-                                    {{ option }}
-                                </option>
-                            </select>
-                        </td>
-
-                        <!-- 刪除 Button -->
-                        <td>
-                            <button class="trashButton" @click="deleteNewTable">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <!-- 新增 Button -->
-            <div class="addButtonArea">
-                <button class="addButton" @click="addTableRow">
-                    <i class="fa-solid fa-circle-plus"></i>
-                </button>
+                <div class="sectionTitle">營業時間設定</div>
             </div>
+
+            <div class="timeSelectArea">
+                <div class="beginTimeSelectArea">
+                    <label class="beginTimeLabel" for="openingTime">開始時間</label>
+                    <input class="beginTimeInput" type="time" id="openingTime" v-model="openingTime" />
+                </div>
+
+                <div class="endTimeSelectArea">
+                    <label class="endTimeLabel" for="closingTime">結束時間</label>
+                    <input class="endTimeInput" type="time" id="closingTime" v-model="closingTime" />
+                </div>
+            </div>
+
+            <button class="addButton">
+                <i class="fa-solid fa-plus"></i>
+            </button>
+        </div>
+
+        <!-- 用餐時間設定 -->
+        <div class="diningDurationSection">
+            <div class="sectionHeader">
+                <div class="sectionNumber">2</div>
+
+                <div class="sectionTitle">用餐時間設定</div>
+            </div>
+
+            <div class="diningDurationArea">
+                <input class="diningDurationInput" type="number" v-model="diningDuration" placeholder="輸入客人用餐時間" min="1" />
+                <span class="diningDurationLabel">分鐘</span>
+            </div>
+        </div>
+
+        <!-- 預設訂位時段設定 -->
+        <div class="timeSlotSection">
+            <div class="sectionHeader">
+                <div class="sectionNumber">3</div>
+
+                <div class="sectionTitle">預覽訂位時間段</div>
+            </div>
+
+            <div class="timeSlotArea">
+                <p class="description">根據步驟 1 和步驟 2 自動計算</p>
+
+                <div class="timeSlotBox">
+                    <div class="timeSlot" v-for="(time, index) in timeSlots" :key="index">
+                        {{ time }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 選擇營業日期 -->
+        <div class="daySelectSection">
+            <div class="sectionHeader">
+                <div class="sectionNumber">4</div>
+
+                <div class="sectionTitle">選擇營業日期</div>
+            </div>
+
+            <div class="daySelectArea">
+                <label v-for="(day, index) in weekDays" :key="index" class="daySelectLabel">
+                    <input type="checkbox" v-model="day.selected" />
+                    {{ day.name }}
+                </label>
+            </div>
+        </div>
     </div>
 
     <!-- 取消、儲存操作按鈕區域 -->
     <div class="buttonArea">
-            <button class="cancelButton" >取消</button>
-            <button class="saveButton" >儲存</button>
+        <button class="cancelButton" >取消</button>
+        <button class="saveButton" >儲存</button>
     </div>
 </div>
 </template>
@@ -668,7 +670,7 @@ $soldOut: #e02d11;
         opacity: 0.6;
     }
 
-    .tableArea {
+    .reserveArea {
         width: 100%;
         height: 85%;
         border: 2px solid #ccc; /* 表格外框邊線 */
@@ -676,76 +678,327 @@ $soldOut: #e02d11;
         max-height: 650px;
         overflow-y: auto;
 
-        .tableList {
-            width: 100%;
-            border-collapse: collapse; /* 使用 separate 來啟用 border-spacing */
-            table-layout: fixed; /* 讓表格的列寬固定 */
+        .businessHoursSection {
+            width: 70%;
+            height: 235px;
+            border-radius: 10px;
+            border: 2px solid #c1c7cd;
+            padding: 15px;
+            margin: auto;
+            margin-bottom: 20px;
+            position: relative;
 
-            thead {
-                height: 55px;
-                background-color: #dde1e680;
-                letter-spacing: 4px;
-            }
+            .sectionHeader {
+                display: flex;
+                align-items: center;
+                margin-bottom: 15px;
+                padding-bottom: 10px;
+                border-bottom: 2px solid #c1c7cd;
 
-            tbody {
-                tr {
-                    height: 65px;
-                    border-bottom: 1px dashed #C1C7CD; /* 設置虛線的底線 */
+                .sectionNumber {
+                    width: 50px;
+                    height: 45px;
+                    background-color: #dde1e6;
+                    border-radius: 5px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 20px;
+                    font-weight: bold;
+                    color: #21272a;
                 }
 
-                td {
-                    padding: 5px; /* 減少內邊距以減小行高 */
-                    text-align: center;
-                    vertical-align: middle; /* 垂直居中內容 */
+                .sectionTitle {
+                    font-size: 23px;
+                    font-weight: bold;
+                    letter-spacing: 3px;
+                    margin-left: 10px;
+                    color: #21272a;
+                }
+            }
 
-                    .tableNumber {
-                        width: 80%;
-                        height: 35px;
-                        border: none;
-                        background-color: transparent;
-                        font-size: 20px;
-                        text-align: center;
-                        outline: none;
+            .timeSelectArea {
+                width: 60%;
+                height: 130px;
+                border-radius: 10px;
+                background-color: rgba(242, 244, 248);
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                margin-top: 15px;
+                padding-top: 10px;
+
+                .beginTimeSelectArea {
+                    width: 100%;
+                    height: 58px;
+                    display: flex;
+                    justify-content: space-evenly;
+                    align-items: center;
+
+                    .beginTimeLabel {
+                        font-size: 17px;
+                        color: #21272a;
                     }
 
-                    .tableCapacity {
-                        width: 80%;
-                        height: 35px;
+                    .beginTimeInput {
+                        width: 35%;
+                        border: 1px solid #ccc;
                         border-radius: 10px;
-                        border: 1px solid #C1C7CD;
-                        letter-spacing: 5px;
-                        padding-left: 10px;
-                        appearance: none; /* 隱藏默認的箭頭 */
-                        background: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyLjcxNzUgNi41NDc1QzEzLjE3OTcgNi4xNDcyIDEzLjI4MjIgNS40MTMgMTIuOTg3MiA0LjkzMjVDMTIuNjkzMiA0LjQ1MjUgMTIuMDEwNCA0LjQ1MjUgMTEuNzE3IDQuOTMyNUw4IDkuMzM1NEw0LjI4MjUgNC45MzI1QzMuOTg5NiA0LjQ1MjUgMy4zMDY4IDQuNDUyNSAyLjAxMjggNC45MzI1QzEuNzE4OCA1LjQxMyAxLjgyMTEgNi4xNDcyIDIuMjg0MTIgNi41NDc1TDcuMzE1MTIgMTEuNTA2QzcuNzU4NDEgMTEuOTYxIDguMjQxNiAxMS45NjEgOC42ODY4IDExLjUwNkMxMC4xNzA4IDEwLjI1NyAxMS41OTExIDguOTAzNTggMTIuNzE3NSA3LjY2MjVIMTIuNzE3NVoiIGZpbGw9IiMyMjIyMjIiLz4KPC9zdmc+') no-repeat; /* 使用 base64 格式的箭頭圖標 */
-                        background-position: calc(100% - 15px) center; /* 調整箭頭的位置，讓它距離左邊更近 */
-                        background-size: 15px; /* 調整箭頭大小 */
+                        background-color: #fff;
                         outline: none;
-                        cursor: pointer;
+                        font-size: 13px;
+                        padding: 10px;
+                        color: #333;
+                    }
+                }
+
+                .endTimeSelectArea {
+                    width: 100%;
+                    height: 58px;
+                    display: flex;
+                    justify-content: space-evenly;
+                    align-items: center;
+
+                    .endTimeLabel {
+                        font-size: 17px;
+                        color: #21272a;
                     }
 
-                    .trashButton {
-                        border: none;
-                        background-color: transparent;
-                        font-size: 30px;
+                    .endTimeInput {
+                        width: 35%;
+                        border: 1px solid #ccc;
+                        border-radius: 10px;
+                        background-color: #fff;
+                        outline: none;
+                        font-size: 13px;
+                        padding: 10px;
+                        color: #333;
+                    }
+                }
+            }
+
+            .addButton {
+                border: none;
+                border-radius: 50%;
+                background-color: #343a40;
+                color: white;
+                padding: 10px 12px;
+                cursor: pointer;
+                position: absolute;
+                top: 60%;
+                right: 32%;
+
+                i {
+                    font-size: 15px;
+                }
+            }
+        }
+
+        .diningDurationSection {
+            width: 70%;
+            height: 200px;
+            border-radius: 10px;
+            border: 2px solid #c1c7cd;
+            padding: 15px;
+            margin: auto;
+            margin-bottom: 20px;
+            position: relative;
+
+            .sectionHeader {
+                display: flex;
+                align-items: center;
+                margin-bottom: 15px;
+                padding-bottom: 10px;
+                border-bottom: 2px solid #c1c7cd;
+
+                .sectionNumber {
+                    width: 50px;
+                    height: 45px;
+                    background-color: #dde1e6;
+                    border-radius: 5px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 20px;
+                    font-weight: bold;
+                    color: #21272a;
+                }
+
+                .sectionTitle {
+                    font-size: 23px;
+                    font-weight: bold;
+                    letter-spacing: 3px;
+                    margin-left: 10px;
+                    color: #21272a;
+                }
+            }
+
+            .diningDurationArea {
+                height: 95px;
+                border-radius: 10px;
+                background-color: rgba(242, 244, 248);
+                display: flex;
+                align-items: center;
+                margin-top: 15px;
+                padding-top: 10px;
+
+                .diningDurationInput {
+                    width: 30%;
+                    border: 2px solid #ccc;
+                    border-radius: 10px;
+                    background-color: transparent;
+                    outline: none;
+                    font-size: 15px;
+                    padding: 10px;
+                    color: #333;
+                    margin-left: 60px;
+                }
+
+                .diningDurationLabel {
+                    font-size: 17px;
+                    color: #21272a;
+                    margin-left: 20px;
+                }
+            }
+        }
+
+        .timeSlotSection {
+            width: 70%;
+            height: 215px;
+            border-radius: 10px;
+            border: 2px solid #c1c7cd;
+            padding: 15px;
+            margin: auto;
+            margin-bottom: 20px;
+            position: relative;
+
+            .sectionHeader {
+                display: flex;
+                align-items: center;
+                margin-bottom: 15px;
+                padding-bottom: 10px;
+                border-bottom: 2px solid #c1c7cd;
+
+                .sectionNumber {
+                    width: 50px;
+                    height: 45px;
+                    background-color: #dde1e6;
+                    border-radius: 5px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 20px;
+                    font-weight: bold;
+                    color: #21272a;
+                }
+
+                .sectionTitle {
+                    font-size: 23px;
+                    font-weight: bold;
+                    letter-spacing: 3px;
+                    margin-left: 10px;
+                    color: #21272a;
+                }
+            }
+
+            .timeSlotArea {
+                height: 110px;
+                border-radius: 10px;
+                background-color: rgba(242, 244, 248);
+                display: flex;
+                flex-direction: column;
+                justify-content: space-evenly;
+                margin-top: 15px;
+                padding-top: 10px;
+
+                .description {
+                    font-size: 16px;
+                    color: #878d96;
+                    margin-left: 60px;
+                }
+
+                .timeSlotBox {
+                    display: flex;
+                    justify-content: space-between;
+                    padding: 15px;
+                    border-radius: 8px;
+
+                    .timeSlot {
+                        flex: 1;
+                        text-align: center;
+                        padding: 10px 0;
+                        font-size: 16px;
+                        background-color: #fff;
+                        border: 1px solid #ccc;
+                        border-radius: 8px;
+                        margin: 0 5px;
+                        color: #333;
+                        font-weight: bold;
                         cursor: pointer;
                     }
                 }
             }
         }
 
-        .addButtonArea {
-            width: 100%;
-            height: 10%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+        .daySelectSection {
+            width: 70%;
+            height: 200px;
+            border-radius: 10px;
+            border: 2px solid #c1c7cd;
+            padding: 15px;
+            margin: auto;
+            margin-bottom: 20px;
+            position: relative;
 
-            .addButton {
-                border: none;
-                background-color: transparent;
-                font-size: 25px;
-                margin-top: 15px;
-                cursor: pointer;
+            .sectionHeader {
+                display: flex;
+                align-items: center;
+                margin-bottom: 15px;
+                padding-bottom: 10px;
+                border-bottom: 2px solid #c1c7cd;
+
+                .sectionNumber {
+                    width: 50px;
+                    height: 45px;
+                    background-color: #dde1e6;
+                    border-radius: 5px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 20px;
+                    font-weight: bold;
+                    color: #21272a;
+                }
+
+                .sectionTitle {
+                    font-size: 23px;
+                    font-weight: bold;
+                    letter-spacing: 3px;
+                    margin-left: 10px;
+                    color: #21272a;
+                }
+            }
+
+            .daySelectArea {
+                height: 95px;
+                border-radius: 10px;
+                background-color: rgba(242, 244, 248);
+                display: flex;
+                justify-content: space-between;
+                background-color: #f0f2f5;
+                padding: 15px;
+
+                .daySelectLabel {
+                    font-size: 18px;
+                    display: flex;
+                    align-items: center;
+                    cursor: pointer;
+
+                    input {
+                        cursor: pointer;
+                        margin-right: 8px;
+                    }
+                }
             }
         }
     }
@@ -781,3 +1034,5 @@ $soldOut: #e02d11;
     }
 }
 </style>
+
+
