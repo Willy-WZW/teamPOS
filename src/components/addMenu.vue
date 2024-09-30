@@ -269,16 +269,13 @@ $borderBot: #697077;
         height: 100%;
         
         .menuCategory {
-            width: 21%;
-            height: 87%;
+            width: 21.7%;
+            height: 100%;
             border-radius: 10px;
             display: flex;
             justify-content: start;
             align-items: center;
             flex-direction: column;
-            position: absolute;
-            top: 9.5%;
-            left: 2%;
             background-color: white;
 
             h1 {
@@ -415,15 +412,15 @@ $borderBot: #697077;
         }
 
         .menuAndCust {
-            width: 73.5%;
-            height: 87%;
+            width: 76.5%;
+            height: 100%;
             display: flex;
             justify-content: center;
             align-items: center;
             flex-direction: column;
             position: absolute;
-            top: 9.5%;
-            right: 2%;
+            top: 0;
+            right: 0;
 
             .menuArea {
                 width: 100%;
