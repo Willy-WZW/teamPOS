@@ -1,7 +1,7 @@
 <script>
 import LeftBar from '@/components/LeftBar.vue'
 import Header from '@/components/Header.vue'
-import AddMenu from '@/components/AddMenu.vue';
+import AddMenu from '@/components/AdddMenu.vue';
 import Workbench from '@/components/Workbench.vue';
 
 export default {
