@@ -2,15 +2,16 @@
 import LeftBar from '@/components/LeftBar.vue'
 import Header from '@/components/Header.vue'
 import Swal from 'sweetalert2';
+import axios from 'axios';
 import { options } from '@fullcalendar/core/preact';
 export default {
     data() {
         return {
             startX: 0,
-            translateX: 0,
+            // translateX: 0,
             selectedType: 'checkbox',
             categories: [
-                { text: "", translateX: 0 },
+                // { text: "", translateX: 0 },
             ],
             cgInput: [],
             menuList: [],
@@ -75,11 +76,9 @@ export default {
         },
         addCust() {
             this.custList.push({
-                title: "",
-                selectedType: 'checkbox',
-                options: "",
-                price: "",
-                options: [
+                title: "",// 客製化標題
+                selectedType: 'checkbox', // 客製化選擇
+                options: [ //客製化選項
                     { text: "", price: "" }
                 ],
             })
@@ -93,6 +92,57 @@ export default {
                 price: "" // 選項金額
             });
         },
+        async saveCategory() {
+            const categoryData = this.cgInput.map(item => ({ category: item.category }));
+
+            try {
+                for (const category of categoryData) {
+                    const response = await axios.post("http://localhost:8080/category/create", category);
+
+                    if (response.data.code === 200) {
+                        const newCategory = { text: category.category, translateX: 0 };
+                        Swal.fire({
+                            title: '成功',
+                            text: '成功新增菜單分類',
+                            icon: 'success',
+                            confirmButtonText: '好的'
+                        })
+                    } else {
+                        Swal.fire({
+                            title: '錯誤',
+                            text: '菜單分類已存在',
+                            icon: 'error',
+                            confirmButtonText: '好的'
+                        })
+                    }
+                }
+                this.cgInput = []
+            } catch (error) {
+                console.error('儲存分類時發生錯誤：', error);
+                Swal.fire({
+                    title: '錯誤',
+                    text: '請稍後再嘗試',
+                    icon: 'error',
+                    confirmButtonText: '好的'
+                })
+            }
+        },
+        fetchCategories() {
+            axios.get("http://localhost:8080/category/all")
+                .then(response => {
+                    this.categories = response.data.map(category => ({
+                        ...category,
+                        translateX: 0  // 初始化 translateX 為 0
+                    }));
+                    console.log(response.data); // 所有 Categories 資料
+                })
+                .catch(error => {
+                    console.error('獲取分類時發生錯誤:', error);
+                });
+        },
+    },
+    mounted() {
+        this.fetchCategories(); // 載入時獲取分類
     }
 }
 
@@ -115,8 +165,8 @@ export default {
                         @touchstart="startTouch($event, cIndex)" @touchmove="moveTouch($event, cIndex)"
                         @touchend="endTouch(cIndex)">
                         <div class="opContent">
-                            <span>餐點名稱{{ category.name }}</span>
-                            <div class="countOp">55{{ category.count }}</div>
+                            <span>{{ category.category }}</span>
+                            <div class="countOp">55</div>
                         </div>
                         <div @click="confirmDelete" class="deleteOp">
                             <span>刪除</span>
@@ -127,7 +177,7 @@ export default {
                     </div>
                     <i class="fa-solid fa-circle-plus" @click="addCgInput()"></i>
                 </div>
-                <div class="saveCategory">儲存</div>
+                <div class="saveCategory" @click="saveCategory()">儲存</div>
                 <div class="editCategory">編輯</div>
             </div>
             <div class="menuAndCust">
@@ -378,6 +428,7 @@ $borderBot: #697077;
                 .fa-circle-plus {
                     font-size: 30px;
                     cursor: pointer;
+                    margin-top: 1%;
                 }
             }
 
