@@ -75,11 +75,6 @@ const router = createRouter({
       name: 'userInfo',
       component: () => import('../views/UserInfoView.vue')
     },
-    {
-      path: '/workbench',
-      name: 'workbench',
-      component: () => import('../views/Workbench.vue')
-    } 
   ]
 });
 

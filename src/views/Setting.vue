@@ -1,22 +1,27 @@
 <script>
 import LeftBar from '@/components/LeftBar.vue'
 import Header from '@/components/Header.vue'
-import AddMenu from '@/components/addMenu.vue';
-import { options } from '@fullcalendar/core/preact';
+import AddMenu from '@/components/AddMenu.vue';
+import Workbench from '@/components/Workbench.vue';
+
 export default {
     data() {
         return {
-            
+            selectedComponent: 'AddMenu',
         };
     },
     components: {
         LeftBar,
         Header,
-        AddMenu
+        AddMenu,
+        Workbench,
     },
-    
+    methods: {
+        handleComponentChange(component) {
+            this.selectedComponent = component;
+        }
+    }
 }
-
 </script>
 
 <template>
@@ -26,17 +31,19 @@ export default {
         </div>
         <div class="mainArea">
             <div class="header">
-                <Header />
+                <Header @changeComponent="handleComponentChange" />
             </div>
             <div class="mainView">
-                <AddMenu />
+                <AddMenu v-if="selectedComponent === 'AddMenu'" />
+                <Workbench v-if="selectedComponent === 'Workbench'" />
+                <Announce v-if="selectedComponent === 'Announce'" />
+                <BusiSetting v-if="selectedComponent === 'BusiSetting'" />
             </div>
         </div>
     </div>
 </template>
 
 <style scoped lang="scss">
-
 .big {
     width: 100%;
     height: 100dvh;
@@ -72,14 +79,13 @@ export default {
             left: 2%;
         }
 
-        .mainView{
+        .mainView {
             width: 96%;
             height: 87%;
             position: absolute;
             left: 2%;
             top: 9.5%;
         }
-
     }
 }
 </style>

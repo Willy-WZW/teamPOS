@@ -163,32 +163,24 @@ export default {
 
 <template>
     <div class="big">
-        <div class="leftBar">
-            <LeftBar />
-        </div>
-        <div class="mainArea">
-            <div class="header">
-                <Header />
-            </div>
-            <div class="menuCategory">
-                <h1>工作檯分類</h1>
-                <div class="optionArea">
-                    <div v-for="(category, index) in categories" :key="index" class="cOption">
-                        <span v-if="!isEditing">{{ category.workstationName }}</span>
-                        <input v-if="isEditing" type="text" v-model="category.workstationName" placeholder="請輸入工作站名稱" />
-                        <i class="fa-regular fa-circle-xmark" v-if="!isEditing"
-                            @click="removeWorkstation(category.workstationId)"></i>
-                    </div>
-                    <div class="inputOp" v-for="(input, index) in cgInput" :key="index">
-                        <input type="text" v-model="input.text" placeholder="請輸入工作站名稱" />
-                    </div>
-                    <i class="fa-solid fa-circle-plus" @click="addCgInput()"></i>
+        <div class="menuCategory">
+            <h1>工作檯分類</h1>
+            <div class="optionArea">
+                <div v-for="(category, index) in categories" :key="index" class="cOption">
+                    <span v-if="!isEditing">{{ category.workstationName }}</span>
+                    <input v-if="isEditing" type="text" v-model="category.workstationName" placeholder="請輸入工作站名稱" />
+                    <i class="fa-regular fa-circle-xmark" v-if="!isEditing"
+                        @click="removeWorkstation(category.workstationId)"></i>
                 </div>
-                <div @click="isEditing ? updateWorkstation() : createWorkstation()" class="saveCategory">
-                    {{ isEditing ? '更新' : '儲存' }}
+                <div class="inputOp" v-for="(input, index) in cgInput" :key="index">
+                    <input type="text" v-model="input.text" placeholder="請輸入工作站名稱" />
                 </div>
-                <div @click="editCategory" class="editCategory">編輯</div>
+                <i class="fa-solid fa-circle-plus" @click="addCgInput()"></i>
             </div>
+            <div @click="isEditing ? updateWorkstation() : createWorkstation()" class="saveCategory">
+                {{ isEditing ? '更新' : '儲存' }}
+            </div>
+            <div @click="editCategory" class="editCategory">編輯</div>
         </div>
     </div>
 </template>
@@ -198,134 +190,97 @@ export default {
 $divColor: #fff;
 $addDiv: #343a3f;
 
-.big {
-    width: 100%;
-    height: 100dvh;
+.menuCategory {
+    width: 21%;
+    height: 87%;
+    border-radius: 10px;
     display: flex;
-    justify-content: center;
+    justify-content: start;
     align-items: center;
+    flex-direction: column;
+    position: absolute;
+    top: 9.5%;
+    left: 2%;
+    background-color: white;
 
-    .leftBar {
-        width: 10%;
-        height: 100vh;
-        position: fixed;
-        top: 0;
-        left: 0;
-        display: flex;
-        align-items: center;
+
+    h1 {
+        margin: 1% auto;
+        letter-spacing: 3px;
+        font-family: "Noto Sans TC", sans-serif;
     }
 
-    .mainArea {
-        width: 100%;
-        height: 100%;
-        overflow-y: scroll;
+    .optionArea {
+        width: 87%;
+        height: 84%;
+        margin-bottom: 3%;
         display: flex;
         justify-content: start;
-        align-items: start;
+        align-items: center;
         flex-direction: column;
-        position: relative;
+        overflow-x: hidden;
+        scrollbar-width: none;
 
-        .header {
-            width: 96%;
-            height: 6.3%;
-            position: absolute;
-            top: 2%;
-            left: 2%;
-        }
-
-        .menuCategory {
-            width: 21%;
-            height: 87%;
-            border-radius: 10px;
+        .cOption {
+            width: 100%;
+            height: 6%;
             display: flex;
-            justify-content: start;
+            justify-content: space-between;
             align-items: center;
-            flex-direction: column;
-            position: absolute;
-            top: 9.5%;
-            left: 2%;
-            background-color: white;
+            border-radius: 5px;
+            margin-bottom: 5%;
+            background-color: #f2f4f8;
 
-
-            h1 {
-                margin: 1% auto;
-                letter-spacing: 3px;
+            span {
+                font-weight: bold;
                 font-family: "Noto Sans TC", sans-serif;
-            }
-
-            .optionArea {
-                width: 87%;
-                height: 84%;
-                margin-bottom: 3%;
-                display: flex;
-                justify-content: start;
-                align-items: center;
-                flex-direction: column;
-                overflow-x: hidden;
-                scrollbar-width: none;
-
-                .cOption {
-                    width: 100%;
-                    height: 6%;
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    border-radius: 5px;
-                    margin-bottom: 5%;
-                    background-color: #f2f4f8;
-
-                    span {
-                        font-weight: bold;
-                        font-family: "Noto Sans TC", sans-serif;
-                        margin-left: 2.5%;
-                    }
-                }
-
-                .inputOp {
-                    width: 100%;
-                    height: 6%;
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    border-radius: 5px;
-                    margin-bottom: 5%;
-                    background-color: #f2f4f8;
-                }
-
-                .fa-circle-plus {
-                    font-size: 30px;
-                    cursor: pointer;
-                }
-            }
-
-            .saveCategory {
-                width: 90%;
-                height: 37px;
-                border-radius: 10px;
-                margin-bottom: 3%;
-                cursor: pointer;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                color: white;
-                background-color: #343a3f;
-                font-family: "Noto Sans TC", sans-serif;
-            }
-
-            .editCategory {
-                width: 90%;
-                height: 37px;
-                border-radius: 10px;
-                margin-bottom: 3%;
-                cursor: pointer;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                color: black;
-                background-color: #dde1e6;
-                font-family: "Noto Sans TC", sans-serif;
+                margin-left: 2.5%;
             }
         }
+
+        .inputOp {
+            width: 100%;
+            height: 6%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 5px;
+            margin-bottom: 5%;
+            background-color: #f2f4f8;
+        }
+
+        .fa-circle-plus {
+            font-size: 30px;
+            cursor: pointer;
+        }
+    }
+
+    .saveCategory {
+        width: 90%;
+        height: 37px;
+        border-radius: 10px;
+        margin-bottom: 3%;
+        cursor: pointer;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: white;
+        background-color: #343a3f;
+        font-family: "Noto Sans TC", sans-serif;
+    }
+
+    .editCategory {
+        width: 90%;
+        height: 37px;
+        border-radius: 10px;
+        margin-bottom: 3%;
+        cursor: pointer;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: black;
+        background-color: #dde1e6;
+        font-family: "Noto Sans TC", sans-serif;
     }
 }
 
