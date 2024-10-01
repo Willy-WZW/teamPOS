@@ -24,7 +24,6 @@ export default {
         },
         selectRoute(option){
             this.selected = option
-            this.$router.push({ name: option });  // 根據選擇的選項動態切換內容區域
         }
     }
 }

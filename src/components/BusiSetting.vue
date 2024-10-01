@@ -64,55 +64,13 @@ export default {
             this.selectedMenu = item;
         },
 
-        // 新增桌號，暫時加入 tableList，並不立刻儲存到後端
         addTableRow() {
-            // 首先檢查當前的桌號和容納人數是否填寫完整
-            if (this.showNewTableRow && (!this.newTable.table_number.trim() || !this.newTable.table_capacity)) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: '錯誤',
-                    text: '請輸入桌號並選擇容納人數',
-                });
-                return; // 阻止繼續操作
-            }
-
-            // 如果當前桌號和容納人數都填寫了，則進行其他檢查並新增桌號
-            if (this.newTable.table_number.trim() && this.newTable.table_capacity) {
-                // 檢查桌號是否符合格式（大寫字母+兩個數字）
-                const tableNumberPattern = /^[A-Z]\d{2}$/;
-                if (!this.newTable.table_number.trim().match(tableNumberPattern)) {
-                    Swal.fire({
-                        icon: 'warning',
-                        title: '桌號格式錯誤',
-                        text: '桌號必須是一個大寫字母加兩個數字（如 A01）。',
-                    });
-                    return;
-                }
-
-                // 檢查桌號是否已存在於 tableList 中
-                const existingTable = this.tableList.find(table => table.table_number === this.newTable.table_number);
-                if (existingTable) {
-                    Swal.fire({
-                        icon: 'warning',
-                        title: '錯誤',
-                        text: '該桌號已存在，請選擇其他桌號',
-                    });
-                    return;
-                }
-
-                // 將新桌號暫時加入 tableList，未立刻儲存到後端
-                this.tableList.push({
-                    table_number: this.newTable.table_number,
-                    table_capacity: this.newTable.table_capacity,
-                    table_status: 'AVAILABLE'
-                });
-
-                // 清空 newTable 以便下一次輸入
-                this.newTable = { table_number: '', table_capacity: '', table_status: 'AVAILABLE' };
-            }
-
-            // 顯示新的新增行
-            this.showNewTableRow = true;
+            // 在 tableList 中新增一個新的輸入欄位
+            this.tableList.push({
+                table_number: '', // 新桌位的桌號為空
+                table_capacity: '', // 新桌位的容納人數為空
+                table_status: 'AVAILABLE',  // 預設狀態
+            });
         },
 
         // 刪除桌位
@@ -140,23 +98,23 @@ export default {
             this.showNewTableRow = false;
         },
 
-        // 儲存操作，包括新增桌位
         async saveChanges() {
             try {
-                // 如果顯示了新增桌位的行，才檢查 newTable 是否有輸入正確的桌號和容納人數
-                if (this.showNewTableRow) {
-                    if (!this.newTable.table_number.trim() || !this.newTable.table_capacity) {
+                // 進行所有桌位資料的檢查
+                for (const table of this.tableList) {
+                    // 檢查桌號是否有輸入
+                    if (!table.table_number.trim() || !table.table_capacity) {
                         Swal.fire({
                             icon: 'warning',
                             title: '錯誤',
-                            text: '請輸入桌號並選擇容納人數',
+                            text: '請輸入桌號並選擇容納人數。',
                         });
                         return; // 阻止儲存操作
                     }
 
-                    // 檢查桌號是否符合格式（大寫字母+兩個數字）
+                    // 檢查桌號格式是否正確（大寫字母+兩個數字）
                     const tableNumberPattern = /^[A-Z]\d{2}$/;
-                    if (!this.newTable.table_number.trim().match(tableNumberPattern)) {
+                    if (!table.table_number.trim().match(tableNumberPattern)) {
                         Swal.fire({
                             icon: 'warning',
                             title: '桌號格式錯誤',
@@ -165,65 +123,47 @@ export default {
                         return; // 阻止儲存操作
                     }
 
-                    const existingTable = this.tableList.find(table => table.table_number === this.newTable.table_number);
-                    if (existingTable) {
+                    // 檢查是否有重複的桌號
+                    const existingTable = this.tableList.filter(t => t.table_number === table.table_number);
+                    if (existingTable.length > 1) { // 如果出現重複桌號
                         Swal.fire({
                             icon: 'warning',
                             title: '錯誤',
-                            text: '該桌號已存在，請選擇其他桌號',
+                            text: `桌號 ${table.table_number} 已存在，請選擇其他桌號。`,
                         });
                         return; // 阻止儲存操作
                     }
-
-                    // 將新桌號加入 tableList
-                    this.tableList.push({
-                        table_number: this.newTable.table_number,
-                        table_capacity: this.newTable.table_capacity,
-                        table_status: 'AVAILABLE'  // 預設狀態
-                    });
-
-                    // 發送新增桌位請求
-                    const requestData = {
-                        tableNumber: this.newTable.table_number,
-                        tableCapacity: parseInt(this.newTable.table_capacity),
-                        tableStatus: 'AVAILABLE'
-                    };
-                    await axios.post('http://localhost:8080/tableManagement/createTable', requestData);
                 }
 
-                // 2. 處理已修改的桌位（僅修改容納人數，桌號未變）
-                const updatedTables = this.tableList.filter(table => {
+                // 處理桌位更新
+                for (const table of this.tableList) {
                     const originalTable = this.originalTableList.find(orig => orig.table_number === table.table_number);
-                    return originalTable && originalTable.table_capacity !== table.table_capacity;  // 僅容納人數不同的桌位
-                });
+                    
+                    if (originalTable) {
+                        // 判斷桌號或容納人數是否改變，若改變則發送更新請求
+                        if (originalTable.table_number !== table.table_number || originalTable.table_capacity !== table.table_capacity) {
+                            await axios.put('http://localhost:8080/tableManagement/updateTable', null, {
+                                params: {
+                                    oldTableNumber: originalTable.table_number,  // 傳遞舊的桌號
+                                    newTableNumber: table.table_number !== originalTable.table_number ? table.table_number : null,  // 若桌號不同則傳遞新桌號
+                                    newCapacity: table.table_capacity !== originalTable.table_capacity ? parseInt(table.table_capacity) : null,  // 若容量不同則傳遞新容量
+                                }
+                            });
+                        }
+                    } else {
+                        // 若桌位是新的，則發送新增請求
+                        const tableData = this.tableList.map(table => ({
+                            tableNumber: table.table_number,
+                            tableCapacity: parseInt(table.table_capacity),
+                            tableStatus: table.table_status,
+                        }));
 
-                for (const table of updatedTables) {
-                    // 檢查桌位狀態是否為 RESERVED 或 ACTIVE，阻止變更
-                    if (table.table_status === 'RESERVED' || table.table_status === 'ACTIVE') {
-                        Swal.fire({
-                            icon: 'error',
-                            title: '無法修改',
-                            text: `桌位 ${table.table_number} 已被預訂或正在使用，無法進行修改。`,
-                            confirmButtonText: '確認'
-                        }).then(() => {
-                            this.loadInitialTableData(); // 警告視窗關閉後重新加載數據
-                        });
-                        return; // 終止操作
+                        // 發送批量新增桌位請求
+                        await axios.post('http://localhost:8080/tableManagement/createTable', tableData);
                     }
-
-                    // 刪除舊桌位並重新創建新桌位
-                    await axios.delete(`http://localhost:8080/tableManagement/deleteTable/${table.table_number}`);
-
-                    // 創建新桌位（替代原來的桌位）
-                    const requestData = {
-                        tableNumber: table.table_number,
-                        tableCapacity: parseInt(table.table_capacity),
-                        tableStatus: 'AVAILABLE'
-                    };
-                    await axios.post('http://localhost:8080/tableManagement/createTable', requestData);
                 }
 
-                // 3. 處理刪除桌位
+                // 刪除已移除的桌位
                 const deletedTables = this.originalTableList.filter(orig => !this.tableList.some(table => table.table_number === orig.table_number));
                 for (const table of deletedTables) {
                     await axios.delete(`http://localhost:8080/tableManagement/deleteTable/${table.table_number}`);
@@ -236,6 +176,7 @@ export default {
                     title: '儲存成功',
                     text: '所有變更已成功儲存。',
                 });
+
             } catch (error) {
                 console.error('儲存桌位變更時發生錯誤:', error);
                 Swal.fire({
@@ -1036,3 +977,52 @@ $soldOut: #e02d11;
 </style>
 
 
+<!-- addTableRow() {
+    // 如果已經顯示新增的輸入行，則進行檢查
+    if (this.newTable.table_number.trim() !== '' || this.newTable.table_capacity !== '') {
+        // 檢查當前欄位的資料是否正確
+        if (this.newTable.table_number.trim() === '' || this.newTable.table_capacity === '') {
+            Swal.fire({
+                icon: 'warning',
+                title: '錯誤',
+                text: '請輸入桌號並選擇容納人數。',
+            });
+            return;
+        }
+
+        // 檢查桌號格式是否正確（大寫字母+兩個數字）
+        const tableNumberPattern = /^[A-Z]\d{2}$/;
+        if (!this.newTable.table_number.trim().match(tableNumberPattern)) {
+            Swal.fire({
+                icon: 'warning',
+                title: '桌號格式錯誤',
+                text: '桌號必須是一個大寫字母加兩個數字（如 A01）。',
+            });
+            return;
+        }
+
+        // 檢查桌號是否已存在於 tableList 中
+        const existingTable = this.tableList.find(table => table.table_number === this.newTable.table_number);
+        if (existingTable) {
+            Swal.fire({
+                icon: 'warning',
+                title: '錯誤',
+                text: '該桌號已存在，請選擇其他桌號。',
+            });
+            return;
+        }
+
+        // 通過檢查後，將新桌號加入 tableList
+        this.tableList.push({
+            table_number: this.newTable.table_number,
+            table_capacity: this.newTable.table_capacity,
+            table_status: 'AVAILABLE',  // 預設狀態
+        });
+
+        // 清空 newTable 以便再次輸入
+        this.newTable = { table_number: '', table_capacity: '', table_status: 'AVAILABLE' };
+    } 
+
+    // 如果沒有輸入資料，則顯示新的輸入行
+    this.showNewTableRow = true;
+}, -->
