@@ -16,18 +16,19 @@ export default {
             showNewTableRow: false, // 控制新增桌號行是否顯示
 
             // 訂位時間的 managementContentArea 數據
-            openingTime: '',
-            closingTime: '',
+            openingTime: '', // 開始時間
+            closingTime: '', // 結束時間
+            storeId: 1, // 店鋪 ID 固定為 1
             diningDuration: '',
             timeSlots: ['11:00', '12:30', '14:00', '17:00', '18:30', '20:00'],  // 預覽的時間段
             weekDays: [
-            { name: '星期一', selected: false },
-            { name: '星期二', selected: false },
-            { name: '星期三', selected: false },
-            { name: '星期四', selected: false },
-            { name: '星期五', selected: false },
-            { name: '星期六', selected: false },
-            { name: '星期日', selected: false },
+                { name: '星期一', value: 'Monday', selected: false },
+                { name: '星期二', value: 'Tuesday', selected: false },
+                { name: '星期三', value: 'Wednesday', selected: false },
+                { name: '星期四', value: 'Thursday', selected: false },
+                { name: '星期五', value: 'Friday', selected: false },
+                { name: '星期六', value: 'Saturday', selected: false },
+                { name: '星期日', value: 'Sunday', selected: false }
             ],
         };
     },
@@ -208,6 +209,45 @@ export default {
             document.querySelectorAll('.tableNumber').forEach(input => input.value = '');
 
             document.querySelectorAll('.tableCapacity').forEach(select => select.selectedIndex = 0);
+        },
+
+        // 營業時間儲存操作
+        async saveBusinessHoursAndDays() {
+            try {
+                // 構建營業日期和時間的請求
+                const businessHoursRequests = this.weekDays
+                .filter(day => day.selected) // 只包含選中的天數
+                .map(day => ({
+                    storeId: this.storeId,
+                    dayOfWeek: day.value,
+                    openingTime: this.openingTime,
+                    closingTime: this.closingTime
+                }));
+
+                // 並行發送所有選中的營業日期和時間設定
+                const response = await Promise.all(
+                businessHoursRequests.map(req =>
+                    axios.post('http://localhost:8080/businessHours/addOrUpdateBusinessHours', req) // 修改為後端正確的 URL
+                )
+                );
+
+                console.log('營業時間和日期已成功儲存:', response);
+                 // 可以在這裡顯示成功訊息
+                Swal.fire({
+                    icon: 'success',
+                    title: '儲存成功',
+                    text: '營業時間和日期已成功儲存！',
+                });
+            } catch (error) {
+                console.error('儲存營業時間和日期時發生錯誤:', error);
+
+                 // 顯示錯誤提示
+                Swal.fire({
+                    icon: 'error',
+                    title: '儲存失敗',
+                    text: '儲存過程中發生錯誤，請稍後再試。',
+                });
+            }
         }
     }
 };
@@ -387,7 +427,6 @@ export default {
         <div class="daySelectSection">
             <div class="sectionHeader">
                 <div class="sectionNumber">4</div>
-
                 <div class="sectionTitle">選擇營業日期</div>
             </div>
 
@@ -403,7 +442,7 @@ export default {
     <!-- 取消、儲存操作按鈕區域 -->
     <div class="buttonArea">
         <button class="cancelButton" >取消</button>
-        <button class="saveButton" >儲存</button>
+        <button class="saveButton" @click="saveBusinessHoursAndDays" >儲存</button>
     </div>
 </div>
 </template>
@@ -621,8 +660,70 @@ $soldOut: #e02d11;
         max-height: 650px;
         overflow-y: auto;
 
+        .daySelectSection {
+            width: 75%;
+            height: 200px;
+            border-radius: 10px;
+            border: 2px solid #c1c7cd;
+            padding: 15px;
+            margin: auto;
+            margin-bottom: 20px;
+            position: relative;
+
+            .sectionHeader {
+                display: flex;
+                align-items: center;
+                margin-bottom: 15px;
+                padding-bottom: 10px;
+                border-bottom: 2px solid #c1c7cd;
+
+                .sectionNumber {
+                    width: 50px;
+                    height: 45px;
+                    background-color: #dde1e6;
+                    border-radius: 5px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 20px;
+                    font-weight: bold;
+                    color: #21272a;
+                }
+
+                .sectionTitle {
+                    font-size: 23px;
+                    font-weight: bold;
+                    letter-spacing: 3px;
+                    margin-left: 10px;
+                    color: #21272a;
+                }
+            }
+
+            .daySelectArea {
+                height: 95px;
+                border-radius: 10px;
+                background-color: rgba(242, 244, 248);
+                display: flex;
+                justify-content: space-between;
+                background-color: #f0f2f5;
+                padding: 15px;
+
+                .daySelectLabel {
+                    font-size: 18px;
+                    display: flex;
+                    align-items: center;
+                    cursor: pointer;
+
+                    input {
+                        cursor: pointer;
+                        margin-right: 8px;
+                    }
+                }
+            }
+        }
+
         .businessHoursSection {
-            width: 70%;
+            width: 75%;
             height: 235px;
             border-radius: 10px;
             border: 2px solid #c1c7cd;
@@ -738,7 +839,7 @@ $soldOut: #e02d11;
         }
 
         .diningDurationSection {
-            width: 70%;
+            width: 75%;
             height: 200px;
             border-radius: 10px;
             border: 2px solid #c1c7cd;
@@ -806,7 +907,7 @@ $soldOut: #e02d11;
         }
 
         .timeSlotSection {
-            width: 70%;
+            width: 75%;
             height: 215px;
             border-radius: 10px;
             border: 2px solid #c1c7cd;
@@ -878,68 +979,6 @@ $soldOut: #e02d11;
                         color: #333;
                         font-weight: bold;
                         cursor: pointer;
-                    }
-                }
-            }
-        }
-
-        .daySelectSection {
-            width: 70%;
-            height: 200px;
-            border-radius: 10px;
-            border: 2px solid #c1c7cd;
-            padding: 15px;
-            margin: auto;
-            margin-bottom: 20px;
-            position: relative;
-
-            .sectionHeader {
-                display: flex;
-                align-items: center;
-                margin-bottom: 15px;
-                padding-bottom: 10px;
-                border-bottom: 2px solid #c1c7cd;
-
-                .sectionNumber {
-                    width: 50px;
-                    height: 45px;
-                    background-color: #dde1e6;
-                    border-radius: 5px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    font-size: 20px;
-                    font-weight: bold;
-                    color: #21272a;
-                }
-
-                .sectionTitle {
-                    font-size: 23px;
-                    font-weight: bold;
-                    letter-spacing: 3px;
-                    margin-left: 10px;
-                    color: #21272a;
-                }
-            }
-
-            .daySelectArea {
-                height: 95px;
-                border-radius: 10px;
-                background-color: rgba(242, 244, 248);
-                display: flex;
-                justify-content: space-between;
-                background-color: #f0f2f5;
-                padding: 15px;
-
-                .daySelectLabel {
-                    font-size: 18px;
-                    display: flex;
-                    align-items: center;
-                    cursor: pointer;
-
-                    input {
-                        cursor: pointer;
-                        margin-right: 8px;
                     }
                 }
             }
