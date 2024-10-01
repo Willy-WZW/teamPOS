@@ -64,6 +64,7 @@ export default {
             this.selectedMenu = item;
         },
 
+        // 新增輸入欄位
         addTableRow() {
             // 在 tableList 中新增一個新的輸入欄位
             this.tableList.push({
@@ -98,6 +99,7 @@ export default {
             this.showNewTableRow = false;
         },
 
+        // 新增、刪除、更新桌號操作
         async saveChanges() {
             try {
                 // 進行所有桌位資料的檢查
