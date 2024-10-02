@@ -6,10 +6,13 @@ export default {
         return {
             startX: 0,
             optionType: 'checkbox',
+            showEditPen: false,
             selectedCategory: null, // 選中的菜單分類
             selectedCategoryId: null, // 選中的菜單分類Id
             categories: [],// 已存在資料庫的菜單分類
             cgInput: [],// 菜單分類的input
+            editingIndexes: [],  // 用來追蹤正在編輯的 index
+            modifiedCategories: [],  // 編輯過的分類將推入這個陣列
             savedMenuList: [],// 已存在資料庫的菜單
             menuList: [],// 菜單的input
             savedCustList: [],// 已存在資料庫的客製化選項
@@ -38,7 +41,6 @@ export default {
         selectCategory(category) {
             this.selectedCategory = category.category;
             this.selectedCategoryId = category.categoryId;
-            console.log(this.selectedCategoryId);
         },
         confirmDelete() {
             Swal.fire({
@@ -65,6 +67,52 @@ export default {
                     lastCgInput.scrollIntoView({ behavior: 'smooth' }); // 平滑滾動到新增的輸入框
                 }
             });
+        },
+        editCategory() {
+            this.showEditPen = !this.showEditPen;
+        },
+        startEditing(index) {
+            if (!this.editingIndexes.includes(index)) {
+                this.editingIndexes.push(index);
+                console.log('開始編輯:', this.editingIndexes);
+            }
+            // 檢查是否已經在編輯狀態
+            const category = this.categories[index];
+            if (!this.editingIndexes.some(item => item.categoryId === category.categoryId)) {
+                // 將該 categoryId 和 category 放入 editingIndexes
+                this.editingIndexes.push({
+                    categoryId: category.categoryId,
+                    category: category.category
+                });
+                console.log("正在編輯的分類:", this.editingIndexes);
+            }
+        },
+        stopEditing(index) {
+            this.editingIndexes = this.editingIndexes.filter(i => i !== index);
+            // 移除 editingIndexes 中的該項目
+            const category = this.categories[index];
+            this.editingIndexes = this.editingIndexes.filter(
+                item => item.categoryId !== category.categoryId
+            );
+
+            // 檢查該項目是否已修改，若修改則推到 modifiedCategories
+            const modifiedCategory = {
+                categoryId: category.categoryId,
+                category: category.category
+            };
+
+            const alreadyModified = this.modifiedCategories.some(
+                item => item.categoryId === modifiedCategory.categoryId
+            );
+
+            if (!alreadyModified) {
+                this.modifiedCategories.push(modifiedCategory);
+                console.log("已修改的分類:", this.modifiedCategories);
+            }
+        },
+        isEditing(index) {
+            // 檢查該 index 是否正在編輯
+            return this.editingIndexes.includes(index);
         },
         switchSta(menu) {
             menu.available = !menu.available
@@ -169,6 +217,47 @@ export default {
                     }
                 }
                 this.cgInput = []
+                if (this.modifiedCategories.length > 0) {
+                    for (const modifiedCategory of this.modifiedCategories) {
+                        // 檢查是否有重複的分類名稱，且忽略相同的 categoryId
+                        const isDuplicate = this.categories.some(
+                            (category) => category.category === modifiedCategory.category && category.categoryId !== modifiedCategory.categoryId
+                        );
+
+                        if (isDuplicate) {
+                            // 如果有重複，顯示警告，並終止儲存程序
+                            Swal.fire({
+                                title: '錯誤',
+                                text: `分類名稱 "${modifiedCategory.category}" 已存在，請使用不同的名稱`,
+                                icon: 'error',
+                                confirmButtonText: '好的'
+                            });
+                            return; // 中斷後續處理
+                        }
+
+                        const response = await axios.post("http://localhost:8080/category/update", modifiedCategory);
+
+                        if (response.data.code === 200) {
+                            Swal.fire({
+                                title: '成功',
+                                text: '成功更新菜單分類',
+                                icon: 'success',
+                                confirmButtonText: '好的'
+                            });
+                        } else {
+                            Swal.fire({
+                                title: '錯誤',
+                                text: '更新菜單分類失敗',
+                                icon: 'error',
+                                confirmButtonText: '好的'
+                            });
+                        }
+                    }
+
+                    // 清空已修改的分類陣列
+                    this.modifiedCategories = [];
+                }
+
                 this.fetchCategories()
             } catch (error) {
                 console.error('儲存分類時發生錯誤：', error);
@@ -189,6 +278,7 @@ export default {
                         translateX: 0  // 初始化 translateX 為 0
                     }));
                     console.log(response.data); // 所有 Categories 資料
+                    console.log(this.categories);
                 })
                 .catch(error => {
                     console.error('獲取分類時發生錯誤:', error);
@@ -390,7 +480,7 @@ export default {
             try {
                 const response = await axios.get("http://localhost:8080/option/all");
                 this.savedCustList = response.data;
-                console.log(this.savedCustList);
+                //console.log(this.savedCustList);
             } catch (error) {
                 console.error('獲取菜單時發生錯誤:', error);
                 Swal.fire({
@@ -408,6 +498,7 @@ export default {
         this.fetchCust(); // 載入時獲取客製化菜單資料
     },
     computed: {
+        // 計算各菜單分類的菜單選項
         categoryMenuCount() {
             const counts = {};
             this.savedMenuList.forEach(menu => {
@@ -419,6 +510,7 @@ export default {
             });
             return counts;
         },
+        // 撈相同categoryId並將相同optionTitle作為鍵，塞入其他值
         groupedOptions() {
             // 先根據選擇的 categoryId 過濾資料
             const filteredList = this.savedCustList.filter(item => item.categoryId === this.selectedCategoryId);
@@ -461,7 +553,12 @@ export default {
                     @touchend="endTouch(cIndex)">
                     <div class="opContent" :class="{ cateSelc: category.category == this.selectedCategory }"
                         @click="selectCategory(category)">
-                        <span>{{ category.category }}</span>
+                        <span v-if="!isEditing(cIndex)">
+                            <i class="fa-solid fa-pen" v-show="showEditPen"
+                                @click.stop="startEditing(cIndex)">&nbsp&nbsp</i>{{ category.category }}
+                        </span>
+                        <input v-else type="text" v-model="category.category" @blur="stopEditing(cIndex)"
+                            @keydown.enter="stopEditing(cIndex)">
                         <div class="groupOne">
                             <div class="countOp">{{ categoryMenuCount[category.categoryId] || 0 }}</div>
                             <i class="fa-regular fa-circle-xmark" @click="confirmDelete"></i>
@@ -478,7 +575,7 @@ export default {
                 <i class="fa-solid fa-circle-plus" @click="addCgInput()"></i>
             </div>
             <div class="saveCategory" @click="saveCategory()">儲存</div>
-            <div class="editCategory">編輯</div>
+            <div class="editCategory" @click="editCategory()">編輯</div>
         </div>
         <div class="menuAndCust">
             <div class="menuArea">
@@ -568,8 +665,7 @@ export default {
                 <div class="custItem">
                     <div class="addItem" @click="addCust()">+&nbsp&nbsp新增客製化選項</div>
                     <!-- 已存在資料庫的客製化選項 -->
-                    <div class="custInput"
-                        v-for="(item, index) in Object.values(groupedOptions)" :key="index">
+                    <div class="custInput" v-for="(item, index) in Object.values(groupedOptions)" :key="index">
                         <div class="cuTitle">
                             <span>{{ item.optionTitle }}</span>
                             <span>{{ item.optionType == 'checkbox' ? '多選' : '單選' }}</span>
@@ -589,7 +685,7 @@ export default {
                         </div>
                         <div class="cuInputCtrl">
                             <i class="fa-solid fa-trash-can"></i>
-                            <i class="fa-solid fa-circle-plus"></i>
+                            <i class="fa-solid disable fa-circle-plus"></i>
                         </div>
                     </div>
                     <!-- 動態新增的輸入框 -->
@@ -1255,6 +1351,10 @@ $borderBot: #697077;
 
                     .fa-circle-plus {
                         margin-right: 3%;
+                    }
+
+                    .disable {
+                        color: #697077;
                     }
                 }
 
