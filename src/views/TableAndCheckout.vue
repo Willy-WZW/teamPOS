@@ -16,14 +16,18 @@ export default {
             viewType: 'reservation', // 預設顯示訂位
             currentDate: new Date(), // 初始化為當前系統日期
             reservations: [
-                { id: 1, name: '翁千沛', phone: '0911223345', table: 'A01', time: '12:00', date: '2024-10-02' },
-                { id: 2, name: '王政蔚', phone: '0911223345', table: 'A05', time: '18:30', date: '2024-10-03' },
+                { id: 1, name: '翁千沛', phone: '0911223345', table: 'A01', time: '12:00', date: '2024-10-02', partySize: 4 },
+                { id: 2, name: '王政蔚', phone: '0911223345', table: 'A05', time: '18:30', date: '2024-10-02', partySize: 2 },
+                { id: 3, name: '黃冠霖', phone: '0911223345', table: 'A02', time: '12:00', date: '2024-10-02', partySize: 12 },
+                { id: 4, name: '謝芷倩', phone: '0911223345', table: 'A03', time: '11:30', date: '2024-10-03', partySize: 1 },
+                { id: 5, name: '翁明泰', phone: '0911223345', table: 'A08', time: '20:30', date: '2024-10-03', partySize: 3 },
+                { id: 6, name: '孫秉家', phone: '0911223345', table: 'A06', time: '19:00', date: '2024-10-03', partySize: 6 }
             ],
             waitlist: [
-                { id: 1, name: '謝芷倩', phone: '0911223345', position: 1 },
-                { id: 2, name: '翁明泰', phone: '0911223345', position: 2 },
-                // 更多候位資料...
-            ],
+                { id: 1, name: '翁千沛', phone: '0911223345', table: 'A01', registrationTime: '12:00', position: 1, partySize: 4 },
+                { id: 2, name: '王政蔚', phone: '0911223345', table: 'A02', registrationTime: '12:30', position: 2, partySize: 2 },
+                { id: 3, name: '黃冠霖', phone: '0911223345', table: 'A03', registrationTime: '13:00', position: 3, partySize: 12 },
+            ]
         };
     },
 
@@ -111,20 +115,20 @@ export default {
         getWidthByCapacity(capacity) {
             // 根據桌位的人數設置不同的寬度
             if (capacity <= 2) {
-                return 100; // 2人桌，寬度100px
+                return 140; // 2人桌，寬度140px
             } else if (capacity <= 4) {
-                return 130; // 4人桌，寬度130px
+                return 180; // 4人桌，寬度180px
             } else if (capacity <= 6) {
-                return 160; // 6人桌，寬度200px
+                return 220; // 6人桌，寬度220px
             }else if (capacity <= 8) {
-                return 190; // 8人桌，寬度200px
+                return 260; // 8人桌，寬度260px
             }
-            return 220; // 10人桌，寬度220px
+            return 300; // 10人桌，寬度220px
         },
 
         getHeightByCapacity (capacity) {
             // 可以根據需求設置不同的高度，這裡統一高度為100px
-            return 100;
+            return 140;
         },
 
         restoreTablePositions() {
@@ -180,11 +184,14 @@ export default {
 
             <!-- 桌位圖 -->
             <div class="tableGrid">
-                <div v-for="table in tables" :key="table.id" :data-id="table.id" :class="['tableItem', table.status]"
-                :style="{width: `${getWidthByCapacity(table.capacity)}px`, height: `${getHeightByCapacity(table.capacity)}px`}" ref="tableItem">
-                    <div class="circle">
-                        <div class="table-label">{{ table.name }}</div>
-                        <div class="table-capacity">👥 {{ table.capacity }}</div>
+                <div v-for="table in tables" :key="table.id" :data-id="table.id" class="tableItem" ref="tableItem"
+                :style="{width: `${getWidthByCapacity(table.capacity)}px`, height: `${getHeightByCapacity(table.capacity)}px`}">
+                    <div :class="['circle', table.status]">
+                        <div class="tableNumber">{{ table.name }}</div>
+                        <div class="tableCapacity">
+                            <i class="fa-solid fa-user-group"></i>
+                            {{ table.capacity }}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -193,7 +200,7 @@ export default {
         <!-- 訂位資訊 -->
         <div class="reservationArea">
             <!-- 切換 訂位/現場候位 -->
-            <div class="header">
+            <div class="reservationHeader">
                 <button :class="{ active: viewType === 'reservation' }" @click="viewType = 'reservation'" >
                     訂位
                 </button>
@@ -203,43 +210,96 @@ export default {
             </div>
 
             <!-- 日期選擇 -->
-            <div class="date-picker">
-                <button @click="changeDate(-1)">←</button>
+            <div class="datePicker">
+                <button @click="changeDate(-1)">
+                    <i class="fa-solid fa-angle-left"></i>
+                </button>
                 <span>{{ formattedDate }} 週{{ dayOfWeek }}</span>
-                <button @click="changeDate(1)">→</button>
+                <button @click="changeDate(1)">
+                    <i class="fa-solid fa-angle-right"></i>
+                </button>
             </div>
 
             <!-- 訂位顯示區域 -->
             <div v-if="viewType === 'reservation'" class="reservations">
-                <div v-for="reservation in filteredReservations" :key="reservation.id" class="reservation-item" >
-                    <div class="customer-info">
-                        <div>{{ reservation.name }}</div>
-                        <div>{{ reservation.phone }}</div>
+                <p class="reminderText">時間為訂位時間</p>
+                <div v-for="reservation in filteredReservations" :key="reservation.id" class="reservationItem">
+                    <!-- 顧客名字 -->
+                    <div class="customerName">{{ reservation.name }}</div>
+
+                    <!-- 顧客手機與訂位人數 -->
+                    <div class="customerPhoneAndParty">
+                        <div class="customerPhone">
+                            <i class="fa-solid fa-phone"></i>
+                            {{ reservation.phone }}
+                        </div>
+                        <div class="customerPartySize">
+                            <i class="fa-solid fa-user-group"></i>
+                            {{ reservation.partySize }}位
+                        </div>
                     </div>
 
-                    <div class="reservation-details">
-                        <div>{{ reservation.table }}</div>
-                        <div>{{ reservation.time }}</div>
-                        <button>報到</button>
-                        <button>取消</button>
+                    <!-- 桌號與訂位時間 -->
+                    <div class="tableNumberAndTime">
+                        <div class="tableNumber">{{ reservation.table }}</div>
+                        <div class="reservationTime">{{ reservation.time }}</div>
+                    </div>
+    
+                    <!-- 報到與取消 -->
+                    <div class="reservationActions">
+                        <div class="checkinArea">
+                            <input type="checkbox" id="checkin_{{ reservation.id }}" name="checkin" />
+                            <label for="checkin_{{ reservation.id }}">報到</label>
+                        </div>
+                        <div class="cancelArea">
+                            <input type="checkbox" id="cancel_{{ reservation.id }}" name="cancel" />
+                            <label for="cancel_{{ reservation.id }}">取消</label>
+                        </div>
                     </div>
                 </div>
             </div>
+
+            <button v-if="viewType === 'reservation'" class="newReservation">
+                <i class="fa-solid fa-plus"></i>
+                新增訂位
+            </button>
 
             <!-- 現場候位顯示區域 -->
             <div v-if="viewType === 'waitlist'" class="waitlist">
-                <div v-for="wait in waitlist" :key="wait.id" class="waitlist-item">
-                    <div class="customer-info">
-                        <div>{{ wait.name }}</div>
-                        <div>{{ wait.phone }}</div>
+                <p class="reminderText">時間為登記時間</p>
+                <div v-for="wait in waitlist" :key="wait.id" class="waitlistItem">
+                    <!-- 顧客名字 -->
+                    <div class="customerName">{{ wait.name }}</div>
+
+                    <!-- 顧客手機與候位人數 -->
+                    <div class="customerPhoneAndParty">
+                        <div class="customerPhone">
+                            <i class="fa-solid fa-phone"></i>
+                            {{ wait.phone }}
+                        </div>
+                        <div class="customerPartySize">
+                            <i class="fa-solid fa-user-group"></i>
+                            {{ wait.partySize }}位
+                        </div>
                     </div>
-                    <div class="waitlist-details">
-                        <div>候位順序: {{ wait.position }}</div>
+
+                    <!-- 桌號與登記時間 -->
+                    <div class="tableNumberAndTime">
+                        <div class="tableNumber">{{ wait.table }}</div>
+                        <div class="registrationTime">{{ wait.registrationTime }}</div>
+                    </div>
+
+                    <!-- 候位順序 -->
+                    <div class="waitPositionAndTime">
+                        <div class="waitPosition">候位順序: {{ wait.position }}</div>
                     </div>
                 </div>
             </div>
 
-            <button class="new-reservation">+ 新增訂位</button>
+            <button v-if="viewType === 'waitlist'" class="newWaitlist">
+                <i class="fa-solid fa-plus"></i>
+                新增候位
+            </button>
         </div>
     </div>
 </div>
@@ -268,7 +328,7 @@ export default {
         align-items: center;
 
         .tableArea {
-            width: 60%;
+            width: 65%;
             height: 98%;
             border-radius: 10px;
             background-color: #FFFFFF;
@@ -343,172 +403,367 @@ export default {
                 grid-template-columns: repeat(4, 1fr);
                 gap: 20px;
                 justify-items: center;
+
+                .tableItem {
+                    border: 1px solid #ccc;
+                    border-radius: 10px;
+                    background-color: white;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    align-items: center;
+                    position: relative;
+
+                    .circle {
+                        width: 100px;
+                        height: 100px;
+                        border-radius: 50%;
+                        background-color: #f4f6f9;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        flex-direction: column;
+
+                        &.active {
+                            background-color: #878d96; /* 用餐中狀態 */
+                        }
+
+                        &.reserved {
+                            background-color: #c1c7cd; /* 已訂位狀態 */
+                        }
+
+                        &.available {
+                            background-color: #f2f4f8; /* 可使用狀態，預設為淺色 */
+                        }
+
+                        .tableNumber {
+                            font-size: 20px;
+                            font-weight: bold;
+                        }
+
+                        .tableCapacity {
+                            font-size: 15px;
+                        }
+                    }
+                }
             }
-
-            .tableItem {
-  border: 1px solid #ccc;
-  border-radius: 10px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  position: relative;
-  transition: all 0.3s ease; /* 添加過渡效果 */
-
-  .circle {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-    background-color: #f4f6f9;
-    margin-bottom: 10px;
-
-    .table-label {
-      font-size: 18px;
-      font-weight: bold;
-    }
-
-    .table-capacity {
-      font-size: 12px;
-    }
-  }
-
-  &.in-use .circle {
-    background-color: #8c8c8c; /* 用餐中狀態 */
-  }
-
-  &.reserved .circle {
-    background-color: #d3d3d3; /* 已訂位狀態 */
-  }
-
-  &.available .circle {
-    background-color: #f4f6f9; /* 可使用狀態，預設為淺色 */
-  }
-}
-}
+        }
 
         .reservationArea {
-            width: 40%;
+            width: 35%;
             height: 98%;
             border-radius: 10px;
             background-color: #FFFFFF;
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 20px 10px;
+            padding: 20px;
             margin-left: 5px;
+            position: relative;
 
-  .header {
-    display: flex;
-    justify-content: space-around;
-    width: 100%;
-    margin-bottom: 20px;
+            .reservationHeader {
+                width: 95%;
+                display: flex;
+                justify-content: center;
+                margin-bottom: 10px;
 
-    button {
-      background-color: #f5f5f5;
-      border: none;
-      padding: 10px 20px;
-      font-size: 16px;
-      cursor: pointer;
-      border-radius: 5px;
-      transition: background-color 0.3s;
+                button {
+                    width: 50%;
+                    border: none;
+                    border-radius: 10px;
+                    background-color: #FFFFFF;
+                    font-size: 20px;
+                    color: #4D5358;
+                    letter-spacing: 5px;
+                    padding: 15px;
+                    cursor: pointer;
 
-      &.active {
-        background-color: #d3d3d3;
-      }
-    }
-  }
+                    &.active {
+                        background-color: #DDE1E6;
+                    }
+                }
+            }
 
-  .date-picker {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 60%;
-    margin-bottom: 20px;
-    font-size: 18px;
+            .datePicker {
+                width: 95%;
+                font-size: 20px;
+                color: #343A3F;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 10px;
 
-    button {
-      background: none;
-      border: none;
-      font-size: 24px;
-      cursor: pointer;
-      padding: 0 10px;
-    }
-  }
+                button {
+                    background: none;
+                    border: none;
+                    font-size: 25px;
+                    color: #697077;
+                    cursor: pointer;
+                    padding: 10px;
+                }
+            }
 
-  .reservations,
-  .waitlist {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    width: 100%;
-    align-items: center;
-  }
+            .reservations {
+                width: 95%;
+                max-height: 720px;
+                overflow: auto;
+                border-top: 2.5px solid #DDE1E6;
+                display: flex;
+                flex-direction: column;
+                padding: 15px 0;
 
-  .reservation-item,
-  .waitlist-item {
-    display: flex;
-    justify-content: space-between;
-    padding: 15px;
-    border: 1px solid #ccc;
-    border-radius: 10px;
-    width: 80%;
-    max-width: 600px;
+                .reminderText {
+                    margin-bottom: 10px;
+                    color: black;
+                    opacity: 0.6;
+                }
 
-    .customer-info {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      gap: 5px;
+                .reservationItem {
+                    width: 100%;
+                    border-radius: 10px;
+                    border: 1px solid #697077;
+                    display: flex;
+                    justify-content: space-around;
+                    align-items: center;
+                    padding: 13px 10px;
+                    margin-bottom: 20px;
 
-      div {
-        font-size: 16px;
-      }
-    }
+                    .customerName {
+                        font-size: 20px;
+                        letter-spacing: 2px;
+                        color: #4D5358;
+                    }
 
-    .reservation-details,
-    .waitlist-details {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: flex-end;
-      gap: 5px;
+                    .customerPhoneAndParty {
+                        display: flex;
+                        flex-direction: column;
 
-      button {
-        background-color: #f5f5f5;
-        border: 1px solid #ccc;
-        border-radius: 5px;
-        padding: 5px 10px;
-        cursor: pointer;
-        font-size: 14px;
-        transition: background-color 0.3s;
+                        .customerPhone {
+                            display: flex;
+                            align-items: center;
+                            font-size: 18px;
+                            color: #697077;
+                            letter-spacing: 2px;
+                            margin-bottom: 10px;
 
-        &:hover {
-          background-color: #e0e0e0;
-        }
-      }
-    }
-  }
+                            i {
+                                color: #697077;
+                                margin-right: 10px;
+                            }
+                        }
+                        
+                        .customerPartySize {
+                            display: flex;
+                            align-items: center;
+                            color: #697077;
+                            font-size: 18px;
+                            letter-spacing: 2px;
 
-  .new-reservation {
-    width: 80%;
-    padding: 15px;
-    background-color: #444;
-    color: white;
-    text-align: center;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 18px;
-    margin-top: 20px;
-    max-width: 600px;
+                            i {
+                                color: #697077;
+                                margin-right: 10px;
+                            }
+                        }
+                    }
 
-    &:hover {
-      background-color: #333;
-    }
-  }
+                    .tableNumberAndTime {
+                        border-radius: 10px;
+                        background-color: #DDE1E6;
+                        color: #4D5358;
+                        display: flex;
+                        flex-direction: column;
+                        align-items: center;
+                        padding: 10px 20px;
+
+                        .tableNumber {
+                            font-size: 20px;
+                            font-weight: bold;
+                            letter-spacing: 2px;
+                            margin-bottom: 10px;
+                        }
+
+                        .reservationTime {
+                            font-size: 16px;
+                            font-weight: bold;
+                            letter-spacing: 1px;
+                        }
+                    }
+
+                    .reservationActions {
+                        display: flex;
+                        flex-direction: column;
+
+                        .checkinArea {
+                            color: #697077;
+                            font-size: 20px;
+                            margin-bottom: 10px;
+
+                            input[type="checkbox"] {
+                                margin-right: 5px;
+                            }
+                        }
+
+                        .cancelArea {
+                            color: #697077;
+                            font-size: 20px;
+
+                            input[type="checkbox"] {
+                                margin-right: 5px;
+                            }
+                        }
+                    }
+                }
+            }
+
+            .newReservation {
+                width: 70%;
+                border-radius: 10px;
+                background-color: #343A3F;
+                color: white;
+                text-align: center;
+                font-size: 20px;
+                letter-spacing: 3px;
+                cursor: pointer;
+                padding: 15px;
+                margin-top: 20px;
+                position: absolute;
+                bottom: 20px;
+
+                &:hover {
+                    background-color: #333;
+                }
+            }
+
+            .waitlist {
+                width: 95%;
+                max-height: 720px;
+                overflow: auto;
+                border-top: 2.5px solid #DDE1E6;
+                display: flex;
+                flex-direction: column;
+                padding: 15px 0;
+
+                .reminderText {
+                    margin-bottom: 10px;
+                    color: black;
+                    opacity: 0.6;
+                }
+
+                .waitlistItem {
+                    width: 100%;
+                    border-radius: 10px;
+                    border: 1px solid #697077;
+                    display: flex;
+                    justify-content: space-around;
+                    align-items: center;
+                    padding: 13px 10px;
+                    margin-bottom: 20px;
+
+                    .customerName {
+                        font-size: 20px;
+                        letter-spacing: 2px;
+                        color: #4D5358;
+                    }
+
+                    .customerPhoneAndParty {
+                        display: flex;
+                        flex-direction: column;
+
+                        .customerPhone {
+                            display: flex;
+                            align-items: center;
+                            font-size: 18px;
+                            color: #697077;
+                            letter-spacing: 2px;
+                            margin-bottom: 10px;
+
+                            i {
+                                color: #697077;
+                                margin-right: 10px;
+                            }
+                        }
+                        
+                        .customerPartySize {
+                            display: flex;
+                            align-items: center;
+                            color: #697077;
+                            font-size: 18px;
+                            letter-spacing: 2px;
+
+                            i {
+                                color: #697077;
+                                margin-right: 10px;
+                            }
+                        }
+                    }
+
+                    .tableNumberAndTime {
+                        border-radius: 10px;
+                        background-color: #DDE1E6;
+                        color: #4D5358;
+                        display: flex;
+                        flex-direction: column;
+                        align-items: center;
+                        padding: 10px 20px;
+
+                        .tableNumber {
+                            font-size: 20px;
+                            font-weight: bold;
+                            letter-spacing: 2px;
+                            margin-bottom: 10px;
+                        }
+
+                        .registrationTime {
+                            font-size: 16px;
+                            font-weight: bold;
+                            letter-spacing: 1px;
+                        }
+                    }
+
+                    .reservationActions {
+                        display: flex;
+                        flex-direction: column;
+
+                        .checkinArea {
+                            color: #697077;
+                            font-size: 20px;
+                            margin-bottom: 10px;
+
+                            input[type="checkbox"] {
+                                margin-right: 5px;
+                            }
+                        }
+
+                        .cancelArea {
+                            color: #697077;
+                            font-size: 20px;
+
+                            input[type="checkbox"] {
+                                margin-right: 5px;
+                            }
+                        }
+                    }
+                }
+            }
+
+            .newWaitlist {
+                width: 70%;
+                border-radius: 10px;
+                background-color: #343A3F;
+                color: white;
+                text-align: center;
+                font-size: 20px;
+                letter-spacing: 3px;
+                cursor: pointer;
+                padding: 15px;
+                margin-top: 20px;
+                position: absolute;
+                bottom: 20px;
+
+                &:hover {
+                    background-color: #333;
+                }
+            }
         }
     }
 }
