@@ -5,15 +5,15 @@ export default {
     data() {
         return {
             startX: 0,
-            selectedType: 'checkbox',
+            optionType: 'checkbox',
             selectedCategory: null, // 選中的菜單分類
             selectedCategoryId: null, // 選中的菜單分類Id
             categories: [],// 已存在資料庫的菜單分類
             cgInput: [],// 菜單分類的input
             savedMenuList: [],// 已存在資料庫的菜單
             menuList: [],// 菜單的input
-            savedCustList:[],// 已存在資料庫的客制化選項
-            custList: [],// 客制化的input
+            savedCustList: [],// 已存在資料庫的客製化選項
+            custList: [],// 客製化的input
         }
     },
     methods: {
@@ -109,10 +109,11 @@ export default {
                 return
             }
             this.custList.push({
-                title: "",// 客製化標題
-                selectedType: 'checkbox', // 客製化選擇
+                categoryId: this.selectedCategoryId, //餐點的菜單分類Id
+                optionTitle: "",// 客製化標題
+                optionType: 'checkbox', // 客製化選擇
                 options: [ //客製化選項
-                    { text: "", price: "" }
+                    { optionContent: "", extraPrice: "" }
                 ],
             })
             this.$nextTick(() => {
@@ -128,8 +129,8 @@ export default {
         },
         addOption(custIndex) {
             this.custList[custIndex].options.push({
-                text: "", // 選項內容
-                price: "" // 選項金額
+                optionContent: "", // 選項內容
+                extraPrice: "" // 選項金額
             });
             this.$nextTick(() => {
                 // 獲取最新新增的餐點元素
@@ -139,6 +140,7 @@ export default {
                 }
             });
         },
+        // 儲存菜單分類
         async saveCategory() {
             const categoryData = this.cgInput.map(item => ({ category: item.category }));
 
@@ -279,11 +281,131 @@ export default {
                     confirmButtonText: '好的'
                 });
             }
+        },
+        // 儲存客製化選項
+        saveCust() {
+            // 檢查每個選項的 extraPrice 和唯一性
+            for (const cust of this.custList) {
+                if (cust.optionTitle == "") {
+                    Swal.fire({
+                        title: '錯誤',
+                        text: '請輸入客製化選項標題',
+                        icon: 'error',
+                        confirmButtonText: '好的'
+                    });
+                    return;
+                }
+
+                // 檢查 extraPrice
+                for (const option of cust.options) {
+                    if (option.optionContent == "") {
+                        Swal.fire({
+                            title: '錯誤',
+                            text: '請輸入客製化選項',
+                            icon: 'error',
+                            confirmButtonText: '好的'
+                        });
+                        return;
+                    }
+                    if (option.extraPrice == "") {
+                        Swal.fire({
+                            title: '錯誤',
+                            text: '請輸入金額',
+                            icon: 'error',
+                            confirmButtonText: '好的'
+                        });
+                        return;
+                    }
+                    if (option.extraPrice < 0) {
+                        Swal.fire({
+                            title: '錯誤',
+                            text: '每個額外價格必須大於或等於零',
+                            icon: 'error',
+                            confirmButtonText: '好的'
+                        });
+                        return;
+                    }
+                }
+
+                // 檢查 optionTitle, categoryId 和 optionContent 的組合是否已存在
+                for (const option of cust.options) {
+                    const exists = this.savedCustList.some(savedOption =>
+                        savedOption.optionTitle === cust.optionTitle &&
+                        savedOption.categoryId === cust.categoryId &&
+                        savedOption.optionContent === option.optionContent
+                    );
+
+                    if (exists) {
+                        Swal.fire({
+                            title: '錯誤',
+                            text: '此選項的組合已存在',
+                            icon: 'error',
+                            confirmButtonText: '好的'
+                        });
+                        return;
+                    }
+                }
+            }
+
+            // 建立要傳送到後端的資料結構
+            const requests = this.custList.map(cust => ({
+                categoryId: cust.categoryId,
+                optionTitle: cust.optionTitle,
+                optionType: cust.optionType,
+                options: cust.options.map(option => ({
+                    optionContent: option.optionContent,
+                    extraPrice: option.extraPrice
+                }))
+            }));
+
+            console.log(requests);
+
+            // 使用 Axios 發送 POST 請求到後端
+            axios.post('http://localhost:8080/option/create', requests)
+                .then(response => {
+                    if (response.data.code == 200) {
+                        Swal.fire({
+                            title: '成功',
+                            text: '客製化選項已成功儲存',
+                            icon: 'success',
+                            confirmButtonText: '好的'
+                        });
+                    }
+                    // 清空 custList
+                    this.custList = [];
+                    fetchCust()
+                })
+                .catch(error => {
+                    console.error(error);
+                    Swal.fire({
+                        title: '錯誤',
+                        text: '儲存客製化選項時發生錯誤',
+                        icon: 'error',
+                        confirmButtonText: '好的'
+                    });
+                });
+        },
+        // 更新客製化選項
+        async fetchCust() {
+            try {
+                const response = await axios.get("http://localhost:8080/option/all");
+                this.savedCustList = response.data;
+                console.log(this.savedCustList);
+            } catch (error) {
+                console.error('獲取菜單時發生錯誤:', error);
+                Swal.fire({
+                    title: '錯誤',
+                    text: '無法獲取客製化菜單資料，請稍後再試',
+                    icon: 'error',
+                    confirmButtonText: '好的'
+                });
+            }
         }
     },
     mounted() {
         this.fetchCategories(); // 載入時獲取分類
         this.fetchMenu(); // 載入時獲取菜單
+        this.fetchCust(); // 載入時獲取客製化菜單資料
     },
     computed: {
         categoryMenuCount() {
@@ -296,6 +418,32 @@ export default {
                 }
             });
             return counts;
+        },
+        groupedOptions() {
+            // 先根據選擇的 categoryId 過濾資料
+            const filteredList = this.savedCustList.filter(item => item.categoryId === this.selectedCategoryId);
+
+            // 使用 reduce 根據 optionTitle 將相同 title 的選項合併
+            return filteredList.reduce((acc, item) => {
+                const optionTitle = item.optionTitle;
+
+                if (!acc[optionTitle]) {
+                    // 如果沒有該 optionTitle，創建一個新項目
+                    acc[optionTitle] = {
+                        optionTitle: item.optionTitle,
+                        optionType: item.optionType,
+                        options: []  // 儲存合併後的 options
+                    };
+                }
+
+                // 將相同 optionTitle 的選項推入 options 陣列
+                acc[optionTitle].options.push({
+                    optionContent: item.optionContent,
+                    extraPrice: item.extraPrice || 0  // 默認價格為 0
+                });
+
+                return acc;
+            }, {});
         }
     }
 }
@@ -414,41 +562,41 @@ export default {
                             <span>{{ selectedCategory || '菜單分類' }}</span>
                             <div class="countOp">{{ categoryMenuCount[selectedCategoryId] || 0 }}</div>
                         </div>
-                        <div class="saveBtn">儲存</div>
+                        <div class="saveBtn" @click="saveCust()">儲存</div>
                     </div>
                 </div>
                 <div class="custItem">
                     <div class="addItem" @click="addCust()">+&nbsp&nbsp新增客製化選項</div>
                     <!-- 已存在資料庫的客製化選項 -->
-                    <div class="custInput" v-for="(item, index) in savedCustList" :key="index">
+                    <div class="custInput"
+                        v-for="(item, index) in Object.values(groupedOptions)" :key="index">
                         <div class="cuTitle">
-                            <span>{{ item.title }}</span>
-                            <span>{{ item.selectedType == 'checkbox' ? '多選' : '單選' }}</span>
+                            <span>{{ item.optionTitle }}</span>
+                            <span>{{ item.optionType == 'checkbox' ? '多選' : '單選' }}</span>
                         </div>
                         <div class="titleOption">
                             <div class="oneOption" v-for="(option, opIndex) in item.options" :key="opIndex">
                                 <div class="optionL">
-                                    <input type="checkbox" v-if="item.selectedType === 'checkbox'" disabled>
-                                    <input type="radio" v-if="item.selectedType === 'radio'" disabled>
-                                    <input type="text" v-model="option.options" class="inText"
-                                        :placeholder="'選項' + (opIndex + 1)">
+                                    <input type="checkbox" v-if="item.optionType === 'checkbox'" disabled>
+                                    <input type="radio" v-if="item.optionType === 'radio'" disabled>
+                                    <span>{{ option.optionContent }}</span>
                                 </div>
                                 <div class="optionPrice">
                                     <span>$</span>
-                                    <input type="text" v-model="option.price" class="inPrice" placeholder="金額">
+                                    <span>{{ option.extraPrice }}</span>
                                 </div>
                             </div>
                         </div>
                         <div class="cuInputCtrl">
-                            <i class="fa-solid fa-trash-can" @click="removeCust(index)"></i>
-                            <i class="fa-solid fa-circle-plus" @click="addOption(index)"></i>
+                            <i class="fa-solid fa-trash-can"></i>
+                            <i class="fa-solid fa-circle-plus"></i>
                         </div>
                     </div>
                     <!-- 動態新增的輸入框 -->
                     <div class="custInput" v-for="(cust, index) in custList" :key="index">
                         <div class="cuTitle">
-                            <input type="text" v-model="cust.Title" placeholder="客製化標題">
-                            <select v-model="cust.selectedType">
+                            <input type="text" v-model="cust.optionTitle" placeholder="客製化標題">
+                            <select v-model="cust.optionType">
                                 <option value="checkbox">多選</option>
                                 <option value="radio">單選</option>
                             </select>
@@ -456,14 +604,15 @@ export default {
                         <div class="titleOption">
                             <div class="oneOption" v-for="(option, opIndex) in cust.options" :key="opIndex">
                                 <div class="optionL">
-                                    <input type="checkbox" v-if="cust.selectedType === 'checkbox'" disabled>
-                                    <input type="radio" v-if="cust.selectedType === 'radio'" disabled>
-                                    <input type="text" v-model="option.options" class="inText"
+                                    <input type="checkbox" v-if="cust.optionType === 'checkbox'" disabled>
+                                    <input type="radio" v-if="cust.optionType === 'radio'" disabled>
+                                    <input type="text" v-model="option.optionContent" class="inText"
                                         :placeholder="'選項' + (opIndex + 1)">
                                 </div>
                                 <div class="optionPrice">
                                     <span>$</span>
-                                    <input type="text" v-model="option.price" class="inPrice" placeholder="金額">
+                                    <input type="number" v-model.number="option.extraPrice" class="inPrice"
+                                        placeholder="金額">
                                 </div>
                             </div>
                         </div>
@@ -574,7 +723,8 @@ $borderBot: #697077;
 
                         .fa-circle-xmark {
                             cursor: pointer;
-                            &:hover{
+
+                            &:hover {
                                 color: #e02d11;
                                 font-weight: bold;
                             }
