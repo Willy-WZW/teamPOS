@@ -6,7 +6,6 @@ import { options } from '@fullcalendar/core/preact';
 export default {
     data() {
         return {
-            
         };
     },
     components: {

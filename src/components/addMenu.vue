@@ -13,6 +13,8 @@ export default{
             cgInput: [],
             menuList: [],
             custList: [],
+
+            showComboSetting:true
         }
     },
     methods: {
@@ -166,7 +168,56 @@ export default{
                 <div class="editCategory">編輯</div>
             </div>
             <div class="menuAndCust">
-                <div class="menuArea">
+                <div class="menuArea" v-if="showComboSetting">
+                    <div class="menuTop">
+                        <div class="mtLeft">
+                            <span>餐點</span>
+                        </div>
+                        <div class="mtRight">
+                            <div class="selCate">
+                                <span>套餐</span>
+                                <div class="countOp">7</div>
+                            </div>
+                            <div class="saveBtn">儲存</div>
+                        </div>
+                    </div>
+                    <div class="menuMain">
+                        <div class="addMenuDiv" @click="addMenu()">+&nbsp&nbsp新增套餐</div>
+                        <div class="menuItem" v-for="(menu, index) in menuList" :key="index">
+                            <div class="itemPic">
+                                <i class="fa-solid fa-upload"></i>
+                            </div>
+                            <div class="itemName">
+                                <input type="text" v-model="menu.name" placeholder="輸入套餐名稱">
+                            </div>
+                            
+                            <div>
+                                <label for="meal1"></label>
+                                <select id="meal1">
+                                    <option value="卡拉雞腿堡">卡拉雞腿堡</option>
+                                    <option value="麥香魚">麥香魚</option>
+                                    <option value="麥香雞">麥香雞</option>
+                                </select>
+                                <div>
+                                    <p></p>
+                                    <p></p>
+                                </div>
+
+                            </div>
+
+                            <div class="itembot">
+                                <div class="itemStatus" :class="{ flip: !menu.supply }" @click="switchSta(menu)">
+                                    <span>{{ menu.supply ? "供應中" : "售完" }}</span>
+                                </div>
+                                <div class="itemIcon">
+                                    <i class="fa-solid fa-square-pen"></i>
+                                    <i class="fa-solid fa-trash-can" @click="removeMenu(index)"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="menuArea" v-if="!showComboSetting">
                     <div class="menuTop">
                         <div class="mtLeft">
                             <span>餐點</span>
