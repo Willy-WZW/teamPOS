@@ -5,16 +5,45 @@ import interact from 'interactjs';
 export default {
     data () {
         return {
+            // 桌位資訊 tableArea 數據
+            isDragging: false,   // 用來追踪是否是拖動動作
             tables: [
                 { id: 1, name: "A01", capacity: 4, status: "active" },
-                { id: 2, name: "A01", capacity: 2, status: "reserved" },
-                { id: 3, name: "A01", capacity: 6, status: "available" },
-                { id: 4, name: "A01", capacity: 10, status: "active" },
-                { id: 5, name: "A01", capacity: 8, status: "available" },
+                { id: 2, name: "A02", capacity: 2, status: "reserved" },
+                { id: 3, name: "A03", capacity: 6, status: "available" },
+                { id: 4, name: "A04", capacity: 10, status: "active" },
+                { id: 5, name: "A05", capacity: 8, status: "available" },
                 // 可依據需要新增更多桌位
             ],
+
+            // 點擊桌位側邊欄 tableSlider 數據
+            selectedTable: null, // 存儲被選擇的桌位
+            memberPhoneNumber: '', // 會員電話號碼
+            memberDiscount: null, // 會員折扣
+            orderItems: [  // 假設餐點明細資料
+                { name: '卡拉雞腿堡', notes: ['不加美乃滋', '加蛋'], price: 150 },
+                { name: '1號餐', notes: ['麥香雞堡', '薯條', '可樂'], price: 200 },
+                { name: '2號餐', notes: ['海洋珍珠堡', '雞塊', '奶茶'], price: 230 },
+                { name: '3號餐', notes: ['麥香雞堡', '雞塊', '奶茶'], price: 210 },
+                { name: '4號餐', notes: ['海洋珍珠堡', '薯條', '可樂'], price: 220 },
+            ],
+            total: 360,
+            discount: 18,  // 假設折扣
+            subtotal: 342,
+            paymentMethod: 'creditCard', // 預設付款方式
+            creditCardInfo: {
+                cardNumber: '',
+                cardHolder: '',
+                expiryDate: '',
+                cvv: ''
+            },
+            receivedAmount: 0, // 收取的金額
+            change: 0, // 找零
+
+            // 訂位資訊 reservationArea 數據
             viewType: 'reservation', // 預設顯示訂位
             currentDate: new Date(), // 初始化為當前系統日期
+            filteredReservations: [], // 根據日期篩選後的訂位資訊（稍後初始化）
             reservations: [
                 { id: 1, name: '翁千沛', phone: '0911223345', table: 'A01', time: '12:00', date: '2024-10-02', partySize: 4 },
                 { id: 2, name: '王政蔚', phone: '0911223345', table: 'A05', time: '18:30', date: '2024-10-02', partySize: 2 },
@@ -23,11 +52,17 @@ export default {
                 { id: 5, name: '翁明泰', phone: '0911223345', table: 'A08', time: '20:30', date: '2024-10-03', partySize: 3 },
                 { id: 6, name: '孫秉家', phone: '0911223345', table: 'A06', time: '19:00', date: '2024-10-03', partySize: 6 }
             ],
+            
+            // 現場候位 waitlist 數據
+            filteredWaitlist: [], // 根據日期篩選後的候位資訊（稍後初始化）
             waitlist: [
                 { id: 1, name: '翁千沛', phone: '0911223345', table: 'A01', registrationTime: '12:00', position: 1, partySize: 4 },
                 { id: 2, name: '王政蔚', phone: '0911223345', table: 'A02', registrationTime: '12:30', position: 2, partySize: 2 },
-                { id: 3, name: '黃冠霖', phone: '0911223345', table: 'A03', registrationTime: '13:00', position: 3, partySize: 12 },
-            ]
+                { id: 3, name: '黃冠霖', phone: '0911223345', table: 'A03', registrationTime: '13:00', position: 3, partySize: 12 }
+            ],
+
+            // 用於處理日期變化
+            selectedDate: new Date(), // 當前選擇的日期
         };
     },
 
@@ -107,30 +142,34 @@ export default {
     },
 
     methods: {
+        // 刷新
         refresh() {
             // 可在此實作刷新功能
             console.log("資料已刷新");
         },
 
+        // 根據容納人數不同調整桌位寬度
         getWidthByCapacity(capacity) {
             // 根據桌位的人數設置不同的寬度
             if (capacity <= 2) {
-                return 140; // 2人桌，寬度140px
+                return 180; // 2人桌，寬度180px
             } else if (capacity <= 4) {
-                return 180; // 4人桌，寬度180px
+                return 220; // 4人桌，寬度220px
             } else if (capacity <= 6) {
-                return 220; // 6人桌，寬度220px
+                return 260; // 6人桌，寬度260px
             }else if (capacity <= 8) {
-                return 260; // 8人桌，寬度260px
+                return 300; // 8人桌，寬度300px
             }
-            return 300; // 10人桌，寬度220px
+            return 340; // 10人桌，寬度340px
         },
 
+        // 固定桌位高度
         getHeightByCapacity (capacity) {
             // 可以根據需求設置不同的高度，這裡統一高度為100px
             return 140;
         },
 
+        // 桌位佈局拷貝以免刷新不見
         restoreTablePositions() {
             const positions = JSON.parse(localStorage.getItem('tablePositions')) || {};
             const tables = this.$refs.tableItem;
@@ -146,11 +185,35 @@ export default {
             });
         },
 
+        // 訂位資訊日期切換
         changeDate(dayChange) {
             // 改變日期，保持為 Date 物件
             const newDate = new Date(this.currentDate);
             newDate.setDate(newDate.getDate() + dayChange);
             this.currentDate = newDate;
+        },
+
+        // 開啟結帳側邊欄
+        selectTable(table) {
+            this.selectedTable = table; // 設置選中的桌位
+        },
+
+        // 關閉結帳側邊欄
+        closePanel() {
+            this.selectedTable = null; // 關閉側邊欄
+        },
+
+        calculateChange() {
+            this.change = this.receivedAmount - this.subtotal;
+        },
+
+        searchMember() {
+            // 這裡可以根據會員電話進行會員折扣查詢的邏輯
+            if (this.memberPhone === '0911223345') {
+                this.memberDiscount = 95; // 假設會員為黃金會員，95折
+            } else {
+                this.memberDiscount = 100; // 默認無折扣
+            }
         },
     },
 };
@@ -184,9 +247,9 @@ export default {
 
             <!-- 桌位圖 -->
             <div class="tableGrid">
-                <div v-for="table in tables" :key="table.id" :data-id="table.id" class="tableItem" ref="tableItem"
+                <div v-for="table in tables" :key="table.id" :data-id="table.id" class="tableItem" ref="tableItem" 
                 :style="{width: `${getWidthByCapacity(table.capacity)}px`, height: `${getHeightByCapacity(table.capacity)}px`}">
-                    <div :class="['circle', table.status]">
+                    <div :class="['circle', table.status]" @click="selectTable(table)">
                         <div class="tableNumber">{{ table.name }}</div>
                         <div class="tableCapacity">
                             <i class="fa-solid fa-user-group"></i>
@@ -300,6 +363,142 @@ export default {
                 <i class="fa-solid fa-plus"></i>
                 新增候位
             </button>
+        </div>
+
+        <!-- 側邊欄區域 -->
+        <div v-if="selectedTable" class="sidebarArea">
+            <!-- 黑色背景層 -->
+            <div class="sidebarBackground" @click="closePanel"></div>
+    
+            <!-- 側邊欄 -->
+            <div class="sidebar">
+                <div class="sideHeader">
+
+                    <!-- 返回鍵、結帳明細 -->
+                    <div class="titleArea">
+                        <i class="fa-solid fa-chevron-right" @click="closePanel"></i>
+                        <h2>結帳明細</h2>
+                    </div>
+
+                    <!-- 桌號、訂單編號、會員電話 -->
+                    <div class="dataArea">
+                        <!-- 桌號 -->
+                        <div class="tableNumber">{{ selectedTable.name }}</div>
+
+                        <!-- 訂單編號 -->
+                        <div class="orderNumber">
+                            <p>訂單編號</p> 
+                            #202409251509{{ selectedTable.name }}
+                        </div>
+
+                        <!-- 會員電話輸入框 -->
+                        <div class="memberArea">
+                            <div class="memberPhone">
+                                <input type="search" class="phoneInput" placeholder="輸入會員電話" v-model="memberPhoneNumber"/>
+                                <button class="searchButton" @click="searchMember"><i class="fa-solid fa-search"></i></button>
+                            </div>
+                            <div v-if="memberDiscount" class="memberDiscount">
+                                <span>黃金會員 {{ memberDiscount }} 折</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sideBody">
+
+                    <!-- 明細、金額區域 -->
+                    <div class="detailSection">
+
+                        <!-- 餐點明細 -->
+                        <div class="orderDetails">
+                            <h3 class="orderTitle">餐點明細</h3>
+                            <div v-for="(item, index) in orderItems" :key="index" class="orderItem">
+                                <div class="itemInfo">
+
+                                    <!-- 餐點名稱 -->
+                                    <div class="orderName">{{ item.name }}</div>
+
+                                    <!-- 餐點細項 -->
+                                    <ul v-if="item.notes && item.notes.length">
+                                        <li v-for="(note, idx) in item.notes" :key="idx">{{ note }}</li>
+                                    </ul>
+                                </div>
+                                <div class="itemPrice">$ {{ item.price }}</div>
+                            </div>
+                        </div>
+
+                        <!-- 總金額、折扣與小計 -->
+                        <div class="totalSummary">
+                            <div class="totalPrice">
+                                <p>總金額</p> 
+                                $ {{ total }}
+                            </div>
+                            <div class="priceDiscount">
+                                <p>折扣</p>
+                                黃金會員 {{ memberDiscount || 100 }} 折
+                            </div>
+                            <div class="summary">
+                                <p>小計</p>
+                                $ {{ subtotal }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 付款方式 -->
+                    <div class="paymentSection">
+                        <h3 class="paymentTitle">選擇付款方式</h3>
+                        <select class="paymentSelect" v-model="paymentMethod">
+                            <option value="creditCard">信用卡</option>
+                            <option value="cash">現金</option>
+                        </select>
+                        
+                        <!-- 信用卡表單 -->
+                        <div v-if="paymentMethod === 'creditCard'" class="creditCardForm">
+                            <div>
+                                <label>卡號</label>
+                                <input type="text" v-model="creditCardInfo.cardNumber" />
+                            </div>
+                            <div>
+                                <label>持卡人姓名</label>
+                                <input type="text" v-model="creditCardInfo.cardHolder" />
+                            </div>
+                            <div>
+                                <label>卡片到期日</label>
+                                <input type="text" v-model="creditCardInfo.expiryDate" />
+                            </div>
+                            <div>
+                                <label>確認碼</label>
+                                <input type="text" v-model="creditCardInfo.cvv" />
+                            </div>
+
+                            <button class="confirmButton">確認付款</button>
+                        </div>
+
+                        <!-- 現金付款表單 -->
+                        <div v-if="paymentMethod === 'cash'" class="cashForm">
+                            <div>
+                                <input type="number" placeholder="輸入收取金額" v-model="receivedAmount" @input="calculateChange" />
+                            </div>
+                            <div class="cashSummary">
+                                <div class="payment">
+                                    <p>付款</p> 
+                                    $ {{ receivedAmount }}
+                                </div>
+                                <div class="summary">
+                                    <p>訂單金額</p> 
+                                    $ {{ subtotal }}
+                                </div>
+                                <div class="change">
+                                    <p>找零</p> 
+                                    $ {{ change }}
+                                </div>
+                            </div>
+
+                            <button class="confirmButton">確認付款</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -762,6 +961,355 @@ export default {
 
                 &:hover {
                     background-color: #333;
+                }
+            }
+        }
+
+        .sidebarArea {
+            width: 100vw;
+            height: 100vh;
+            position: fixed;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            top: 0;
+            left: 0;
+
+            .sidebarBackground {
+                width: 100vw;
+                height: 100vh;
+                background: rgba(0, 0, 0, 0.5); /* 半透明的黑色遮罩 */
+                position: absolute;
+                top: 0;
+                left: 0;
+                cursor: pointer;
+            }
+
+            .sidebar {
+                width: 45%;
+                height: 98%;
+                border-radius: 10px;
+                background-color: #fff;
+                padding: 20px;
+                position: relative;
+                z-index: 100; /* 確保側邊欄在遮罩上面 */
+
+                .sideHeader {
+                    display: flex;
+                    flex-direction: column;
+
+                    .titleArea {
+                        letter-spacing: 5px;
+                        display: flex;
+                        align-items: center;
+                        margin-bottom: 15px;
+
+                        i {
+                            font-size: 20px;
+                            color: #878D96;
+                            margin-right: 10px;
+                            cursor: pointer;
+                        }
+                    }
+
+                    .dataArea {
+                        display: flex;
+                        align-items: center;
+                        margin-bottom: 15px;
+
+                        .tableNumber {
+                            border-radius: 10px;
+                            background-color: #DDE1E6;
+                            font-size: 20px;
+                            font-weight: bolder;
+                            padding: 15px;
+                        }
+
+                        .orderNumber {
+                            font-size: 15px;
+                            color: #343A3F;
+                            font-weight: bold;
+                            padding: 15px;
+
+                            p {
+                                margin-bottom: 5px;
+                            }
+                        }
+
+                        .memberArea {
+                            display: flex;
+                            flex-direction: column;
+                            align-items: end;
+                            position: absolute;
+                            right: 2%;
+
+                            .memberPhone {
+                                display: flex;
+                                align-items: center;
+                                margin-bottom: 5px;
+
+                                .phoneInput {
+                                    width: 300px;
+                                    height: 40px;
+                                    border: 1px solid #697077;
+                                    border-radius: 5px;
+                                    font-size: 18px;
+                                    color: #A2A9B0;
+                                    text-indent: 10px;
+                                    letter-spacing: 2px;
+                                    outline: none;
+                                }
+
+                                .searchButton {
+                                    margin: 10px;
+                                    background: none;
+                                    border: none;
+                                    font-size: 20px;
+                                    color: #697077;
+                                    cursor: pointer;
+                                }
+                            }
+
+                            .memberDiscount {
+                                font-size: 16px;
+                                letter-spacing: 2px;
+                                margin-right: 15px;
+                            }
+                        }
+                    }
+                }
+
+                .sideBody {
+                    height: 85%;
+                    display: flex;
+                    justify-content: space-between;
+
+                    .detailSection {
+                        width: 50%;
+                        border-radius: 10px;
+                        background-color: #F2F4F8;
+                        padding: 20px;
+
+                        .orderDetails {
+                            width: 100%;
+                            height: 600px;
+                            max-height: 600px;
+                            overflow-y: auto;
+                            margin-bottom: 10px;
+
+                            .orderTitle {
+                                font-size: 20px;
+                                letter-spacing: 5px;
+                                margin-bottom: 20px;
+                            }
+
+                            .orderItem {
+                                width: 100%;
+                                border: 2px solid #d9d9d9;
+                                border-radius: 10px;
+                                display: flex;
+                                justify-content: space-between;
+                                padding: 10px 20px;
+                                margin-bottom: 10px;
+
+                                .itemInfo {
+                                    flex: 1;
+                                    display: flex;
+                                    flex-direction: column;
+
+                                    .orderName {
+                                        font-size: 17px;
+                                        color: #1e1e1e;
+                                        font-weight: bold;
+                                        letter-spacing: 3px;
+                                        margin-bottom: 10px;
+                                    }
+
+                                    ul {
+                                        font-size: 15px;
+                                        letter-spacing: 1px;
+                                        color: #21272A;
+                                        margin-left: 20px;
+
+                                        li {
+                                            margin-bottom: 5px;
+                                        }
+                                    }
+                                }
+
+                                .itemPrice {
+                                    font-size: 17px;
+                                    letter-spacing: 2px;
+                                    color: #1e1e1e;
+                                }
+                            }
+                        }
+
+                        .totalSummary {
+                            padding: 20px;
+
+                            .totalPrice {
+                                font-size: 15px;
+                                font-weight: bold;
+                                letter-spacing: 3px;
+                                color: #697077;
+                                display: flex;
+                                justify-content: space-between;
+                                margin-bottom: 10px;
+                            }
+
+                            .priceDiscount {
+                                font-size: 15px;
+                                font-weight: bold;
+                                letter-spacing: 3px;
+                                color: #697077;
+                                display: flex;
+                                justify-content: space-between;
+                                margin-bottom: 15px;
+                            }
+
+                            .summary {
+                                font-size: 17px;
+                                font-weight: bold;
+                                letter-spacing: 3px;
+                                color: #1e1e1e;
+                                display: flex;
+                                justify-content: space-between;
+                            }
+                        }
+                    }
+
+                    .paymentSection {
+                        width: 50%;
+                        padding: 20px;
+
+                        .paymentTitle {
+                            font-size: 20px;
+                            letter-spacing: 5px;
+                            margin-bottom: 20px;
+                        }
+
+                        .paymentSelect {
+                            width: 100%;
+                            border: 1px solid #A2A9B0;
+                            border-radius: 10px;
+                            font-size: 16px;
+                            letter-spacing: 2px;
+                            appearance: none; /* 隱藏默認的箭頭 */
+                            background: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyLjcxNzUgNi41NDc1QzEzLjE3OTcgNi4xNDcyIDEzLjI4MjIgNS40MTMgMTIuOTg3MiA0LjkzMjVDMTIuNjkzMiA0LjQ1MjUgMTIuMDEwNCA0LjQ1MjUgMTEuNzE3IDQuOTMyNUw4IDkuMzM1NEw0LjI4MjUgNC45MzI1QzMuOTg5NiA0LjQ1MjUgMy4zMDY4IDQuNDUyNSAyLjAxMjggNC45MzI1QzEuNzE4OCA1LjQxMyAxLjgyMTEgNi4xNDcyIDIuMjg0MTIgNi41NDc1TDcuMzE1MTIgMTEuNTA2QzcuNzU4NDEgMTEuOTYxIDguMjQxNiAxMS45NjEgOC42ODY4IDExLjUwNkMxMC4xNzA4IDEwLjI1NyAxMS41OTExIDguOTAzNTggMTIuNzE3NSA3LjY2MjVIMTIuNzE3NVoiIGZpbGw9IiMyMjIyMjIiLz4KPC9zdmc+') no-repeat; /* 使用 base64 格式的箭頭圖標 */
+                            background-position: calc(100% - 20px) center; /* 調整箭頭的位置，讓它距離左邊更近 */
+                            background-size: 15px; /* 調整箭頭大小 */
+                            outline: none;
+                            cursor: pointer;
+                            padding: 10px;
+                            margin-bottom: 30px;
+                        }
+
+                        .creditCardForm {
+                            width: 100%;
+                            height: 85%;
+                            position: relative;
+
+                            label {
+                                font-size: 16px;
+                                letter-spacing: 2px;
+                            }
+
+                            input {
+                                width: 100%;
+                                height: 40%;
+                                border: 1px solid #DDE1E6;
+                                border-radius: 10px;
+                                font-size: 16px;
+                                color: #697077;
+                                letter-spacing: 2px;
+                                outline: none;
+                                padding: 10px;
+                                margin: 10px 0px;
+                            }
+
+                            .confirmButton {
+                                width: 100%;
+                                border: none;
+                                border-radius: 10px;
+                                background-color: #343A3F;
+                                font-size: 16px;
+                                letter-spacing: 3px;
+                                color: #ffffff;
+                                padding: 15px;
+                                position: absolute;
+                                bottom: 4%;
+                                cursor: pointer;
+                            }
+                        } 
+
+                        .cashForm {
+                            width: 100%;
+                            height: 85%;
+                            position: relative;
+
+                            input {
+                                width: 100%;
+                                height: 40%;
+                                border: 1px solid #DDE1E6;
+                                border-radius: 10px;
+                                background-color: #F2F4F8;
+                                font-size: 16px;
+                                color: #697077;
+                                letter-spacing: 2px;
+                                outline: none;
+                                padding: 10px;
+                                margin: 10px 0px;
+                            }
+
+                            .cashSummary {
+                                padding: 20px;
+
+                                .payment {
+                                    font-size: 16px;
+                                    font-weight: bold;
+                                    letter-spacing: 3px;
+                                    color: #697077;
+                                    display: flex;
+                                    justify-content: space-between;
+                                    margin-bottom: 15px;
+                                }
+
+                                .summary {
+                                    font-size: 16px;
+                                    font-weight: bold;
+                                    letter-spacing: 3px;
+                                    color: #697077;
+                                    display: flex;
+                                    justify-content: space-between;
+                                    margin-bottom: 15px;
+                                }
+
+                                .change {
+                                    font-size: 18px;
+                                    font-weight: bold;
+                                    letter-spacing: 3px;
+                                    color: #1e1e1e;
+                                    display: flex;
+                                    justify-content: space-between;
+                                }
+                            }
+
+                            .confirmButton {
+                                width: 100%;
+                                border: none;
+                                border-radius: 10px;
+                                background-color: #343A3F;
+                                font-size: 16px;
+                                letter-spacing: 3px;
+                                color: #ffffff;
+                                padding: 15px;
+                                position: absolute;
+                                bottom: 4%;
+                                cursor: pointer;
+                            }
+                        }
+                    }
                 }
             }
         }
