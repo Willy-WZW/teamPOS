@@ -986,7 +986,7 @@ export default {
             }
 
             .sidebar {
-                width: 45%;
+                width: 50%;
                 height: 98%;
                 border-radius: 10px;
                 background-color: #fff;
@@ -1020,13 +1020,13 @@ export default {
                         .tableNumber {
                             border-radius: 10px;
                             background-color: #DDE1E6;
-                            font-size: 20px;
+                            font-size: 22px;
                             font-weight: bolder;
-                            padding: 15px;
+                            padding: 20px 15px;
                         }
 
                         .orderNumber {
-                            font-size: 15px;
+                            font-size: 17px;
                             color: #343A3F;
                             font-weight: bold;
                             padding: 15px;
@@ -1049,7 +1049,7 @@ export default {
                                 margin-bottom: 5px;
 
                                 .phoneInput {
-                                    width: 300px;
+                                    width: 350px;
                                     height: 40px;
                                     border: 1px solid #697077;
                                     border-radius: 5px;
@@ -1080,7 +1080,7 @@ export default {
                 }
 
                 .sideBody {
-                    height: 85%;
+                    height: 84%;
                     display: flex;
                     justify-content: space-between;
 
