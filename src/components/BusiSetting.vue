@@ -18,6 +18,7 @@ export default {
             // 訂位時間的 managementContentArea 數據
             openingTime: '', // 開始時間
             closingTime: '', // 結束時間
+            dayOfWeek: '',
             storeId: 1, // 店鋪 ID 固定為 1
             diningDuration: '',
             timeSlots: ['11:00', '12:30', '14:00', '17:00', '18:30', '20:00'],  // 預覽的時間段
@@ -212,44 +213,78 @@ export default {
 
         // 訂位時段設定方法
 
-        // 新增營業時間
+        // 新增營業時間、用餐時間
         async saveBusinessHoursAndDays() {
-            try {
-                // 構建營業日期和時間的請求
-                const businessHoursRequests = this.weekDays
-                .filter(day => day.selected) // 只包含選中的天數
-                .map(day => ({
-                    storeId: this.storeId,
-                    dayOfWeek: day.value,
-                    openingTime: this.openingTime,
-                    closingTime: this.closingTime
-                }));
+    try {
+        // 儲存營業時間並取得 IDs
+        const businessHoursRequests = this.weekDays
+            .filter(day => day.selected)
+            .map(day => ({
+                storeId: this.storeId,
+                dayOfWeek: day.value,
+                openingTime: this.openingTime,
+                closingTime: this.closingTime
+            }));
 
-                // 並行發送所有選中的營業日期和時間設定
-                const response = await Promise.all(
-                businessHoursRequests.map(req =>
-                    axios.post('http://localhost:8080/businessHours/addOrUpdateBusinessHours', req) // 修改為後端正確的 URL
-                )
-                );
+        const businessHoursResponses = await Promise.all(
+            businessHoursRequests.map(req =>
+                axios.post('http://localhost:8080/businessHours/addOrUpdateBusinessHours', req)
+            )
+        );
 
-                console.log('營業時間和日期已成功儲存:', response);
-                 // 可以在這裡顯示成功訊息
-                Swal.fire({
-                    icon: 'success',
-                    title: '儲存成功',
-                    text: '營業時間和日期已成功儲存！',
-                });
-            } catch (error) {
-                console.error('儲存營業時間和日期時發生錯誤:', error);
+        // 獲取 businessHoursIds
+        const businessHoursIds = businessHoursResponses.map(response => response.data.id);
 
-                 // 顯示錯誤提示
-                Swal.fire({
-                    icon: 'error',
-                    title: '儲存失敗',
-                    text: '儲存過程中發生錯誤，請稍後再試。',
-                });
-            }
-        },
+        // 發送用餐時間的請求
+        const diningDurationReq = {
+            durationMinutes: this.diningDuration,  // 用餐時間
+            businessHoursIds: businessHoursIds     // 儲存後的 businessHoursIds
+        };
+
+        // 儲存用餐時間，並獲取 diningDurationId
+        const diningDurationResponse = await axios.post('http://localhost:8080/diningDuration/addOrUpdateDiningDuration', diningDurationReq);
+
+        // 確保 diningDurations 是有效的陣列
+        if (diningDurationResponse.data.diningDurations && diningDurationResponse.data.diningDurations.length > 0) {
+            const diningDurationId = diningDurationResponse.data.diningDurations[0].id;  // 提取陣列中的第一個 diningDuration 的 ID
+            console.log('更新的 diningDurationId:', diningDurationId);
+            
+            // 更新營業時間，將 diningDurationId 傳入
+            await Promise.all(businessHoursResponses.map(response => {
+                const updatedBusinessHoursReq = {
+                    id: response.data.id,
+                    dayOfWeek: response.data.dayOfWeek,
+                    openingTime: response.data.openingTime,
+                    closingTime: response.data.closingTime,
+                    diningDuration: { id: diningDurationId }  // 確保這裡是 diningDurationId，且不為 null
+                };
+                console.log("更新的 businessHoursReq:", updatedBusinessHoursReq); // 打印請求，確認 diningDuration 被傳送
+                return axios.post('http://localhost:8080/businessHours/addOrUpdateBusinessHours', updatedBusinessHoursReq);
+            }));
+        } else {
+            console.error('未能從用餐時間回應中提取到有效的 diningDuration');
+        }
+
+        // 成功提示
+        Swal.fire({
+            icon: 'success',
+            title: '儲存成功',
+            text: '營業時間、日期和用餐時間已成功儲存！',
+        });
+
+    } catch (error) {
+        // 捕捉後端錯誤，並顯示 SweetAlert
+        const errorMessage = error.response && error.response.data && error.response.data.message
+            ? error.response.data.message
+            : '儲存過程中發生錯誤，請稍後再試。';
+
+        Swal.fire({
+            icon: 'error',
+            title: '儲存失敗',
+            text: errorMessage,
+        });
+    }
+},
 
         // 訂位時段管理方法
         // 加載營業時間
@@ -406,7 +441,7 @@ export default {
     </div>
 </div>
 
-<!-- 訂位設定內容顯示區域 -->
+<!-- 訂位時段設定內容區域 -->
 <div class="reserveSettingContentArea" v-if="selectedMenu === '訂位時段設定'">
     <!-- 顯示訂位管理標題 -->
     <h2 class="reserveTitle">訂位時段管理</h2>
@@ -493,7 +528,7 @@ export default {
     </div>
 </div>
 
-<!-- 訂位管理內容顯示區域 -->
+<!-- 訂位時段管理內容區域 -->
 <div class="reserveManagementContentArea" v-if="selectedMenu === '訂位時段管理'">
     <!-- 顯示訂位標題 -->
     <h2 class="reserveSlotTitle">訂位時段管理</h2>
