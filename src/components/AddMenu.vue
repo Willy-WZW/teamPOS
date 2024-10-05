@@ -7,14 +7,17 @@ export default {
             startX: 0,
             optionType: 'checkbox',
             showEditPen: false,
+            menuEditMode: false,
             selectedCategory: null, // 選中的菜單分類
             selectedCategoryId: null, // 選中的菜單分類Id
             categories: [],// 已存在資料庫的菜單分類
             cgInput: [],// 菜單分類的input
-            editingIndexes: [],  // 用來追蹤正在編輯的 index
-            modifiedCategories: [],  // 編輯過的分類將推入這個陣列
+            editingIndexes: [],  // 用來追蹤正在編輯的菜單分類
+            modifiedCategories: [],  // 編輯過的分類推入這個陣列
             savedMenuList: [],// 已存在資料庫的菜單
             menuList: [],// 菜單的input
+            editIndexList: [],// 正在編輯的項目索引
+            editedItem: {}, // 暫存編輯中的資料
             savedCustList: [],// 已存在資料庫的客製化選項
             custList: [],// 客製化的input
         }
@@ -42,17 +45,35 @@ export default {
             this.selectedCategory = category.category;
             this.selectedCategoryId = category.categoryId;
         },
-        confirmDelete() {
+        // 刪除菜單分類
+        confirmDelete(cIndex) {
+            const categoryId = this.categories[cIndex].categoryId; //根據 cIndex 取得 categoryId
+
             Swal.fire({
-                title: '確定要刪除這條菜單嗎？',
+                title: '確定要刪除這項菜單嗎？',
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonText: '確定',
                 cancelButtonText: '取消',
-            }).then((result) => {
+            }).then(async (result) => {
                 if (result.isConfirmed) {
-                    Swal.fire('已刪除!', '該訊息已被刪除。', 'success');
-                    // 在這裡處理刪除訊息的邏輯
+                    try {
+                        const response = await axios.post('http://localhost:8080/category/delete', {
+                            categoryId: categoryId  // 傳遞 categoryId 給後端
+                        })
+                        console.log(response);
+                        if (response.data.code == 200) {
+                            // 從前端 categories 列表中移除該分類
+                            this.categories = this.categories.filter(category => category.categoryId !== categoryId);
+                            Swal.fire('已刪除!', '該分類已被刪除。', 'success');
+                        } else {
+                            Swal.fire('錯誤!', '刪除分類失敗。', 'error');
+                        }
+                    }
+                    catch (error) {
+                        console.error('刪除分類時發生錯誤：', error);
+                        Swal.fire('錯誤!', '請稍後再嘗試。', 'error');
+                    }
                 }
             });
         },
@@ -277,8 +298,7 @@ export default {
                         ...category,
                         translateX: 0  // 初始化 translateX 為 0
                     }));
-                    console.log(response.data); // 所有 Categories 資料
-                    console.log(this.categories);
+                    // console.log(response.data); // 所有 Categories 資料
                 })
                 .catch(error => {
                     console.error('獲取分類時發生錯誤:', error);
@@ -322,11 +342,30 @@ export default {
                 });
                 return; // 如果有無效項目，則不繼續執行
             }
-            const menuData = { menuList: this.menuList }
+            // 檢查是新增還是更新
             try {
-                const response = await axios.post('http://localhost:8080/menu/create', menuData);
+                for (const menuItem of this.savedMenuList) {
+                    if (this.editIndexList.includes(this.savedMenuList.indexOf(menuItem))) {
+                        // 更新已存在於資料庫中的菜單，應該使用 editedItem 而非 savedMenuList
+                        const updateData = {
+                            mealName: this.editedItem.mealName,
+                            categoryId: this.editedItem.categoryId,
+                            workstationId: this.editedItem.workstationId,
+                            price: this.editedItem.price,
+                            available: this.editedItem.available,
+                            pictureName: this.editedItem.pictureName || ""
+                        };
+                        const response = await axios.post('http://localhost:8080/menu/update', updateData);
+                        if (response.data.code !== 200) {
+                            throw new Error(response.data.message || '更新失敗');
+                        }
+                    }
+                }
 
-                // 根據回應狀態顯示成功或失敗
+                // 處理新增的菜單項目
+                const menuData = { menuList: this.menuList };
+                console.log(menuData);
+                const response = await axios.post('http://localhost:8080/menu/create', menuData);
                 if (response.data.code === 200) {
                     Swal.fire({
                         title: '成功',
@@ -334,6 +373,8 @@ export default {
                         icon: 'success',
                         confirmButtonText: '好的'
                     });
+
+                    this.fetchMenu();
                 } else {
                     Swal.fire({
                         title: '錯誤',
@@ -342,12 +383,13 @@ export default {
                         confirmButtonText: '好的'
                     });
                 }
-                this.fetchMenu()
+                // 切換回非編輯模式並重置表單
+                this.editMode = false; // 關閉編輯模式
+                this.editIndexList = []; // 清空已編輯的項目
+
+                this.fetchMenu(); // 刷新菜單列表
             } catch (error) {
                 console.error('儲存菜單時發生錯誤:', error);
-                if (error.response) {
-                    console.log(error.response.data);
-                }
                 Swal.fire({
                     title: '錯誤',
                     text: '請稍後再試',
@@ -361,12 +403,64 @@ export default {
             try {
                 const response = await axios.get("http://localhost:8080/menu/all");
                 this.savedMenuList = response.data;
-                console.log(this.savedMenuList); // 查看獲取的菜單資料
+                // console.log(this.savedMenuList); // 查看獲取的菜單資料
             } catch (error) {
                 console.error('獲取菜單時發生錯誤:', error);
                 Swal.fire({
                     title: '錯誤',
                     text: '無法獲取菜單資料，請稍後再試',
+                    icon: 'error',
+                    confirmButtonText: '好的'
+                });
+            }
+        },
+        // 進入編輯模式
+        editMenuFromDB(index) {
+            // 如果當前項目還沒有進行編輯，則複製它進入 editedItem 陣列中
+            if (!this.editIndexList.includes(index)) {
+                this.editIndexList.push(index);
+            }
+
+            // 確保每個被編輯的項目都有獨立的編輯對象
+            if (!this.editedItem[index]) {
+                this.editedItem[index] = { ...this.savedMenuList[index] };
+            }
+
+            console.log(this.editedItem[index]);
+        },
+        // 刪除菜單
+        async deleteMenuFromDB(index) {
+            // 根據 index 取得點擊到的菜單項目資料
+            const menuItem = this.savedMenuList[index];
+            const mealName = menuItem.mealName;
+
+            try {
+                // 發送刪除請求到後端，傳遞 mealName 作為參數
+                const response = await axios.post('http://localhost:8080/menu/delete', { mealName });
+
+                if (response.data.code === 200) {
+                    // 刪除成功，在前端列表中移除該項目
+                    this.savedMenuList = this.savedMenuList.filter(item => item.mealName !== mealName);
+
+                    Swal.fire({
+                        title: '成功',
+                        text: '菜單已刪除',
+                        icon: 'success',
+                        confirmButtonText: '好的'
+                    });
+                } else {
+                    Swal.fire({
+                        title: '錯誤',
+                        text: '刪除失敗，請稍後再試',
+                        icon: 'error',
+                        confirmButtonText: '好的'
+                    });
+                }
+            } catch (error) {
+                console.error('刪除菜單時發生錯誤：', error);
+                Swal.fire({
+                    title: '錯誤',
+                    text: '請稍後再試',
                     icon: 'error',
                     confirmButtonText: '好的'
                 });
@@ -397,7 +491,7 @@ export default {
                         });
                         return;
                     }
-                    if (option.extraPrice == "") {
+                    if (option.extraPrice == null || option.extraPrice === "") {
                         Swal.fire({
                             title: '錯誤',
                             text: '請輸入金額',
@@ -421,8 +515,7 @@ export default {
                 for (const option of cust.options) {
                     const exists = this.savedCustList.some(savedOption =>
                         savedOption.optionTitle === cust.optionTitle &&
-                        savedOption.categoryId === cust.categoryId &&
-                        savedOption.optionContent === option.optionContent
+                        savedOption.categoryId === cust.categoryId
                     );
 
                     if (exists) {
@@ -460,10 +553,18 @@ export default {
                             icon: 'success',
                             confirmButtonText: '好的'
                         });
+                        // 清空 custList
+                        this.custList = [];
+                        this.fetchCust();
+                    } else {
+                        // 處理其他狀況的錯誤消息
+                        Swal.fire({
+                            title: '錯誤',
+                            text: '儲存客製化選項時發生錯誤，請檢查輸入資料',
+                            icon: 'error',
+                            confirmButtonText: '好的'
+                        });
                     }
-                    // 清空 custList
-                    this.custList = [];
-                    fetchCust()
                 })
                 .catch(error => {
                     console.error(error);
@@ -489,6 +590,38 @@ export default {
                     icon: 'error',
                     confirmButtonText: '好的'
                 });
+            }
+        },
+        // 刪除客製化選項
+        async deleteCustFromDB(index) {
+            try {
+                // 取得要刪除的選項資料
+                const optionKeys = Object.keys(this.groupedOptions);
+                const option = this.groupedOptions[optionKeys[index]];
+
+                const payload = {
+                    optionTitle: option.optionTitle,
+                    categoryId: this.selectedCategoryId
+                };
+                console.log(payload);
+
+                // 發送刪除請求
+                const response = await axios.post('http://localhost:8080/option/delete', payload);
+
+                // 如果刪除成功，從前端資料中移除
+                if (response.data.code === 200) {
+                    Swal.fire('刪除成功', '該選項已成功刪除', 'success');
+
+                    // 移除前端資料
+                    this.savedCustList = this.savedCustList.filter(
+                        item => item.optionTitle !== payload.optionTitle // 根據 optionTitle 移除
+                    );
+                } else {
+                    Swal.fire('刪除失敗', response.data.message, 'error');
+                }
+            } catch (error) {
+                console.error('刪除選項時發生錯誤:', error);
+                Swal.fire('刪除失敗', '刪除過程中發生錯誤，請稍後重試。', 'error');
             }
         }
     },
@@ -561,7 +694,7 @@ export default {
                             @keydown.enter="stopEditing(cIndex)">
                         <div class="groupOne">
                             <div class="countOp">{{ categoryMenuCount[category.categoryId] || 0 }}</div>
-                            <i class="fa-regular fa-circle-xmark" @click="confirmDelete"></i>
+                            <i class="fa-regular fa-circle-xmark" @click="confirmDelete(cIndex)"></i>
                         </div>
                     </div>
                     <div @click="confirmDelete" class="deleteOp">
@@ -604,19 +737,27 @@ export default {
                             <span>{{ item.mealName }}</span>
                         </div>
                         <div class="itemPrice">
-                            <span>${{ item.price }}</span>
+                            <span v-if="!editIndexList.includes(index)">${{ item.price }}</span>
+                            <input v-else v-model="editedItem[index].price" type="number">
                         </div>
                         <div class="itemWorksta">
                             <span>工作檯</span>
-                            <span>{{ item.workstationId }}</span>
+                            <span v-if="!editIndexList.includes(index)">{{ item.workstationId }}</span>
+                            <select v-else v-model="editedItem[index].workstationId">
+                                <option value="0">工作檯選擇</option>
+                            </select>
                         </div>
                         <div class="itembot">
-                            <div class="itemStatus" :class="{ soldOut: item.available == false }">
+                            <div class="itemStatus" v-if="!editIndexList.includes(index)"
+                                :class="{ soldOut: item.available == false }">
+                                <span>{{ item.available ? "供應中" : "售完" }}</span>
+                            </div>
+                            <div v-else class="itemStatus" :class="{ flip: !item.available }" @click="switchSta(item)">
                                 <span>{{ item.available ? "供應中" : "售完" }}</span>
                             </div>
                             <div class="itemIcon">
-                                <i class="fa-solid fa-square-pen"></i>
-                                <i class="fa-solid fa-trash-can" @click="removeMenu(index)"></i>
+                                <i class="fa-solid fa-square-pen" @click="editMenuFromDB(index)"></i>
+                                <i class="fa-solid fa-trash-can" @click="deleteMenuFromDB(index)"></i>
                             </div>
                         </div>
                     </div>
@@ -642,7 +783,7 @@ export default {
                                 <span>{{ menu.available ? "供應中" : "售完" }}</span>
                             </div>
                             <div class="itemIcon">
-                                <i class="fa-solid fa-square-pen"></i>
+                                <i class="fa-solid disable fa-square-pen" style="pointer-events: none;"></i>
                                 <i class="fa-solid fa-trash-can" @click="removeMenu(index)"></i>
                             </div>
                         </div>
@@ -684,8 +825,8 @@ export default {
                             </div>
                         </div>
                         <div class="cuInputCtrl">
-                            <i class="fa-solid fa-trash-can"></i>
-                            <i class="fa-solid disable fa-circle-plus"></i>
+                            <i class="fa-solid fa-trash-can" @click="deleteCustFromDB(index)"></i>
+                            <i class="fa-solid disable fa-circle-plus" style="pointer-events: none;"></i>
                         </div>
                     </div>
                     <!-- 動態新增的輸入框 -->
@@ -729,6 +870,7 @@ $addDiv: #343a3f;
 $suppliable: #1ce34e;
 $soldOut: #e02d11;
 $borderBot: #697077;
+$editColor: #e6b800;
 
 .addMenu {
     width: 100%;
@@ -1035,6 +1177,7 @@ $borderBot: #697077;
                         align-items: center;
                         border: dotted;
                         margin: 4% 4% 0 4%;
+                        min-height: 111.7px;
 
                         .fa-upload {
                             font-size: 30px;
@@ -1136,7 +1279,24 @@ $borderBot: #697077;
                             align-items: center;
 
                             .fa-solid {
+                                cursor: pointer;
                                 font-size: 25px;
+                            }
+
+                            .fa-trash-can {
+                                &:hover {
+                                    color: #e02d11;
+                                }
+                            }
+
+                            .fa-square-pen {
+                                &:hover {
+                                    color: $editColor;
+                                }
+                            }
+
+                            .disable {
+                                color: #697077;
                             }
                         }
                     }
@@ -1217,6 +1377,7 @@ $borderBot: #697077;
                         width: 17.4%;
                         height: 91%;
                         border-radius: 5px;
+                        cursor: pointer;
                         color: white;
                         background-color: black;
                         display: flex;
@@ -1347,10 +1508,20 @@ $borderBot: #697077;
 
                     .fa-trash-can {
                         margin-left: 3%;
+
+                        &:hover {
+                            color: $soldOut;
+                            cursor: pointer;
+                        }
                     }
 
                     .fa-circle-plus {
                         margin-right: 3%;
+
+                        &:hover {
+                            color: $editColor;
+                            cursor: pointer;
+                        }
                     }
 
                     .disable {

@@ -7,7 +7,7 @@ export default {
         return {
             // managementArea 數據
             selectedMenu: '桌號管理', // 預設選中的選單項目
-            managementItems: ['桌號管理', '訂位時段管理'], // 選單項目
+            managementItems: ['桌號管理', '訂位時段設定', '訂位時段管理'], // 選單項目
 
             // 桌號的 tableManagementContentArea 數據
             tableList: [], // 桌位列表，從後端獲取資料
@@ -18,6 +18,7 @@ export default {
             // 訂位時間的 managementContentArea 數據
             openingTime: '', // 開始時間
             closingTime: '', // 結束時間
+            dayOfWeek: '',
             storeId: 1, // 店鋪 ID 固定為 1
             diningDuration: '',
             timeSlots: ['11:00', '12:30', '14:00', '17:00', '18:30', '20:00'],  // 預覽的時間段
@@ -30,15 +31,21 @@ export default {
                 { name: '星期六', value: 'Saturday', selected: false },
                 { name: '星期日', value: 'Sunday', selected: false }
             ],
+
+            businessHoursList: [], // 營業時間管理的數據
+            toBeDeleted: []  // 儲存要刪除的營業時間
         };
     },
 
     mounted() {
         this.loadInitialTableData();
+        this.loadBusinessHours();  // 初始化時加載營業時間數據
     },
 
     methods: {
-         // 加載初始的桌位數據
+        //桌號管理方法
+
+        // 加載初始的桌位數據
         async loadInitialTableData () {
             try {
                 const response = await axios.get('http://localhost:8080/tableManagement/getAllTables');
@@ -47,7 +54,7 @@ export default {
                     table_capacity: `${table.tableCapacity}人桌`,
                     table_status: table.tableStatus,  // 保留桌位狀態
                 }));
-                console.log(this.tableList);  // 確認數據是否正確加載
+                console.log('桌號加載成功:', this.tableList);
                 this.originalTableList = JSON.parse(JSON.stringify(this.tableList)); // 深拷貝，保存初始數據
             } catch (error) {
                 console.error('加載桌位數據失敗:', error);
@@ -59,12 +66,10 @@ export default {
                 });
             }
         },
-
         // 切換選單
         selectMenu (item) {
             this.selectedMenu = item;
         },
-
         // 新增輸入欄位
         addTableRow() {
             // 在 tableList 中新增一個新的輸入欄位
@@ -74,7 +79,6 @@ export default {
                 table_status: 'AVAILABLE',  // 預設狀態
             });
         },
-
         // 刪除桌位
         removeTable (index) {
             const table = this.tableList[index];
@@ -93,13 +97,10 @@ export default {
             // 否則，執行刪除
             this.tableList.splice(index, 1);
         },
-
         // 刪除新增桌號欄位
         deleteNewTable () {
-            this.newTable = { table_number: '', table_capacity: '', table_status: 'AVAILABLE' };
             this.showNewTableRow = false;
         },
-
         // 新增、刪除、更新桌號操作
         async saveChanges() {
             try {
@@ -189,8 +190,7 @@ export default {
                 });
             }
         },
-
-        // 取消操作
+        // 取消桌號操作
         cancelChanges () {
             Swal.fire({
                 icon: 'warning',
@@ -211,51 +211,137 @@ export default {
             document.querySelectorAll('.tableCapacity').forEach(select => select.selectedIndex = 0);
         },
 
-        // 營業時間儲存操作
+        // 訂位時段設定方法
+
+        // 新增營業時間、用餐時間
         async saveBusinessHoursAndDays() {
+    try {
+        // 儲存營業時間並取得 IDs
+        const businessHoursRequests = this.weekDays
+            .filter(day => day.selected)
+            .map(day => ({
+                storeId: this.storeId,
+                dayOfWeek: day.value,
+                openingTime: this.openingTime,
+                closingTime: this.closingTime
+            }));
+
+        const businessHoursResponses = await Promise.all(
+            businessHoursRequests.map(req =>
+                axios.post('http://localhost:8080/businessHours/addOrUpdateBusinessHours', req)
+            )
+        );
+
+        // 獲取 businessHoursIds
+        const businessHoursIds = businessHoursResponses.map(response => response.data.id);
+
+        // 發送用餐時間的請求
+        const diningDurationReq = {
+            durationMinutes: this.diningDuration,  // 用餐時間
+            businessHoursIds: businessHoursIds     // 儲存後的 businessHoursIds
+        };
+
+        // 儲存用餐時間，並獲取 diningDurationId
+        const diningDurationResponse = await axios.post('http://localhost:8080/diningDuration/addOrUpdateDiningDuration', diningDurationReq);
+
+        // 確保 diningDurations 是有效的陣列
+        if (diningDurationResponse.data.diningDurations && diningDurationResponse.data.diningDurations.length > 0) {
+            const diningDurationId = diningDurationResponse.data.diningDurations[0].id;  // 提取陣列中的第一個 diningDuration 的 ID
+            console.log('更新的 diningDurationId:', diningDurationId);
+            
+            // 更新營業時間，將 diningDurationId 傳入
+            await Promise.all(businessHoursResponses.map(response => {
+                const updatedBusinessHoursReq = {
+                    id: response.data.id,
+                    dayOfWeek: response.data.dayOfWeek,
+                    openingTime: response.data.openingTime,
+                    closingTime: response.data.closingTime,
+                    diningDuration: { id: diningDurationId }  // 確保這裡是 diningDurationId，且不為 null
+                };
+                console.log("更新的 businessHoursReq:", updatedBusinessHoursReq); // 打印請求，確認 diningDuration 被傳送
+                return axios.post('http://localhost:8080/businessHours/addOrUpdateBusinessHours', updatedBusinessHoursReq);
+            }));
+        } else {
+            console.error('未能從用餐時間回應中提取到有效的 diningDuration');
+        }
+
+        // 成功提示
+        Swal.fire({
+            icon: 'success',
+            title: '儲存成功',
+            text: '營業時間、日期和用餐時間已成功儲存！',
+        });
+
+    } catch (error) {
+        // 捕捉後端錯誤，並顯示 SweetAlert
+        const errorMessage = error.response && error.response.data && error.response.data.message
+            ? error.response.data.message
+            : '儲存過程中發生錯誤，請稍後再試。';
+
+        Swal.fire({
+            icon: 'error',
+            title: '儲存失敗',
+            text: errorMessage,
+        });
+    }
+},
+
+        // 訂位時段管理方法
+        // 加載營業時間
+        async loadBusinessHours() {
             try {
-                // 構建營業日期和時間的請求
-                const businessHoursRequests = this.weekDays
-                .filter(day => day.selected) // 只包含選中的天數
-                .map(day => ({
-                    storeId: this.storeId,
-                    dayOfWeek: day.value,
-                    openingTime: this.openingTime,
-                    closingTime: this.closingTime
-                }));
+                const response = await axios.get('http://localhost:8080/businessHours/getAllBusinessHours');
+                this.businessHoursList = response.data; // 確認返回的數據
+                console.log('營業時間加載成功:', this.businessHoursList);
+            } catch (error) {
+                console.error('加載營業時間失敗:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: '加載失敗',
+                    text: '加載營業時間失敗，請稍後再試。',
+                });
+            }
+        },
+        // 從 API 刪除營業時間
+        async deleteBussinessHour(index) {
+                try {
+                // 批量刪除被標記為刪除的營業時間
+                for (const businessHour of this.toBeDeleted) {
+                    await axios.delete(`http://localhost:8080/businessHours/deleteBusinessHours/${businessHour.id}`);
+                }
+                // 清空已刪除的陣列
+                this.toBeDeleted = [];
 
-                // 並行發送所有選中的營業日期和時間設定
-                const response = await Promise.all(
-                businessHoursRequests.map(req =>
-                    axios.post('http://localhost:8080/businessHours/addOrUpdateBusinessHours', req) // 修改為後端正確的 URL
-                )
-                );
-
-                console.log('營業時間和日期已成功儲存:', response);
-                 // 可以在這裡顯示成功訊息
+                // 顯示成功訊息
+                this.loadBusinessHours();
                 Swal.fire({
                     icon: 'success',
                     title: '儲存成功',
-                    text: '營業時間和日期已成功儲存！',
+                    text: '營業時間已成功更新。',
                 });
             } catch (error) {
-                console.error('儲存營業時間和日期時發生錯誤:', error);
+                console.error('儲存變更時發生錯誤:', error);
 
-                 // 顯示錯誤提示
                 Swal.fire({
                     icon: 'error',
                     title: '儲存失敗',
                     text: '儲存過程中發生錯誤，請稍後再試。',
                 });
             }
-        }
+        },
+        // 刪除營業時間欄位
+        removeBusinessHour(index) {
+            const businessHour = this.businessHoursList[index];
+            this.toBeDeleted.push(businessHour);  // 標記要刪除的項目
+            this.businessHoursList.splice(index, 1);  // 從畫面上移除
+        },
     }
 };
 </script>
 
 <template>
 <!-- 桌號、訂位管理區域 -->
-<div class="managementArea">
+<div class="managementSettingArea">
     <div class="managementList">
         <ul>
             <li v-for="(item, index) in managementItems" :key="index" :class="{ active: selectedMenu === item }" @click="selectMenu(item)">
@@ -355,13 +441,13 @@ export default {
     </div>
 </div>
 
-<!-- 訂位管理內容顯示區域 -->
-<div class="reserveManagementContentArea" v-if="selectedMenu === '訂位時段管理'">
+<!-- 訂位時段設定內容區域 -->
+<div class="reserveSettingContentArea" v-if="selectedMenu === '訂位時段設定'">
     <!-- 顯示訂位管理標題 -->
     <h2 class="reserveTitle">訂位時段管理</h2>
 
     <!-- 顯示訂位管理注意事項 -->
-    <p class="reminderText">請依照步驟依序設定</p>
+    <p class="reminderText">請依照步驟依序設定，一次設定一個時段，若午餐晚餐時段分開請設定2次，以此類推！</p>
 
     <!-- 顯示訂位管理表格區域 -->
     <div class="reserveArea">
@@ -384,10 +470,6 @@ export default {
                     <input class="endTimeInput" type="time" id="closingTime" v-model="closingTime" />
                 </div>
             </div>
-
-            <button class="addButton">
-                <i class="fa-solid fa-plus"></i>
-            </button>
         </div>
 
         <!-- 用餐時間設定 -->
@@ -445,6 +527,59 @@ export default {
         <button class="saveButton" @click="saveBusinessHoursAndDays" >儲存</button>
     </div>
 </div>
+
+<!-- 訂位時段管理內容區域 -->
+<div class="reserveManagementContentArea" v-if="selectedMenu === '訂位時段管理'">
+    <!-- 顯示訂位標題 -->
+    <h2 class="reserveSlotTitle">訂位時段管理</h2>
+
+    <!-- 訂位時段管理注意事項 -->
+    <p class="reminderText">所有已設定的營業時間如下，用餐時間皆為 {{ diningDuration }} 分鐘</p>
+
+    <!-- 顯示訂位時段表格區域 -->
+    <div class="reserveSlotArea">
+        <!-- 顯示訂位時段表格列表 -->
+        <table class="reserveSlotList">
+            <!-- 訂位時段列表頭 -->
+            <thead>
+                <tr>
+                    <th>營業日期</th>
+                    <th>營業時間</th>
+                    <th>編輯</th>
+                </tr>
+            </thead>
+
+            <!-- 訂位時段列表內容 -->
+            <tbody>
+                <!-- 只顯示營業日期和營業時間 -->
+                <tr v-for="(businessHours, index) in businessHoursList" :key="index">
+                    <!-- 營業日期 -->
+                    <td>
+                        <p class="bussinessDate">{{ businessHours.dayOfWeek }}</p>
+                    </td>
+
+                    <!-- 營業時間 -->
+                    <td>
+                        <p class="bussinessTime">{{ businessHours.openingTime }} - {{ businessHours.closingTime }}</p>
+                    </td>
+
+                    <!-- 刪除 Button -->
+                    <td>
+                        <button class="trashButton" @click="removeBusinessHour(index)">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- 取消、儲存操作按鈕區域 -->
+    <div class="buttonArea">
+        <button class="cancelButton" @click="cancelChanges">取消</button>
+        <button class="saveButton" @click="deleteBussinessHour">儲存</button>
+    </div>
+</div>
 </template>
 
 <style scoped lang="scss">
@@ -453,7 +588,7 @@ $addDiv: #343a3f;
 $suppliable: #1ce34e;
 $soldOut: #e02d11;
 
-.managementArea {
+.managementSettingArea {
     width: 19%;
     height: 100%;
     border-radius: 10px;
@@ -629,7 +764,7 @@ $soldOut: #e02d11;
     }
 }
 
-.reserveManagementContentArea {
+.reserveSettingContentArea {
     width: 80%;
     height: 100%;
     border-radius: 10px;
@@ -978,6 +1113,131 @@ $soldOut: #e02d11;
                         margin: 0 5px;
                         color: #333;
                         font-weight: bold;
+                        cursor: pointer;
+                    }
+                }
+            }
+        }
+    }
+
+    .buttonArea {
+        margin-top: 25px;
+        display: flex;
+        justify-content: flex-end;
+
+        .cancelButton {
+            width: 15%;
+            border-radius: 10px;
+            border: 2px solid rgb(32, 33, 42);
+            background-color: transparent;
+            font-size: 16px;
+            letter-spacing: 5px;
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+
+        .saveButton {
+            width: 15%;
+            border-radius: 10px;
+            border: none;
+            background-color: rgb(52, 58, 63);
+            color: #f2f4f8;
+            font-size: 16px;
+            letter-spacing: 5px;
+            margin-left: 40px;
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+    }
+}
+
+.reserveManagementContentArea {
+    width: 80%;
+    height: 100%;
+    border-radius: 10px;
+    background-color: $divColor;
+    flex: 1;
+    padding: 20px 35px;
+    position: absolute;
+    top: 0%;
+    right: 0%;
+
+    .reserveSlotTitle {
+        font-size: 25px;
+        letter-spacing: 4px;
+        margin-bottom: 10px;
+    }
+
+    .reminderText {
+        margin-bottom: 20px;
+        color: black;
+        opacity: 0.6;
+    }
+
+    .reserveSlotArea {
+        width: 100%;
+        height: 85%;
+        border: 2px solid #ccc; /* 表格外框邊線 */
+        padding: 15px 10px;
+        max-height: 650px;
+        overflow-y: auto;
+
+        .reserveSlotList {
+            width: 100%;
+            border-collapse: collapse; /* 使用 separate 來啟用 border-spacing */
+            table-layout: fixed; /* 讓表格的列寬固定 */
+
+            thead {
+                height: 55px;
+                background-color: #dde1e680;
+                letter-spacing: 4px;
+            }
+
+            tbody {
+                tr {
+                    height: 65px;
+                    border-bottom: 1px dashed #C1C7CD; /* 設置虛線的底線 */
+                }
+
+                td {
+                    padding: 5px; /* 減少內邊距以減小行高 */
+                    text-align: center;
+                    vertical-align: middle; /* 垂直居中內容 */
+
+                    .bussinessDate {
+                        width: 100%;
+                        height: 25px;
+                        border: none;
+                        background-color: transparent;
+                        font-size: 18px;
+                        letter-spacing: 1px;
+                        outline: none;
+                    }
+
+                    .bussinessTime {
+                        width: 100%;
+                        height: 25px;
+                        border: none;
+                        background-color: transparent;
+                        font-size: 18px;
+                        letter-spacing: 1px;
+                        cursor: pointer;
+                    }
+
+                    .durationTime {
+                        width: 100%;
+                        height: 25px;
+                        border: none;
+                        background-color: transparent;
+                        font-size: 18px;
+                        letter-spacing: 1px;
+                        cursor: pointer;
+                    }
+
+                    .trashButton {
+                        border: none;
+                        background-color: transparent;
+                        font-size: 30px;
                         cursor: pointer;
                     }
                 }
