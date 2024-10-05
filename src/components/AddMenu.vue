@@ -17,7 +17,7 @@ export default {
             savedMenuList: [],// 已存在資料庫的菜單
             menuList: [],// 菜單的input
             editIndexList: [],// 正在編輯的項目索引
-            editedItem: {}, // 暫存編輯中的資料
+            editedMenuItems: [], // 儲存編輯過的菜單項目
             savedCustList: [],// 已存在資料庫的客製化選項
             custList: [],// 客製化的input
         }
@@ -44,6 +44,8 @@ export default {
         selectCategory(category) {
             this.selectedCategory = category.category;
             this.selectedCategoryId = category.categoryId;
+            // console.log(this.selectedCategory);
+            // console.log(this.selectedCategoryId);
         },
         // 刪除菜單分類
         confirmDelete(cIndex) {
@@ -304,8 +306,29 @@ export default {
                     console.error('獲取分類時發生錯誤:', error);
                 });
         },
-        // 儲存菜單
-        async saveMenu() {
+        // 執行新增或編輯操作
+        saveMenu() {
+            // 檢查是否有新增或修改的菜單項目
+            if (this.menuList.length > 0 || this.editedMenuItems.length > 0) {
+                if (this.menuList.length > 0) {
+                    this.createMenu(); // 處理新增菜單
+                    console.log(this.menuList);
+                }
+                if (this.editedMenuItems.length > 0) {
+                    this.updateMenu(); // 處理修改菜單
+                    console.log(this.editedMenuItems);
+                }
+            } else {
+                Swal.fire({
+                    title: '提示',
+                    text: '沒有需要儲存的變更',
+                    icon: 'info',
+                    confirmButtonText: '好的'
+                });
+            }
+        },
+        // 新增菜單
+        async createMenu() {
             console.log(this.menuList);
 
             let invalidMealNames = [];
@@ -342,27 +365,7 @@ export default {
                 });
                 return; // 如果有無效項目，則不繼續執行
             }
-            // 檢查是新增還是更新
             try {
-                for (const menuItem of this.savedMenuList) {
-                    if (this.editIndexList.includes(this.savedMenuList.indexOf(menuItem))) {
-                        // 更新已存在於資料庫中的菜單，應該使用 editedItem 而非 savedMenuList
-                        const updateData = {
-                            mealName: this.editedItem.mealName,
-                            categoryId: this.editedItem.categoryId,
-                            workstationId: this.editedItem.workstationId,
-                            price: this.editedItem.price,
-                            available: this.editedItem.available,
-                            pictureName: this.editedItem.pictureName || ""
-                        };
-                        const response = await axios.post('http://localhost:8080/menu/update', updateData);
-                        if (response.data.code !== 200) {
-                            throw new Error(response.data.message || '更新失敗');
-                        }
-                    }
-                }
-
-                // 處理新增的菜單項目
                 const menuData = { menuList: this.menuList };
                 console.log(menuData);
                 const response = await axios.post('http://localhost:8080/menu/create', menuData);
@@ -373,8 +376,8 @@ export default {
                         icon: 'success',
                         confirmButtonText: '好的'
                     });
-
                     this.fetchMenu();
+                    this.menuList = [];
                 } else {
                     Swal.fire({
                         title: '錯誤',
@@ -383,13 +386,65 @@ export default {
                         confirmButtonText: '好的'
                     });
                 }
-                // 切換回非編輯模式並重置表單
-                this.editMode = false; // 關閉編輯模式
-                this.editIndexList = []; // 清空已編輯的項目
+            } catch (error) {
+                console.error('新增菜單失敗:', error);
+                Swal.fire({
+                    title: '錯誤',
+                    text: '請稍後再試',
+                    icon: 'error',
+                    confirmButtonText: '好的'
+                });
+            }
+        },
+        // 編輯菜單
+        async updateMenu() {
+            let invalidPrices = [];
+
+            // 檢查每個菜單項的price
+            this.editedMenuItems.forEach(item => {
+                if (item.price <= 0) {
+                    invalidPrices.push(item);
+                }
+            });
+
+            // 如果有無效的價格，顯示提示框
+            if (invalidPrices.length > 0) {
+                Swal.fire({
+                    title: '錯誤',
+                    text: '以下餐點價格無效：' + invalidPrices.map(item => item.mealName).join(', '),
+                    icon: 'error',
+                    confirmButtonText: '好的'
+                });
+                return; // 如果有無效項目，則不繼續執行
+            }
+            try {
+                for (const item of this.editedMenuItems) {
+                    const response = await axios.post('http://localhost:8080/menu/update', {
+                        mealName: item.mealName,
+                        categoryId: item.categoryId,
+                        price: item.price,
+                        workstationId: item.workstationId,
+                        available: item.available,
+                        pictureName: item.pictureName || ""
+                    });
+                    if (response.data.code !== 200) {
+                        throw new Error(response.data.message || '更新失敗');
+                    }
+                }
+
+                Swal.fire({
+                    title: '成功',
+                    text: '菜單更新成功',
+                    icon: 'success',
+                    confirmButtonText: '好的'
+                });
 
                 this.fetchMenu(); // 刷新菜單列表
+                this.editedMenuItems = []; // 清空修改過的菜單列表
+                this.editIndexList = []; // 清空編輯索引
+                this.editMode = false; // 關閉編輯模式
             } catch (error) {
-                console.error('儲存菜單時發生錯誤:', error);
+                console.error('更新菜單失敗:', error);
                 Swal.fire({
                     title: '錯誤',
                     text: '請稍後再試',
@@ -415,24 +470,39 @@ export default {
             }
         },
         // 進入編輯模式
-        editMenuFromDB(index) {
-            // 如果當前項目還沒有進行編輯，則複製它進入 editedItem 陣列中
-            if (!this.editIndexList.includes(index)) {
-                this.editIndexList.push(index);
+        editMenuFromDB(mealName) {
+            // 檢查是否已經在編輯列表中
+            if (!this.editIndexList.includes(mealName)) {
+                this.editIndexList.push(mealName);
             }
 
-            // 確保每個被編輯的項目都有獨立的編輯對象
-            if (!this.editedItem[index]) {
-                this.editedItem[index] = { ...this.savedMenuList[index] };
+            // 如果該菜單項目還沒被加入到 editedMenuItems，則初始化該項目
+            const itemToEdit = this.savedMenuList.find(item => item.mealName === mealName);
+            const existingItem = this.editedMenuItems.find(item => item.mealName === mealName);
+
+            if (!existingItem) {
+                this.editedMenuItems.push({ ...itemToEdit });
             }
 
-            console.log(this.editedItem[index]);
+            console.log("目前正在編輯的項目:", this.editedMenuItems);
+        },
+        editAllMenus() {
+            this.editIndexList = this.savedMenuList.map(item => item.mealName); // 進入編輯模式，所有菜單項目可編輯
+            this.editedMenuItems = this.savedMenuList.map(item => ({ ...item })); // 初始化所有項目
+        },
+        updateEditedItem(item) {
+            const index = this.editedMenuItems.findIndex(editedItem => editedItem.mealName === item.mealName);
+            if (index !== -1) {
+                this.editedMenuItems[index] = { ...item };
+            } else {
+                this.editedMenuItems.push({ ...item });
+            }
         },
         // 刪除菜單
-        async deleteMenuFromDB(index) {
+        async deleteMenuFromDB(item) {
             // 根據 index 取得點擊到的菜單項目資料
-            const menuItem = this.savedMenuList[index];
-            const mealName = menuItem.mealName;
+            // const menuItem = this.savedMenuList[index];
+            const mealName = this.savedMenuList.mealName;
 
             try {
                 // 發送刪除請求到後端，傳遞 mealName 作為參數
@@ -715,6 +785,7 @@ export default {
                 <div class="menuTop">
                     <div class="mtLeft">
                         <span>餐點</span>
+                        <i class="fa-solid fa-square-pen" @click="editAllMenus()"></i>
                     </div>
                     <div class="mtRight">
                         <div class="selCate">
@@ -729,7 +800,7 @@ export default {
                     <!-- 存在於資料庫的部分 -->
                     <div class="menuItem"
                         v-for="(item, index) in savedMenuList.filter(item => item.categoryId === selectedCategoryId)"
-                        :key="index">
+                        :key="item.mealName">
                         <div class="itemPic">
                             <i class="fa-solid fa-upload"></i>
                         </div>
@@ -737,18 +808,18 @@ export default {
                             <span>{{ item.mealName }}</span>
                         </div>
                         <div class="itemPrice">
-                            <span v-if="!editIndexList.includes(index)">${{ item.price }}</span>
-                            <input v-else v-model="editedItem[index].price" type="number">
+                            <span v-if="!editIndexList.includes(item.mealName)">${{ item.price }}</span>
+                            <input v-else v-model="item.price" type="number" @input="updateEditedItem(item)">
                         </div>
                         <div class="itemWorksta">
                             <span>工作檯</span>
-                            <span v-if="!editIndexList.includes(index)">{{ item.workstationId }}</span>
-                            <select v-else v-model="editedItem[index].workstationId">
+                            <span v-if="!editIndexList.includes(item.mealName)">{{ item.workstationId }}</span>
+                            <select v-else v-model="item.workstationId" @change="updateEditedItem(item)">
                                 <option value="0">工作檯選擇</option>
                             </select>
                         </div>
                         <div class="itembot">
-                            <div class="itemStatus" v-if="!editIndexList.includes(index)"
+                            <div class="itemStatus" v-if="!editIndexList.includes(item.mealName)"
                                 :class="{ soldOut: item.available == false }">
                                 <span>{{ item.available ? "供應中" : "售完" }}</span>
                             </div>
@@ -756,8 +827,8 @@ export default {
                                 <span>{{ item.available ? "供應中" : "售完" }}</span>
                             </div>
                             <div class="itemIcon">
-                                <i class="fa-solid fa-square-pen" @click="editMenuFromDB(index)"></i>
-                                <i class="fa-solid fa-trash-can" @click="deleteMenuFromDB(index)"></i>
+                                <!-- <i class="fa-solid fa-square-pen" @click="editMenuFromDB(item.mealName)"></i> -->
+                                <i class="fa-solid fa-trash-can" @click="deleteMenuFromDB(item.mealName)"></i>
                             </div>
                         </div>
                     </div>
