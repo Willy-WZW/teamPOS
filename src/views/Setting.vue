@@ -4,6 +4,7 @@ import Header from '@/components/Header.vue'
 import AddMenu from '@/components/AddMenu.vue'
 import Workbench from '@/components/Workbench.vue';
 import BusiSetting from '@/components/BusiSetting.vue';
+import Authorizations from '@/components/Authorizations.vue';
 
 export default { 
     data() {
@@ -16,7 +17,8 @@ export default {
         Header,
         AddMenu,
         Workbench,
-        BusiSetting
+        BusiSetting,
+        Authorizations
     },
     methods: {
         handleComponentChange(component) {
@@ -40,6 +42,7 @@ export default {
                 <Workbench v-if="selectedComponent === 'Workbench'" />
                 <Announce v-if="selectedComponent === 'Announce'" />
                 <BusiSetting v-if="selectedComponent === 'BusiSetting'" />
+                <Authorizations v-if="selectedComponent === 'Authorizations'" />
             </div>
         </div>
     </div>

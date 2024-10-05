@@ -104,7 +104,8 @@ export default {
                         return response.json(); // 解析回應為 JSON 格式
                     })
                     .then(data => {
-
+                        console.log(data);
+                        
                         // 客人的話回傳等級
                         this.userName = data.staff.name;
                         this.role = "權限:" + data.staff.authorization;
