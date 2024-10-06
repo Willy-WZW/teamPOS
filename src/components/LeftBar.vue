@@ -147,6 +147,20 @@ export default {
                 console.error('無法獲取權限資料:', error);
                 Swal.fire('錯誤', '無法獲取權限資料', 'error');
             }
+        },
+        refresh() {
+            this.fetchPermissions().then(() => {
+                const memberId = sessionStorage.getItem('memberId');
+                const staffNumber = sessionStorage.getItem('staffNumber');
+
+                if (memberId) {
+                    //抓使用者資料
+                    this.getUserData();
+                } else if (staffNumber) {
+                    //抓員工資料
+                    this.getStaffData();
+                }
+            });
         }
     },
     mounted() {

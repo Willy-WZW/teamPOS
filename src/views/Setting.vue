@@ -24,6 +24,9 @@ export default {
     methods: {
         handleComponentChange(component) {
             this.selectedComponent = component;
+        },
+        refreshLeftBar() {
+            this.$refs.leftBar.refresh(); // 調用 LeftBar 的刷新方法
         }
     }
 }
@@ -32,7 +35,7 @@ export default {
 <template>
     <div class="big">
         <div class="leftBar">
-            <LeftBar />
+            <LeftBar ref="leftBar"/>
         </div>
         <div class="mainArea">
             <div class="header">
@@ -43,7 +46,7 @@ export default {
                 <Workbench v-if="selectedComponent === 'Workbench'" />
                 <Announce v-if="selectedComponent === 'Announce'" />
                 <BusiSetting v-if="selectedComponent === 'BusiSetting'" />
-                <Authorizations v-if="selectedComponent === 'Authorizations'" />
+                <Authorizations v-if="selectedComponent === 'Authorizations'"  @refreshLeftBar="refreshLeftBar" />
             </div>
         </div>
     </div>

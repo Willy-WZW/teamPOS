@@ -69,6 +69,7 @@ export default {
                             });
                             this.fetchPermissions();  // 重新抓取權限資料以更新顯示
                             this.resetNewPermission(); // 重置表單
+                            this.$emit('refreshLeftBar'); // 發出事件
                         } else {
                             Swal.fire({
                                 title: data.message,
