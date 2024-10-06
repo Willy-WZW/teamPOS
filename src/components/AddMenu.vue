@@ -52,7 +52,7 @@ export default {
                 });
                 return
             }
-            if (this.custList.length > 0) {
+            if (this.custList.length > 0 || this.originalOptions.length > 0) {
                 Swal.fire({
                     title: '錯誤',
                     text: '請先儲存客製化選項',
@@ -596,6 +596,7 @@ export default {
                             });
                             // 清空 originalOptions
                             this.originalOptions = [];
+                            this.editStates = false
                             this.fetchCust(); // 重新加載資料
                         } else {
                             Swal.fire({
@@ -798,13 +799,25 @@ export default {
                         extraPrice: item.options.map(opt => opt.extraPrice)
                     };
                     console.log(this.originalOptions);
-
                 }
             }
         },
         initializeEditStates() {
             // 使用 groupedOptions 的長度初始化 editStates
             this.editStates = Object.values(this.groupedOptions).map(() => false);
+        },
+        onPriceChange(option, itemIndex, optionIndex) {
+            console.log(`Index: ${itemIndex}, Option Index: ${optionIndex}, New Price: ${option.extraPrice}`);
+            // 更新對應的 originalOptions 內的 extraPrice
+            if (this.originalOptions[itemIndex]) {
+                this.originalOptions[itemIndex].extraPrice[optionIndex] = option.extraPrice;
+            }
+        },
+        onTypeChange(newType, index) {
+            // 確保 originalOptions 有對應的項目
+            if (this.originalOptions[index]) {
+                this.originalOptions[index].optionType = newType;
+            }
         },
     },
     mounted() {
@@ -994,7 +1007,7 @@ export default {
                         <div class="cuTitle">
                             <span>{{ item.optionTitle }}</span>
                             <span v-if="!editStates[index]">{{ item.optionType == 'checkbox' ? '多選' : '單選' }}</span>
-                            <select v-else v-model="item.optionType">
+                            <select v-else v-model="item.optionType" @change="onTypeChange(item.optionType, index)">
                                 <option value="checkbox">多選</option>
                                 <option value="radio">單選</option>
                             </select>
@@ -1002,15 +1015,13 @@ export default {
                         <div class="titleOption">
                             <div class="oneOption" v-for="(option, opIndex) in item.options" :key="opIndex">
                                 <div class="optionL">
-                                    <!-- <input type="checkbox" v-if="item.optionType === 'checkbox'" disabled>
-                                    <input type="radio" v-if="item.optionType === 'radio'" disabled> -->
-                                    <span v-if="!editStates[index]">{{ option.optionContent }}</span>
-                                    <input v-else v-model="option.optionContent" class="editOpInput" type="text">
+                                    <span>{{ option.optionContent }}</span>
                                 </div>
                                 <div class="optionPrice">
                                     <span>$</span>
                                     <span v-if="!editStates[index]">{{ option.extraPrice }}</span>
-                                    <input v-else v-model="option.extraPrice" class="editOpPrice" type="number">
+                                    <input v-else v-model="option.extraPrice" class="editOpPrice" type="number"
+                                        @input="onPriceChange(option, index, opIndex)">
                                 </div>
                             </div>
                         </div>
