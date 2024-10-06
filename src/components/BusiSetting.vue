@@ -16,12 +16,11 @@ export default {
             showNewTableRow: false, // 控制新增桌號行是否顯示
 
             // 訂位時間的 managementContentArea 數據
-            openingTime: '', // 開始時間
-            closingTime: '', // 結束時間
-            dayOfWeek: '',
+            openingTime: '', // 營業開始時間
+            closingTime: '', // 營業結束時間
+            diningDuration: '', // 用餐時間
+            timeSlots: [], // 從後端獲取的時間段
             storeId: 1, // 店鋪 ID 固定為 1
-            diningDuration: '',
-            timeSlots: ['11:00', '12:30', '14:00', '17:00', '18:30', '20:00'],  // 預覽的時間段
             weekDays: [
                 { name: '星期一', value: 'Monday', selected: false },
                 { name: '星期二', value: 'Tuesday', selected: false },
@@ -41,6 +40,12 @@ export default {
         this.loadInitialTableData();
         this.loadBusinessHours();  // 初始化時加載營業時間數據
         this.loadDiningDurations();
+    },
+
+    watch: {
+        openingTime: 'fetchTimeSlots',   // 當 openingTime 變化時觸發
+        closingTime: 'fetchTimeSlots',   // 當 closingTime 變化時觸發
+        diningDuration: 'fetchTimeSlots' // 當 diningDuration 變化時觸發
     },
 
     methods: {
@@ -286,6 +291,26 @@ export default {
                 });
             }
         }, 
+        // 加載訂位時間段
+        async fetchTimeSlots() {
+            // 檢查所有的值是否已經填寫完畢
+            if (this.openingTime && this.closingTime && this.diningDuration) {
+                try {
+                const response = await axios.get('http://localhost:8080/reservationManagement/calculateAvailableStartTimes', {
+                    params: {
+                    openingTime: this.openingTime,
+                    closingTime: this.closingTime,
+                    diningDuration: this.diningDuration
+                    }
+                });
+                
+                // 更新 timeSlots
+                this.timeSlots = response.data;
+                } catch (error) {
+                console.error('Error fetching time slots:', error);
+                }
+            }
+        },
 
         // 訂位時段管理方法
         // 加載營業時間
@@ -337,20 +362,20 @@ export default {
             this.businessHoursList.splice(index, 1);  // 從畫面上移除
         },
         // 加載用餐時間
-    async loadDiningDurations() {
-        try {
-            const response = await axios.get('http://localhost:8080/diningDuration/getAllDiningDurations');
-            this.diningDurations = response.data;  // 獲取所有的用餐時間資料
-            console.log('用餐時間加載成功:', this.diningDurations);
-        } catch (error) {
-            console.error('加載用餐時間失敗:', error);
-            Swal.fire({
-                icon: 'error',
-                title: '加載失敗',
-                text: '加載用餐時間失敗，請稍後再試。',
-            });
+        async loadDiningDurations() {
+            try {
+                const response = await axios.get('http://localhost:8080/diningDuration/getAllDiningDurations');
+                this.diningDurations = response.data;  // 獲取所有的用餐時間資料
+                console.log('用餐時間加載成功:', this.diningDurations);
+            } catch (error) {
+                console.error('加載用餐時間失敗:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: '加載失敗',
+                    text: '加載用餐時間失敗，請稍後再試。',
+                });
+            }
         }
-    }
 
     }
 };
@@ -507,10 +532,9 @@ export default {
         <div class="timeSlotSection">
             <div class="sectionHeader">
                 <div class="sectionNumber">3</div>
-
                 <div class="sectionTitle">預覽訂位時間段</div>
             </div>
-
+            
             <div class="timeSlotArea">
                 <p class="description">根據步驟 1 和步驟 2 自動計算</p>
 
@@ -1100,7 +1124,9 @@ $soldOut: #e02d11;
             }
 
             .timeSlotArea {
+                max-width: 776px;
                 height: 110px;
+                overflow-x: scroll;
                 border-radius: 10px;
                 background-color: rgba(242, 244, 248);
                 display: flex;
@@ -1124,7 +1150,7 @@ $soldOut: #e02d11;
                     .timeSlot {
                         flex: 1;
                         text-align: center;
-                        padding: 10px 0;
+                        padding: 10px 20px;
                         font-size: 16px;
                         background-color: #fff;
                         border: 1px solid #ccc;
