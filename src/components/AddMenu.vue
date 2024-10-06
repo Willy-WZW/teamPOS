@@ -7,7 +7,6 @@ export default {
             startX: 0,
             optionType: 'checkbox',
             showEditPen: false,
-            menuEditMode: false,
             selectedCategory: null, // 選中的菜單分類
             selectedCategoryId: null, // 選中的菜單分類Id
             categories: [],// 已存在資料庫的菜單分類
@@ -20,6 +19,8 @@ export default {
             editedMenuItems: [], // 儲存編輯過的菜單項目
             savedCustList: [],// 已存在資料庫的客製化選項
             custList: [],// 客製化的input
+            editStates: [],// 客製化的編輯狀態
+            originalOptions: [], // 儲存原始數據
         }
     },
     methods: {
@@ -42,6 +43,24 @@ export default {
             }
         },
         selectCategory(category) {
+            if (this.menuList.length > 0 || this.editedMenuItems.length > 0) {
+                Swal.fire({
+                    title: '錯誤',
+                    text: '請先儲存菜單',
+                    icon: 'error',
+                    confirmButtonText: '好的'
+                });
+                return
+            }
+            if (this.custList.length > 0) {
+                Swal.fire({
+                    title: '錯誤',
+                    text: '請先儲存客製化選項',
+                    icon: 'error',
+                    confirmButtonText: '好的'
+                });
+                return
+            }
             this.selectedCategory = category.category;
             this.selectedCategoryId = category.categoryId;
             // console.log(this.selectedCategory);
@@ -52,7 +71,7 @@ export default {
             const categoryId = this.categories[cIndex].categoryId; //根據 cIndex 取得 categoryId
 
             Swal.fire({
-                title: '確定要刪除這項菜單嗎？',
+                title: '確定要刪除這項菜單分類嗎？',
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonText: '確定',
@@ -204,15 +223,22 @@ export default {
                 extraPrice: "" // 選項金額
             });
             this.$nextTick(() => {
-                // 獲取最新新增的餐點元素
-                const lastOption = this.$el.querySelector('.oneOption:last-child');
-                if (lastOption) {
-                    lastOption.scrollIntoView({ behavior: 'smooth' }); // 平滑滾動到新增的餐點
+                // 獲取特定的 custInput 容器
+                const custInputs = this.$el.querySelectorAll('.custInput');
+                const targetCustInput = custInputs[custIndex];
+
+                if (targetCustInput) {
+                    // 在該 custInput 容器中找到最後一個 oneOption 元素
+                    const lastOption = targetCustInput.querySelector('.oneOption:last-child');
+                    if (lastOption) {
+                        lastOption.scrollIntoView({ behavior: 'smooth' }); // 平滑滾動到新增的選項
+                    }
                 }
             });
         },
         // 儲存菜單分類
         async saveCategory() {
+            this.showEditPen = false
             const categoryData = this.cgInput.map(item => ({ category: item.category }));
 
             try {
@@ -280,7 +306,7 @@ export default {
                     // 清空已修改的分類陣列
                     this.modifiedCategories = [];
                 }
-
+                this.selectedCategory = categoryData.category
                 this.fetchCategories()
             } catch (error) {
                 console.error('儲存分類時發生錯誤：', error);
@@ -500,151 +526,205 @@ export default {
         },
         // 刪除菜單
         async deleteMenuFromDB(item) {
-            // 根據 index 取得點擊到的菜單項目資料
-            // const menuItem = this.savedMenuList[index];
-            const mealName = this.savedMenuList.mealName;
+            Swal.fire({
+                title: '確定要刪除這項菜單嗎？',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: '確定',
+                cancelButtonText: '取消',
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    const mealName = item
+                    const categoryId = this.selectedCategoryId
+                    try {
+                        // 發送刪除請求到後端，傳遞 mealName 和 categoryId 作為參數
+                        const response = await axios.post('http://localhost:8080/menu/delete', { mealName, categoryId });
 
-            try {
-                // 發送刪除請求到後端，傳遞 mealName 作為參數
-                const response = await axios.post('http://localhost:8080/menu/delete', { mealName });
+                        if (response.data.code === 200) {
+                            // 刪除成功，在前端列表中移除該項目
+                            this.savedMenuList = this.savedMenuList.filter(item => item.mealName !== mealName || item.categoryId !== categoryId);
 
-                if (response.data.code === 200) {
-                    // 刪除成功，在前端列表中移除該項目
-                    this.savedMenuList = this.savedMenuList.filter(item => item.mealName !== mealName);
-
-                    Swal.fire({
-                        title: '成功',
-                        text: '菜單已刪除',
-                        icon: 'success',
-                        confirmButtonText: '好的'
-                    });
-                } else {
-                    Swal.fire({
-                        title: '錯誤',
-                        text: '刪除失敗，請稍後再試',
-                        icon: 'error',
-                        confirmButtonText: '好的'
-                    });
+                            Swal.fire({
+                                title: '成功',
+                                text: '菜單已刪除',
+                                icon: 'success',
+                                confirmButtonText: '好的'
+                            });
+                        } else {
+                            Swal.fire({
+                                title: '錯誤',
+                                text: '刪除失敗，請稍後再試',
+                                icon: 'error',
+                                confirmButtonText: '好的'
+                            });
+                        }
+                    } catch (error) {
+                        console.error('刪除菜單時發生錯誤：', error);
+                        Swal.fire({
+                            title: '錯誤',
+                            text: '請稍後再試',
+                            icon: 'error',
+                            confirmButtonText: '好的'
+                        });
+                    }
                 }
-            } catch (error) {
-                console.error('刪除菜單時發生錯誤：', error);
-                Swal.fire({
-                    title: '錯誤',
-                    text: '請稍後再試',
-                    icon: 'error',
-                    confirmButtonText: '好的'
-                });
-            }
+            })
         },
         // 儲存客製化選項
         saveCust() {
-            // 檢查每個選項的 extraPrice 和唯一性
-            for (const cust of this.custList) {
-                if (cust.optionTitle == "") {
-                    Swal.fire({
-                        title: '錯誤',
-                        text: '請輸入客製化選項標題',
-                        icon: 'error',
-                        confirmButtonText: '好的'
+            if (this.originalOptions.length > 0) {
+                const updateRequests = this.originalOptions.map((option, index) => ({
+                    categoryId: option.categoryId,
+                    optionTitle: Object.keys(this.groupedOptions)[index],
+                    optionType: option.optionType,
+                    options: option.optionContent.map((content, opIndex) => ({
+                        optionContent: content,
+                        extraPrice: option.extraPrice[opIndex]
+                    }))
+                }));
+                console.log(updateRequests);
+
+                // 發送更新請求
+                axios.post('http://localhost:8080/option/update', updateRequests)
+                    .then(response => {
+                        if (response.data.code == 200) {
+                            Swal.fire({
+                                title: '成功',
+                                text: '客製化選項已成功更新',
+                                icon: 'success',
+                                confirmButtonText: '好的'
+                            });
+                            // 清空 originalOptions
+                            this.originalOptions = [];
+                            this.fetchCust(); // 重新加載資料
+                        } else {
+                            Swal.fire({
+                                title: '錯誤',
+                                text: '更新客製化選項時發生錯誤，請檢查輸入資料',
+                                icon: 'error',
+                                confirmButtonText: '好的'
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error(error);
+                        Swal.fire({
+                            title: '錯誤',
+                            text: '更新客製化選項時發生錯誤',
+                            icon: 'error',
+                            confirmButtonText: '好的'
+                        });
                     });
-                    return;
-                }
-
-                // 檢查 extraPrice
-                for (const option of cust.options) {
-                    if (option.optionContent == "") {
-                        Swal.fire({
-                            title: '錯誤',
-                            text: '請輸入客製化選項',
-                            icon: 'error',
-                            confirmButtonText: '好的'
-                        });
-                        return;
-                    }
-                    if (option.extraPrice == null || option.extraPrice === "") {
-                        Swal.fire({
-                            title: '錯誤',
-                            text: '請輸入金額',
-                            icon: 'error',
-                            confirmButtonText: '好的'
-                        });
-                        return;
-                    }
-                    if (option.extraPrice < 0) {
-                        Swal.fire({
-                            title: '錯誤',
-                            text: '每個額外價格必須大於或等於零',
-                            icon: 'error',
-                            confirmButtonText: '好的'
-                        });
-                        return;
-                    }
-                }
-
-                // 檢查 optionTitle, categoryId 和 optionContent 的組合是否已存在
-                for (const option of cust.options) {
-                    const exists = this.savedCustList.some(savedOption =>
-                        savedOption.optionTitle === cust.optionTitle &&
-                        savedOption.categoryId === cust.categoryId
-                    );
-
-                    if (exists) {
-                        Swal.fire({
-                            title: '錯誤',
-                            text: '此選項的組合已存在',
-                            icon: 'error',
-                            confirmButtonText: '好的'
-                        });
-                        return;
-                    }
-                }
             }
-
-            // 建立要傳送到後端的資料結構
-            const requests = this.custList.map(cust => ({
-                categoryId: cust.categoryId,
-                optionTitle: cust.optionTitle,
-                optionType: cust.optionType,
-                options: cust.options.map(option => ({
-                    optionContent: option.optionContent,
-                    extraPrice: option.extraPrice
-                }))
-            }));
-
-            console.log(requests);
-
-            // 使用 Axios 發送 POST 請求到後端
-            axios.post('http://localhost:8080/option/create', requests)
-                .then(response => {
-                    if (response.data.code == 200) {
-                        Swal.fire({
-                            title: '成功',
-                            text: '客製化選項已成功儲存',
-                            icon: 'success',
-                            confirmButtonText: '好的'
-                        });
-                        // 清空 custList
-                        this.custList = [];
-                        this.fetchCust();
-                    } else {
-                        // 處理其他狀況的錯誤消息
+            if (this.custList.length > 0) {
+                // 檢查每個選項的 extraPrice 和唯一性
+                for (const cust of this.custList) {
+                    if (cust.optionTitle == "") {
                         Swal.fire({
                             title: '錯誤',
-                            text: '儲存客製化選項時發生錯誤，請檢查輸入資料',
+                            text: '請輸入客製化選項標題',
                             icon: 'error',
                             confirmButtonText: '好的'
                         });
+                        return;
                     }
-                })
-                .catch(error => {
-                    console.error(error);
-                    Swal.fire({
-                        title: '錯誤',
-                        text: '儲存客製化選項時發生錯誤',
-                        icon: 'error',
-                        confirmButtonText: '好的'
+
+                    // 檢查 extraPrice
+                    for (const option of cust.options) {
+                        if (option.optionContent == "") {
+                            Swal.fire({
+                                title: '錯誤',
+                                text: '請輸入客製化選項',
+                                icon: 'error',
+                                confirmButtonText: '好的'
+                            });
+                            return;
+                        }
+                        if (option.extraPrice == null || option.extraPrice === "") {
+                            Swal.fire({
+                                title: '錯誤',
+                                text: '請輸入金額',
+                                icon: 'error',
+                                confirmButtonText: '好的'
+                            });
+                            return;
+                        }
+                        if (option.extraPrice < 0) {
+                            Swal.fire({
+                                title: '錯誤',
+                                text: '每個額外價格必須大於或等於零',
+                                icon: 'error',
+                                confirmButtonText: '好的'
+                            });
+                            return;
+                        }
+                    }
+
+                    // 檢查 optionTitle, categoryId 和 optionContent 的組合是否已存在
+                    for (const option of cust.options) {
+                        const exists = this.savedCustList.some(savedOption =>
+                            savedOption.optionTitle === cust.optionTitle &&
+                            savedOption.categoryId === cust.categoryId
+                        );
+
+                        if (exists) {
+                            Swal.fire({
+                                title: '錯誤',
+                                text: '此選項的組合已存在',
+                                icon: 'error',
+                                confirmButtonText: '好的'
+                            });
+                            return;
+                        }
+                    }
+                }
+
+                // 建立要傳送到後端的資料結構
+                const requests = this.custList.map(cust => ({
+                    categoryId: cust.categoryId,
+                    optionTitle: cust.optionTitle,
+                    optionType: cust.optionType,
+                    options: cust.options.map(option => ({
+                        optionContent: option.optionContent,
+                        extraPrice: option.extraPrice
+                    }))
+                }));
+
+                console.log(requests);
+
+                // 使用 Axios 發送 POST 請求到後端
+                axios.post('http://localhost:8080/option/create', requests)
+                    .then(response => {
+                        if (response.data.code == 200) {
+                            Swal.fire({
+                                title: '成功',
+                                text: '客製化選項已成功儲存',
+                                icon: 'success',
+                                confirmButtonText: '好的'
+                            });
+                            // 清空 custList
+                            this.custList = [];
+                            this.fetchCust();
+                        } else {
+                            // 處理其他狀況的錯誤消息
+                            Swal.fire({
+                                title: '錯誤',
+                                text: '儲存客製化選項時發生錯誤，請檢查輸入資料',
+                                icon: 'error',
+                                confirmButtonText: '好的'
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error(error);
+                        Swal.fire({
+                            title: '錯誤',
+                            text: '儲存客製化選項時發生錯誤',
+                            icon: 'error',
+                            confirmButtonText: '好的'
+                        });
                     });
-                });
+            }
         },
         // 更新客製化選項
         async fetchCust() {
@@ -664,41 +744,74 @@ export default {
         },
         // 刪除客製化選項
         async deleteCustFromDB(index) {
-            try {
-                // 取得要刪除的選項資料
-                const optionKeys = Object.keys(this.groupedOptions);
-                const option = this.groupedOptions[optionKeys[index]];
+            Swal.fire({
+                title: '確定要刪除這項客製化選項嗎？',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: '確定',
+                cancelButtonText: '取消',
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    try {
+                        // 取得要刪除的選項資料
+                        const optionKeys = Object.keys(this.groupedOptions);
+                        const option = this.groupedOptions[optionKeys[index]];
 
-                const payload = {
-                    optionTitle: option.optionTitle,
-                    categoryId: this.selectedCategoryId
-                };
-                console.log(payload);
+                        const payload = {
+                            optionTitle: option.optionTitle,
+                            categoryId: this.selectedCategoryId
+                        };
+                        console.log(payload);
 
-                // 發送刪除請求
-                const response = await axios.post('http://localhost:8080/option/delete', payload);
+                        // 發送刪除請求
+                        const response = await axios.post('http://localhost:8080/option/delete', payload);
 
-                // 如果刪除成功，從前端資料中移除
-                if (response.data.code === 200) {
-                    Swal.fire('刪除成功', '該選項已成功刪除', 'success');
+                        // 如果刪除成功，從前端資料中移除
+                        if (response.data.code === 200) {
+                            Swal.fire('刪除成功', '該選項已成功刪除', 'success');
 
-                    // 移除前端資料
-                    this.savedCustList = this.savedCustList.filter(
-                        item => item.optionTitle !== payload.optionTitle // 根據 optionTitle 移除
-                    );
-                } else {
-                    Swal.fire('刪除失敗', response.data.message, 'error');
+                            // 移除前端資料
+                            this.savedCustList = this.savedCustList.filter(
+                                item => item.optionTitle !== payload.optionTitle // 根據 optionTitle 移除
+                            );
+                        } else {
+                            Swal.fire('刪除失敗', response.data.message, 'error');
+                        }
+                    } catch (error) {
+                        console.error('刪除選項時發生錯誤:', error);
+                        Swal.fire('刪除失敗', '刪除過程中發生錯誤，請稍後重試。', 'error');
+                    }
                 }
-            } catch (error) {
-                console.error('刪除選項時發生錯誤:', error);
-                Swal.fire('刪除失敗', '刪除過程中發生錯誤，請稍後重試。', 'error');
+            })
+        },
+        editThisCust(item) {
+            const index = Object.keys(this.groupedOptions).indexOf(item.optionTitle);
+            if (index !== -1) {
+                // 切換當前項目的編輯狀態
+                this.editStates[index] = !this.editStates[index];
+                if (this.editStates[index]) {
+                    // 如果切換到編輯模式，保存原始數據
+                    this.originalOptions[index] = {
+                        categoryId: this.selectedCategoryId,
+                        optionType: item.optionType,
+                        optionContent: item.options.map(opt => opt.optionContent),
+                        extraPrice: item.options.map(opt => opt.extraPrice)
+                    };
+                    console.log(this.originalOptions);
+
+                }
             }
-        }
+        },
+        initializeEditStates() {
+            // 使用 groupedOptions 的長度初始化 editStates
+            this.editStates = Object.values(this.groupedOptions).map(() => false);
+        },
     },
     mounted() {
         this.fetchCategories(); // 載入時獲取分類
         this.fetchMenu(); // 載入時獲取菜單
         this.fetchCust(); // 載入時獲取客製化菜單資料
+        this.initializeEditStates();
     },
     computed: {
         // 計算各菜單分類的菜單選項
@@ -854,7 +967,7 @@ export default {
                                 <span>{{ menu.available ? "供應中" : "售完" }}</span>
                             </div>
                             <div class="itemIcon">
-                                <i class="fa-solid disable fa-square-pen" style="pointer-events: none;"></i>
+                                <!-- <i class="fa-solid disable fa-square-pen" style="pointer-events: none;"></i> -->
                                 <i class="fa-solid fa-trash-can" @click="removeMenu(index)"></i>
                             </div>
                         </div>
@@ -880,23 +993,30 @@ export default {
                     <div class="custInput" v-for="(item, index) in Object.values(groupedOptions)" :key="index">
                         <div class="cuTitle">
                             <span>{{ item.optionTitle }}</span>
-                            <span>{{ item.optionType == 'checkbox' ? '多選' : '單選' }}</span>
+                            <span v-if="!editStates[index]">{{ item.optionType == 'checkbox' ? '多選' : '單選' }}</span>
+                            <select v-else v-model="item.optionType">
+                                <option value="checkbox">多選</option>
+                                <option value="radio">單選</option>
+                            </select>
                         </div>
                         <div class="titleOption">
                             <div class="oneOption" v-for="(option, opIndex) in item.options" :key="opIndex">
                                 <div class="optionL">
-                                    <input type="checkbox" v-if="item.optionType === 'checkbox'" disabled>
-                                    <input type="radio" v-if="item.optionType === 'radio'" disabled>
-                                    <span>{{ option.optionContent }}</span>
+                                    <!-- <input type="checkbox" v-if="item.optionType === 'checkbox'" disabled>
+                                    <input type="radio" v-if="item.optionType === 'radio'" disabled> -->
+                                    <span v-if="!editStates[index]">{{ option.optionContent }}</span>
+                                    <input v-else v-model="option.optionContent" class="editOpInput" type="text">
                                 </div>
                                 <div class="optionPrice">
                                     <span>$</span>
-                                    <span>{{ option.extraPrice }}</span>
+                                    <span v-if="!editStates[index]">{{ option.extraPrice }}</span>
+                                    <input v-else v-model="option.extraPrice" class="editOpPrice" type="number">
                                 </div>
                             </div>
                         </div>
                         <div class="cuInputCtrl">
                             <i class="fa-solid fa-trash-can" @click="deleteCustFromDB(index)"></i>
+                            <i class="fa-solid fa-pencil" @click="editThisCust(item)"></i>
                             <i class="fa-solid disable fa-circle-plus" style="pointer-events: none;"></i>
                         </div>
                     </div>
@@ -1152,6 +1272,14 @@ $editColor: #e6b800;
                     margin-left: 1%;
                     margin-bottom: 1%;
                     font-family: "Noto Sans TC", sans-serif;
+
+                    .fa-square-pen {
+                        cursor: pointer;
+
+                        &:hover {
+                            color: $editColor;
+                        }
+                    }
                 }
 
                 .mtRight {
@@ -1346,7 +1474,7 @@ $editColor: #e6b800;
                             width: 35%;
                             margin-left: 8%;
                             display: flex;
-                            justify-content: space-between;
+                            justify-content: end;
                             align-items: center;
 
                             .fa-solid {
@@ -1540,7 +1668,8 @@ $editColor: #e6b800;
                             justify-content: start;
                             align-items: center;
 
-                            .inText {
+                            .inText,
+                            .editOpInput {
                                 max-width: 89%;
                                 font-size: 15px;
                                 margin-left: 2%;
@@ -1555,7 +1684,8 @@ $editColor: #e6b800;
                             justify-content: end;
                             align-items: center;
 
-                            .inPrice {
+                            .inPrice,
+                            .editOpPrice {
                                 max-width: 60%;
                                 font-size: 15px;
                                 margin: 1% 5%;
@@ -1582,6 +1712,13 @@ $editColor: #e6b800;
 
                         &:hover {
                             color: $soldOut;
+                            cursor: pointer;
+                        }
+                    }
+
+                    .fa-pencil {
+                        &:hover {
+                            color: $editColor;
                             cursor: pointer;
                         }
                     }
