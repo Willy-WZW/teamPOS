@@ -4,7 +4,7 @@ import Swal from 'sweetalert2';
 export default {
     data() {
         return {
-            phone: '',
+            staffNumber: '',
             email: '',
             verificationCode: '', // 新增驗證碼欄位
             confirmVerificationCode: '', // 用來接回傳的驗證碼
@@ -18,11 +18,11 @@ export default {
         handleSubmit() {
             if (this.step === 1) {
                 const requestData = {
-                    phone: this.phone,
+                    staffNumber: this.staffNumber,
                     email: this.email,
                 };
 
-                fetch('http://localhost:8080/api/member/forgotpassword', { // 更新API路徑
+                fetch('http://localhost:8080/api/staff/forgotpassword', { // 更新API路徑
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -98,11 +98,11 @@ export default {
             }
 
             const requestData = {
-                phone: this.phone,
+                staffNumber: this.staffNumber,
                 pwd: this.newPassword,
             };
 
-            fetch('http://localhost:8080/api/member/resetpassword', {
+            fetch('http://localhost:8080/api/staff/resetPassword', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -148,12 +148,12 @@ export default {
             <form
                 @submit.prevent="step === 1 ? handleSubmit() : step === 2 ? handleVerify() : step === 3 ? resetPassword() : null">
                 <div class="input-group">
-                    <label for="phone">帳號</label>
+                    <label for="staffNumber">帳號</label>
                     <div v-if="step === 1">
-                        <input v-model="phone" type="text" id="phone" placeholder="請輸入帳號" required autocomplete="off" />
+                        <input v-model="staffNumber" type="text" id="staffNumber" placeholder="請輸入帳號" required autocomplete="off" />
                     </div>
                     <div v-else>
-                        <div class="phone-display">{{ phone }}</div> <!-- 只顯示帳號 -->
+                        <div class="phone-display">{{ staffNumber }}</div> <!-- 只顯示帳號 -->
                     </div>
                 </div>
 

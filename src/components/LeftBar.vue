@@ -128,8 +128,7 @@ export default {
             } else {
                 console.error("Session 中的 staffNumber 不存在，無法取得員工資料");
             }
-        }
-        ,
+        },
         logout() {
             sessionStorage.clear(); // 清除所有 sessionStorage 資料
             this.$router.push("/"); // 跳轉至首頁或登錄頁面
