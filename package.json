@@ -14,6 +14,7 @@
     "@fullcalendar/daygrid": "^6.1.15",
     "@fullcalendar/vue3": "^6.1.15",
     "axios": "^1.7.7",
+    "bootstrap-icons": "^1.11.3",
     "echarts": "^5.5.1",
     "fullcalendar": "^6.1.15",
     "interactjs": "^1.10.27",
