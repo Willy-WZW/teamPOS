@@ -32,11 +32,11 @@ export default {
                     .then(responses => {
                         const allSuccess = responses.every(response => response.status === 200);
                         if (allSuccess) {
-                            Swal.fire('成功!', '工作站已創建', 'success');
+                            Swal.fire('成功!', '工作檯已創建', 'success');
                             this.cgInput = [{ text: '' }];
                             this.fetchWorkstations();
                         } else {
-                            Swal.fire('錯誤!', '某些工作站創建失敗', 'error');
+                            Swal.fire('錯誤!', '某些工作檯創建失敗', 'error');
                         }
                     })
                     .catch(error => {
@@ -49,7 +49,7 @@ export default {
             const duplicateNames = this.cgInput.filter(input => existingNames.has(input.text));
 
             if (duplicateNames.length > 0) {
-                Swal.fire('錯誤!', '工作站名稱不能重複', 'error');
+                Swal.fire('錯誤!', '工作檯名稱不能重複', 'error');
                 return;
             }
             const promises = this.cgInput.map(input => {
@@ -61,11 +61,11 @@ export default {
                 .then(responses => {
                     const allSuccess = responses.every(response => response.status === 200);
                     if (allSuccess) {
-                        Swal.fire('成功!', '工作站已創建', 'success');
+                        Swal.fire('成功!', '工作檯已創建', 'success');
                         this.cgInput = [{ text: '' }];
                         this.fetchWorkstations();
                     } else {
-                        Swal.fire('錯誤!', '某些工作站創建失敗', 'error');
+                        Swal.fire('錯誤!', '某些工作檯創建失敗', 'error');
                     }
                 })
                 .catch(error => {
@@ -80,7 +80,7 @@ export default {
             );
 
             if (duplicateNames.length > 0) {
-                Swal.fire('錯誤!', '工作站名稱不能重複', 'error');
+                Swal.fire('錯誤!', '工作檯名稱不能重複', 'error');
                 return;
             }
 
@@ -93,11 +93,11 @@ export default {
                 .then(responses => {
                     const allSuccess = responses.every(response => response.status === 200);
                     if (allSuccess) {
-                        Swal.fire('成功!', '工作站已更新', 'success');
+                        Swal.fire('成功!', '工作檯已更新', 'success');
                         this.isEditing = false;
                         this.fetchWorkstations();
                     } else {
-                        Swal.fire('錯誤!', '工作站更新失敗', 'error');
+                        Swal.fire('錯誤!', '工作檯更新失敗', 'error');
                     }
                 })
                 .catch(error => {
@@ -118,7 +118,7 @@ export default {
         },
         removeWorkstation(workstationId) {
             Swal.fire({
-                title: '確定要刪除這個工作站嗎?',
+                title: '確定要刪除這個工作檯嗎?',
                 showCancelButton: true,
                 confirmButtonText: '刪除',
                 cancelButtonText: '取消'
@@ -129,7 +129,7 @@ export default {
                         .then(response => {
                             if (response.status === 200) {
                                 this.categories = this.categories.filter(category => category.workstationId !== workstationId);
-                                Swal.fire('成功!', '工作站已刪除', 'success');
+                                Swal.fire('成功!', '工作檯已刪除', 'success');
                             } else {
                                 Swal.fire('錯誤!', '刪除失敗', 'error');
                             }
@@ -168,12 +168,12 @@ export default {
         <div class="optionArea">
             <div v-for="(category, index) in categories" :key="index" class="cOption">
                 <span v-if="!isEditing">{{ category.workstationName }}</span>
-                <input v-if="isEditing" type="text" v-model="category.workstationName" placeholder="請輸入工作站名稱" />
-                <i class="fa-regular fa-circle-xmark" v-if="!isEditing"
+                <input v-if="isEditing" type="text" v-model="category.workstationName" placeholder="請輸入工作檯名稱" />
+                <i class="fa-regular fa-circle-xmark" v-if="isEditing"
                     @click="removeWorkstation(category.workstationId)"></i>
             </div>
             <div class="inputOp" v-for="(input, index) in cgInput" :key="index">
-                <input type="text" v-model="input.text" placeholder="請輸入工作站名稱" />
+                <input type="text" v-model="input.text" placeholder="請輸入工作檯名稱" />
             </div>
             <i class="fa-solid fa-circle-plus" @click="addCgInput()"></i>
         </div>
@@ -199,7 +199,7 @@ $addDiv: #343a3f;
     flex-direction: column;
     position: absolute;
     top: 0%;
-    left: 2%;
+    left: 0%;
     background-color: white;
 
 

@@ -55,40 +55,50 @@ export default {
         },
 
         async createAnnounce() {
-            if (!this.imageFile) {
-                alert("請選擇圖片後再上傳");
-                return;
-            }
+            if (this.imageFile) {
+                const reader = new FileReader();
+                reader.onload = async (e) => {
+                    const base64Image = e.target.result;
 
-            const reader = new FileReader();
-            reader.onload = async (e) => {
-                const base64Image = e.target.result;
+                    const postData = {
+                        announceTitle: this.announceTitle,
+                        announceContent: this.announceContent,
+                        announcePictureName: base64Image,
+                        announceStartTime: this.announceStartTime,
+                        announceEndTime: this.announceEndTime,
+                    };
 
+                    await this.submitAnnounce(postData);
+                };
+                reader.readAsDataURL(this.imageFile);
+            } else {
                 const postData = {
                     announceTitle: this.announceTitle,
                     announceContent: this.announceContent,
-                    announcePictureName: base64Image,
+                    announcePictureName: null,
                     announceStartTime: this.announceStartTime,
                     announceEndTime: this.announceEndTime,
                 };
 
-                try {
-                    const response = await axios.post("http://localhost:8080/announce/create", postData);
-                    if (response.status === 200) {
-                        Swal.fire("公告發佈成功");
-                        this.clearForm();
-                        this.fetchAllannounceId();
-                        this.updateDisplayedAnnouncements();
-                    } else {
-                        Swal.fire("公告發佈失敗");
-                    }
-                } catch (error) {
-                    console.error("公告發佈失敗", error);
-                    Swal.fire("公告發佈失敗，請稍後再試");
-                }
-            };
+                await this.submitAnnounce(postData);
+            }
+        },
 
-            reader.readAsDataURL(this.imageFile);
+        async submitAnnounce(postData) {
+            try {
+                const response = await axios.post("http://localhost:8080/announce/create", postData);
+                if (response.status === 200) {
+                    Swal.fire("公告發佈成功");
+                    this.clearForm();
+                    this.fetchAllannounceId();
+                    this.updateDisplayedAnnouncements();
+                } else {
+                    Swal.fire("公告發佈失敗");
+                }
+            } catch (error) {
+                console.error("公告發佈失敗", error);
+                Swal.fire("公告發佈失敗，請稍後再試");
+            }
         },
 
         clearForm() {
@@ -186,17 +196,20 @@ export default {
             }
         },
         showAnnouncePreview(announce) {
+            const imageHtml = announce.announcePictureName
+                ? `<img src="${announce.announcePictureName}" alt="圖片預覽" style="width: 100%; height: auto;"/>`
+                : "";
+
             Swal.fire({
                 html: `
-                <img src="${announce.announcePictureName}" alt="圖片預覽" style="width: 100%; height: auto;"/>
-                <h3 style="text-align: left;"> ${announce.announceTitle}</h3>
-                <p style="text-align: left;">活動時間 ${announce.announceStartTime} ~ ${announce.announceEndTime}</p>
-                <p style="text-align: left;">${announce.announceContent}</p>
-            `,
+            ${imageHtml}
+            <h3 style="text-align: left;">${announce.announceTitle}</h3>
+            <p style="text-align: left;">活動時間 ${announce.announceStartTime} ~ ${announce.announceEndTime}</p>
+            <p style="text-align: left;">${announce.announceContent}</p>
+        `,
                 focusConfirm: false,
                 confirmButtonText: '關閉',
                 width: '800px',
-
             });
         },
         async updateAnnounce() {
@@ -281,8 +294,8 @@ export default {
                 <div class="listArea">
                     <div v-for="announce in displayedAnnouncements" :key="announce.announceId"
                         class="announcement-item">
-                        <img :src="announce.announcePictureName" v-if="announce.announcePictureName"
-                            class="previewlist-image" @click="showAnnouncePreview(announce)" />
+                        <img :src="announce.announcePictureName || '/images/Logo.jpg'" class="previewlist-image"
+                            @click="showAnnouncePreview(announce)" />
                         <div class="item-content">
                             <div class="textlistArea">
                                 <h3 @click="showAnnouncePreview(announce)" style="cursor: pointer;">{{
@@ -290,8 +303,10 @@ export default {
                                 <span>{{ announce.announceStartTime }}</span> ~
                                 <span>{{ announce.announceEndTime }}</span>
                             </div>
-                            <i class="fa-solid fa-pen" @click="switchView('announceUpdate', announce)"></i>
-                            <i class="fa-solid fa-trash-can" @click="deleteAnnounce(announce.announceId)"></i>
+                            <div class="icon">
+                                <i class="fa-solid fa-pen" @click="switchView('announceUpdate', announce)"></i>
+                                <i class="fa-solid fa-trash-can" @click="deleteAnnounce(announce.announceId)"></i>
+                            </div>
                         </div>
                     </div>
 
@@ -510,6 +525,13 @@ $addDiv: #343a3f;
             border-bottom-right-radius: 10px;
             border-bottom-left-radius: 10px;
         }
+
+        .icon {
+            display: flex;
+            justify-content: end;
+            padding-right: 3%;
+            padding-top: 5%;
+        }
     }
 
     .pagination {
@@ -532,6 +554,7 @@ $addDiv: #343a3f;
 
 .fa-solid {
     cursor: pointer;
+    margin-left: 5%;
 }
 
 button {
