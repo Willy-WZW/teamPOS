@@ -129,7 +129,18 @@ export default {
                 console.log("正在編輯的分類:", this.editingIndexes);
             }
         },
-        stopEditing(index) {
+        stopEditing(index, isBlur) {
+            if (isBlur) {
+                // 用戶沒有按下 Enter 鍵，提示警告視窗
+                Swal.fire({
+                    title: '注意!',
+                    text: '請先按下 Enter 以暫存資料',
+                    icon: 'warning',
+                    confirmButtonText: '好的'
+                });
+                return; // 不繼續執行 stopEditing 邏輯
+            }
+
             this.editingIndexes = this.editingIndexes.filter(i => i !== index);
             // 移除 editingIndexes 中的該項目
             const category = this.categories[index];
@@ -886,8 +897,8 @@ export default {
                             <i class="fa-solid fa-pen" v-show="showEditPen"
                                 @click.stop="startEditing(cIndex)">&nbsp&nbsp</i>{{ category.category }}
                         </span>
-                        <input v-else type="text" v-model="category.category" @blur="stopEditing(cIndex)"
-                            @keydown.enter="stopEditing(cIndex)">
+                        <input v-else class="editInputCategory" type="text" v-model="category.category"
+                            @blur="stopEditing(cIndex, true)" @keydown.enter="stopEditing(cIndex, false)">
                         <div class="groupOne">
                             <div class="countOp">{{ categoryMenuCount[category.categoryId] || 0 }}</div>
                             <i class="fa-regular fa-circle-xmark" @click="confirmDelete(cIndex)"></i>
@@ -911,6 +922,10 @@ export default {
                 <div class="menuTop">
                     <div class="mtLeft">
                         <span>餐點</span>
+                        <span class="subtitle">工作檯</span>
+                        <select>
+                            <option value="0">工作檯選擇</option>
+                        </select>
                         <i class="fa-solid fa-square-pen" @click="editAllMenus()"></i>
                     </div>
                     <div class="mtRight">
@@ -1140,6 +1155,14 @@ $editColor: #e6b800;
                         margin-left: 2.5%;
                     }
 
+                    .editInputCategory {
+                        width: 95%;
+                        margin-left: 2.5%;
+                        border: none;
+                        font-size: 18px;
+                        font-weight: bold;
+                        font-family: "Noto Sans TC", sans-serif;
+                    }
 
                     .groupOne {
                         width: 30%;
@@ -1276,13 +1299,18 @@ $editColor: #e6b800;
                 align-items: center;
 
                 .mtLeft {
-                    width: 20%;
+                    width: 50%;
                     font-size: 30px;
                     font-weight: bold;
                     letter-spacing: 3px;
                     margin-left: 1%;
                     margin-bottom: 1%;
                     font-family: "Noto Sans TC", sans-serif;
+
+                    .subtitle {
+                        font-size: 15px;
+                        color: $borderBot;
+                    }
 
                     .fa-square-pen {
                         cursor: pointer;
