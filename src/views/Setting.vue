@@ -5,6 +5,7 @@ import AddMenu from '@/components/AddMenu.vue'
 import Workbench from '@/components/Workbench.vue';
 import BusiSetting from '@/components/BusiSetting.vue';
 import Announce from '@/components/Announce.vue';
+import Authorizations from '@/components/Authorizations.vue';
 
 export default { 
     data() {
@@ -18,11 +19,14 @@ export default {
         AddMenu,
         Workbench,
         BusiSetting,
-        Announce
+        Authorizations
     },
     methods: {
         handleComponentChange(component) {
             this.selectedComponent = component;
+        },
+        refreshLeftBar() {
+            this.$refs.leftBar.refresh(); // 調用 LeftBar 的刷新方法
         }
     }
 }
@@ -31,7 +35,7 @@ export default {
 <template>
     <div class="big">
         <div class="leftBar">
-            <LeftBar />
+            <LeftBar ref="leftBar"/>
         </div>
         <div class="mainArea">
             <div class="header">
@@ -42,6 +46,7 @@ export default {
                 <Workbench v-if="selectedComponent === 'Workbench'" />
                 <Announce v-if="selectedComponent === 'Announce'" />
                 <BusiSetting v-if="selectedComponent === 'BusiSetting'" />
+                <Authorizations v-if="selectedComponent === 'Authorizations'"  @refreshLeftBar="refreshLeftBar" />
             </div>
         </div>
     </div>

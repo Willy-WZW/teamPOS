@@ -6,7 +6,8 @@ export default {
     data() {
         return {
             account: '',
-            password: ''
+            password: '',
+            passwordVisible: false, // 是否顯示密碼
         };
     },
     methods: {
@@ -42,13 +43,13 @@ export default {
                                 title: data.message,
                                 icon: 'success',
                                 confirmButtonText: '確定',
-                            }).then( () => {
+                            }).then(() => {
                                 sessionStorage.setItem('memberId', data.memberId);
-                                this.$router.push('/system'); 
+                                this.$router.push('/system');
 
                             });
 
-                            
+
                         } else {
                             Swal.fire({
                                 title: data.message,
@@ -71,7 +72,7 @@ export default {
 
                 // 準備要傳送的資料
                 const userData = {
-                    staffNumber: this.account, 
+                    staffNumber: this.account,
                     pwd: this.password,
                 };
 
@@ -96,7 +97,7 @@ export default {
                                 confirmButtonText: '確定',
                             });
                             sessionStorage.setItem('staffNumber', data.staffNumber);
-                            this.$router.push('/system'); 
+                            this.$router.push('/system');
                         } else {
                             Swal.fire({
                                 title: data.message,
@@ -125,6 +126,9 @@ export default {
 
 
 
+        },
+        togglePasswordVisibility() { //新增方法來切換密碼顯示
+            this.passwordVisible = !this.passwordVisible;
         }
     }
 };
@@ -145,16 +149,21 @@ export default {
                 </div>
                 <div class="input-group">
                     <label for="password">密碼</label>
-                    <input v-model="password" type="password" id="password" placeholder="請輸入密碼" required
-                        autocomplete="off" />
+                    <div class="password-container">
+                        <input v-model="password" :type="passwordVisible ? 'text' : 'password'" id="password"
+                            placeholder="請輸入密碼" required autocomplete="off" />
+                        <span class="eye-icon" @click="togglePasswordVisibility"> <!-- 修改的地方 -->
+                            <i :class="passwordVisible ? 'fas fa-eye' : 'fas fa-eye-slash'"></i> <!-- 修改的地方 -->
+                        </span>
+                    </div>
                 </div>
                 <div class="forgot-password">
-                    <router-link  to="/forgotPassword">忘記密碼？</router-link>
+                    <router-link to="/forgotPassword">忘記密碼？</router-link>
                 </div>
                 <button type="submit" class="login-btn">登入</button>
             </form>
             <div class="extra-links">
-                <router-link class="register-link" to="/register">還沒有帳號？註冊</router-link>
+                <router-link class="register-link" to="/register">註冊(沒有會員功能了 但要進去可以先註冊之後去弄一個員工帳號 最終版會移除這個)</router-link>
             </div>
         </div>
     </div>
@@ -215,6 +224,28 @@ $radius: 5px;
                 border: 1px solid $border-color;
                 border-radius: $radius;
                 box-sizing: border-box;
+            }
+
+            .password-container {
+                position: relative; // 為眼睛圖示的定位做準備
+
+                input {
+                    width: 100%;
+                    padding: 0.625rem;
+                    font-size: $font-size-base;
+                    border: 1px solid $border-color;
+                    border-radius: $radius;
+                    box-sizing: border-box;
+                }
+
+                .eye-icon {
+                    position: absolute;
+                    right: 1rem; // 根據需要調整位置
+                    top: 50%;
+                    transform: translateY(-50%);
+                    cursor: pointer;
+                    color: $primary-color; // 圖示顏色
+                }
             }
         }
 

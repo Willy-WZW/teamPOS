@@ -13,11 +13,7 @@ export default {
                 email: '',
                 authorization: '',
             },
-            authorizations: [ //這裡還沒改
-                { code: '1', label: '內場' },
-                { code: '2', label: '外場' },
-                { code: '3', label: '管理' }
-            ],
+            authorizations: [],
             searchQuery: '',
             editingId: null,
             showAddRow: false,
@@ -61,7 +57,8 @@ export default {
                     phone: this.newEmployee.phone,
                     pwd: this.newEmployee.password,
                     authorization: this.newEmployee.authorization,
-                    email: this.newEmployee.email
+                    email: this.newEmployee.email,
+
                 };
 
                 // 發送 API 請求新增員工
@@ -87,7 +84,7 @@ export default {
                                 confirmButtonText: '確定',
                             });
 
-                            
+
                             this.employees.push({ ...this.newEmployee, id: this.newEmployee.id }); // 將新增的員工加入本地狀態
                             this.allStaffInfo();
                             this.resetNewEmployee(); // 重置新增員工的資料
@@ -103,7 +100,7 @@ export default {
                         }
 
                         // 檢查是否需要跳到下一頁
-                        if (this.filteredEmployees.length % this.pageSize == 1) {
+                        if (this.filteredEmployees.length != 1 && (this.filteredEmployees.length % this.pageSize == 1)) {
                             this.changePage(this.currentPage + 1);
                         }
                     })
@@ -135,7 +132,7 @@ export default {
                 showCancelButton: true,
                 confirmButtonColor: '#3085d6',
                 cancelButtonColor: '#d33',
-                confirmButtonText: '是的，刪除它！',
+                confirmButtonText: '是的，刪除',
                 cancelButtonText: '取消'
             }).then((result) => {
                 if (result.isConfirmed) {
@@ -185,7 +182,10 @@ export default {
         startEditing(id) {
             const employee = this.employees.find(emp => emp.id === id);
             this.editingId = id;
-            this.newEmployee = { ...employee }; // 將選中的員工資料填入新增員工表單
+            this.newEmployee = {
+                ...employee,
+                authorization: this.authorizations.find(auth => auth.label === employee.authorization)?.code || '' // 這裡新增授權代碼的載入
+            }; // 將選中的員工資料填入新增員工表單
             this.isAddingOrEditing = true; // 設置狀態
         },
         saveEditing() {
@@ -194,7 +194,7 @@ export default {
                 name: this.newEmployee.name,
                 phone: this.newEmployee.phone,
                 email: this.newEmployee.email,
-                authorization: this.newEmployee.authorization
+                authorization: this.newEmployee.authorization,
             };
 
             // 發送 API 請求更新員工資料
@@ -251,48 +251,54 @@ export default {
             this.currentPage = page;
         },
         allStaffInfo() {
-            Promise.all([
-                fetch("http://localhost:8080/api/staff/all", {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                }),
-                fetch("http://localhost:8080/api/authorizations", { // 獲取授權選項
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                })
-            ])
-                .then(async ([staffResponse, authResponse]) => {
+            fetch("http://localhost:8080/api/staff/all", {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+                .then(async (staffResponse) => {
                     if (!staffResponse.ok) {
                         throw new Error(`HTTP error! Status: ${staffResponse.status}`);
                     }
                     const staffData = await staffResponse.json();
-                    this.employees = staffData.staffData.map(staff => ({
-                        id: staff.staffNumber,
-                        name: staff.name,
-                        phone: staff.phone,
-                        password: staff.pwd,
-                        email: staff.email,
-                        authorization: staff.authorization === '12' ? '內場' : '外場',
-                    }));
 
-                    // 取得授權選項
-                    if (!authResponse.ok) {
-                        throw new Error(`HTTP error! Status: ${authResponse.status}`);
-                    }
-                    const authData = await authResponse.json();
-                    this.authorizations = authData.authorizations; // 假設返回的 JSON 有 authorizations
+                    this.employees = staffData.staffData.map(staff => {
+                        const authorizationLabel = this.authorizations.find(auth => auth.code === Number(staff.authorization))?.label || '未知';
+                        return {
+                            id: staff.staffNumber,
+                            name: staff.name,
+                            phone: staff.phone,
+                            password: staff.pwd,
+                            email: staff.email,
+                            authorization: authorizationLabel, // 使用對應的名稱
+                        };
+                    });
                 })
                 .catch(error => {
                     console.error("取得使用者資料失敗:", error);
                 });
-        }
+        },
+        async fetchPermissions() {
+            try {
+                const response = await fetch('http://localhost:8080/api/authorization/all');
+                const data = await response.json();
+
+                this.authorizations = data.map(item => ({
+                    label: item.authorizationName,
+                    // managedAreas: item.authorizationItem.split(','),
+                    code: item.authorizationId
+                }));
+            } catch (error) {
+                console.error('無法獲取權限資料:', error);
+                Swal.fire('錯誤', '無法獲取權限資料', 'error');
+            }
+        },
     },
     mounted() {
-        this.allStaffInfo();
+        this.fetchPermissions().then(() => {
+            this.allStaffInfo();
+        });
     }
 };
 </script>
@@ -350,7 +356,14 @@ export default {
                             </td>
                             <td>
                                 <div class="cell-content">
-                                    <span>{{ employee.authorization }}</span> <!-- 不可編輯的授權 -->
+                                    <select v-if="editingId === employee.id" v-model="newEmployee.authorization"
+                                        class="edit-input">
+                                        <option value="">選擇授權</option>
+                                        <option v-for="auth in authorizations" :value="auth.code" :key="auth.code">
+                                            {{ auth.label }}
+                                        </option>
+                                    </select>
+                                    <span v-else>{{ employee.authorization }}</span>
                                 </div>
                             </td>
                             <td>

@@ -8,18 +8,17 @@ export default {
                 name: '',
                 phone: '',
                 email: '',
-                totalSpent: '',
-                memberLevel: '',
-                purchaseHistory: [
-                    { date: '2024-09-01', amount: 1500, details: '餐廳消費' },
-                    { date: '2024-09-15', amount: 2500, details: '電子產品' },
-                    { date: '2024-09-25', amount: 1000, details: '服飾' },
-                ],
+                staffId: '',
+                authorizationName: '',
+
             },
             newPassword: '',
             confirmPassword: '',
+            passwordVisible: false,
+            confirmPasswordVisible: false,
             showModal: false,
             selectedPurchase: null,
+            permissions: []
         };
     },
     methods: {
@@ -33,42 +32,87 @@ export default {
         changePassword() {
             if (this.newPassword == this.confirmPassword) {
                 const memberId = sessionStorage.getItem('memberId');
-                const reqData = {
-                    phone: this.user.phone,
-                    pwd: this.newPassword,
-                };
+                const staffNumber = sessionStorage.getItem('staffNumber');
 
-                fetch('http://localhost:8080/api/member/resetpassword', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(reqData),
-                })
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error(`HTTP error! Status: ${response.status}`);
-                        }
-                        return response.json();
+                if (memberId) {
+                    const reqData = {
+                        phone: this.user.phone,
+                        pwd: this.newPassword,
+                    };
+
+                    fetch('http://localhost:8080/api/member/resetpassword', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(reqData),
                     })
-                    .then(data => {
-                        Swal.fire({
-                            title: data.message,
-                            icon: 'success',
-                            confirmButtonText: '確定',
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error(`HTTP error! Status: ${response.status}`);
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            Swal.fire({
+                                title: data.message,
+                                icon: 'success',
+                                confirmButtonText: '確定',
+                            });
+                            this.newPassword = '';
+                            this.confirmPassword = '';
+                        })
+                        .catch(error => {
+                            console.error('修改密碼失敗:', error);
+                            Swal.fire({
+                                title: '修改密碼失敗',
+                                text: '請稍後再試。',
+                                icon: 'error',
+                                confirmButtonText: '確定',
+                            });
                         });
-                        this.newPassword = '';
-                        this.confirmPassword = '';
+                }
+
+                if (staffNumber) {
+                    const reqData = {
+                        staffNumber: this.user.staffId,
+                        pwd: this.newPassword,
+                    };
+
+                    fetch('http://localhost:8080/api/staff/resetPassword', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(reqData),
                     })
-                    .catch(error => {
-                        console.error('修改密碼失敗:', error);
-                        Swal.fire({
-                            title: '修改密碼失敗',
-                            text: '請稍後再試。',
-                            icon: 'error',
-                            confirmButtonText: '確定',
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error(`HTTP error! Status: ${response.status}`);
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            Swal.fire({
+                                title: data.message,
+                                icon: 'success',
+                                confirmButtonText: '確定',
+                            });
+                            this.newPassword = '';
+                            this.confirmPassword = '';
+                        })
+                        .catch(error => {
+                            console.error('修改密碼失敗:', error);
+                            Swal.fire({
+                                title: '修改密碼失敗',
+                                text: '請稍後再試。',
+                                icon: 'error',
+                                confirmButtonText: '確定',
+                            });
                         });
-                    });
+                }
+
+
             } else {
                 Swal.fire({
                     title: '錯誤',
@@ -109,13 +153,85 @@ export default {
                 console.error("無法取得使用者資料");
             }
         },
+        getStaffData() { // 抓員工資料
+            const staffNumber = sessionStorage.getItem('staffNumber');  // 登入的時候已經把 staffNumber 寫在 session 了
+
+            if (staffNumber) {
+                fetch(`http://localhost:8080/api/staff/${staffNumber}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! Status: ${response.status}`);
+                        }
+                        return response.json(); // 解析回應為 JSON 格式
+                    })
+                    .then(data => {
+                        if (data && data.staff) {
+
+                            this.user.name = data.staff.name;
+                            this.user.email = data.staff.email;
+                            this.user.phone = data.staff.phone;
+                            this.user.staffId = data.staff.staffNumber;
+
+
+                            // 找到相對應的權限物件
+                            const foundPermission = this.permissions.find(permission => permission.id == data.staff.authorization);
+
+                            if (foundPermission) {
+                                this.managedAreas = foundPermission.managedAreas;
+                                this.user.authorizationName = foundPermission.name; // 將角色設置為權限名稱
+                            } else {
+                                console.log("找不到相應的權限");
+                                this.user.authorizationName = "無權限資訊"; // 若找不到權限，給予一個預設值
+                            }
+                        } else {
+                            console.error("回傳的資料格式不正確或沒有 staff 資料");
+                        }
+                    })
+                    .catch(error => {
+                        console.error("取得員工資料失敗:", error);
+                    });
+            } else {
+                console.error("Session 中的 staffNumber 不存在，無法取得員工資料");
+            }
+        },
+        async fetchPermissions() {
+            try {
+                const response = await fetch('http://localhost:8080/api/authorization/all');
+                const data = await response.json();
+
+                this.permissions = data.map(item => ({
+                    name: item.authorizationName,
+                    managedAreas: item.authorizationItem.split(','),
+                    id: item.authorizationId
+                }));
+            } catch (error) {
+                console.error('無法獲取權限資料:', error);
+                Swal.fire('錯誤', '無法獲取權限資料', 'error');
+            }
+        }
     },
     mounted() {
-        const memberId = sessionStorage.getItem('memberId');
 
-        if (memberId) {
-            this.getUserData();
-        }
+        this.fetchPermissions().then(() => {
+            const memberId = sessionStorage.getItem('memberId');
+            const staffNumber = sessionStorage.getItem('staffNumber');
+
+            if (memberId) {
+                //抓使用者資料
+                this.getUserData();
+            } else if (staffNumber) {
+                //抓員工資料
+                this.getStaffData();
+            }
+        });
+
+
+
     }
 };
 </script>
@@ -125,63 +241,47 @@ export default {
     <div class="user-info-container">
         <div class="user-info">
             <h2>用戶資訊</h2>
-            <div class="info-grid">
-                <div class="info-section">
-                    <h3>個人資料</h3>
-                    <div class="info-field">
-                        <label>姓名:</label>
-                        <span>{{ user.name }}</span>
-                    </div>
-                    <div class="info-field">
-                        <label>手機:</label>
-                        <span>{{ user.phone }}</span>
-                    </div>
-                    <div class="info-field">
-                        <label>生日:</label>
-                        <span>1990-01-01</span>
-                    </div>
-                    <div class="info-field">
-                        <label>電子郵件:</label>
-                        <span>{{ user.email }}</span>
-                    </div>
-                    <div class="info-field">
-                        <label>總消費金額:</label>
-                        <span>{{ user.totalSpent }}</span>
-                    </div>
-                    <div class="info-field">
-                        <label>會員等級:</label>
-                        <span>{{ user.memberLevel }}</span>
-                    </div>
+            <div class="info-section">
+                <h3>個人資料</h3>
+                <div class="info-field">
+                    <label>員工編號:</label>
+                    <span>{{ user.staffId }}</span>
                 </div>
-
-                <div class="purchase-section">
-                    <h3>消費紀錄</h3>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>日期</th>
-                                <th>金額</th>
-                                <th>詳情</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr v-for="purchase in user.purchaseHistory" :key="purchase.date">
-                                <td>{{ purchase.date }}</td>
-                                <td>{{ purchase.amount }}</td>
-                                <td>
-                                    <button @click="openModal(purchase)" class="details-btn">查看詳情</button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <div class="info-field">
+                    <label>姓名:</label>
+                    <span>{{ user.name }}</span>
+                </div>
+                <div class="info-field">
+                    <label>手機:</label>
+                    <span>{{ user.phone }}</span>
+                </div>
+                <div class="info-field">
+                    <label>電子郵件:</label>
+                    <span>{{ user.email }}</span>
+                </div>
+                <div class="info-field">
+                    <label>授權:</label>
+                    <span>{{ user.authorizationName }}</span>
                 </div>
             </div>
 
             <div class="password-section">
                 <h3>修改密碼</h3>
                 <div class="password-field">
-                    <input v-model="newPassword" placeholder="輸入新密碼" type="password" />
-                    <input v-model="confirmPassword" placeholder="確認新密碼" type="password" />
+                    <div class="input-group">
+                        <input v-model="newPassword" :type="passwordVisible ? 'text' : 'password'"
+                            placeholder="輸入新密碼" />
+                        <span @click="passwordVisible = !passwordVisible" class="eye-icon">
+                            <i :class="passwordVisible ? 'fas fa-eye' : 'fas fa-eye-slash'"></i>
+                        </span>
+                    </div>
+                    <div class="input-group">
+                        <input v-model="confirmPassword" :type="confirmPasswordVisible ? 'text' : 'password'"
+                            placeholder="確認新密碼" />
+                        <span @click="confirmPasswordVisible = !confirmPasswordVisible" class="eye-icon">
+                            <i :class="confirmPasswordVisible ? 'fas fa-eye' : 'fas fa-eye-slash'"></i>
+                        </span>
+                    </div>
                     <button @click="changePassword" class="change-password-btn">修改密碼</button>
                 </div>
             </div>
@@ -202,12 +302,13 @@ export default {
 
 
 
+
 <style scoped>
 .user-info-container {
     display: flex;
     justify-content: center;
     align-items: center;
-    width: 80vw;
+    width: 40vw;
     height: 80vh;
     overflow: hidden;
 }
@@ -313,7 +414,14 @@ th {
 
 .password-field {
     display: flex;
+    flex-direction: column;
+    /* 垂直排列 */
     gap: 10px;
+}
+
+.password-field input {
+    width: 100%;
+    /* 讓輸入框填滿 */
 }
 
 input {
@@ -377,6 +485,20 @@ input {
 
 .close:hover {
     color: #333;
+}
+
+.input-group {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.eye-icon {
+    position: absolute;
+    right: 10px;
+    cursor: pointer;
+    color: #777;
+    /* 可根據需求調整顏色 */
 }
 
 @media (max-width: 1024px) {
