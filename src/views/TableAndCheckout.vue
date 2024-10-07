@@ -117,7 +117,15 @@ export default {
 
                     console.log(`桌位 ${tableId} 的位置已保存`, { x, y });
                 }
-            }
+            },
+
+            modifiers: [
+                interact.modifiers.restrict({
+                    restriction: '.tableGrid', // 限制桌位只能在 tableGrid 容器內移動
+                    endOnly: true, // 僅在拖動結束時生效
+                    elementRect: { top: 0, left: 0, bottom: 1, right: 1 } // 元素邊界
+                })
+            ]
         });
     },
 
@@ -753,13 +761,14 @@ export default {
             }
 
             .tableGrid {
-                height: 90%;
+                height: 90%; /* 確保父容器有具體高度 */
                 border-radius: 10px;
                 background-color: #f2f4f8;
                 display: grid;
                 grid-template-columns: repeat(4, 1fr);
                 gap: 20px;
                 justify-items: center;
+                overflow: hidden; /* 防止元素超出容器 */
 
                 .tableItem {
                     border: 1px solid #ccc;
@@ -770,6 +779,7 @@ export default {
                     justify-content: center;
                     align-items: center;
                     position: relative;
+                    cursor: move; 
 
                     .circle {
                         width: 100px;
@@ -780,6 +790,7 @@ export default {
                         justify-content: center;
                         align-items: center;
                         flex-direction: column;
+                        cursor: pointer;
 
                         &.active {
                             background-color: #878d96; /* 用餐中狀態 */
