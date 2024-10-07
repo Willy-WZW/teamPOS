@@ -1,20 +1,14 @@
 <script>
 import LeftBar from "@/components/LeftBar.vue";
 import interact from 'interactjs';
+import axios from 'axios';
 
 export default {
     data () {
         return {
             // 桌位資訊 tableArea 數據
             isDragging: false,   // 用來追踪是否是拖動動作
-            tables: [
-                { id: 1, name: "A01", capacity: 4, status: "active" },
-                { id: 2, name: "A02", capacity: 2, status: "reserved" },
-                { id: 3, name: "A03", capacity: 6, status: "available" },
-                { id: 4, name: "A04", capacity: 10, status: "active" },
-                { id: 5, name: "A05", capacity: 8, status: "available" },
-                // 可依據需要新增更多桌位
-            ],
+            tables: [],
 
             // 點擊桌位側邊欄 tableSlider 數據
             selectedTable: null, // 存儲被選擇的桌位
@@ -83,6 +77,12 @@ export default {
     },
 
     mounted() {
+        this.fetchTables().then(() => {
+            this.$nextTick(() => {
+                this.restoreTablePositions(); // 確保 DOM 渲染完成後再還原桌位位置
+            });
+        });
+
         // 初始化可拖動元素
         interact('.tableItem').draggable({
             listeners: {
@@ -119,9 +119,6 @@ export default {
                 }
             }
         });
-
-        // 加載時恢復桌位位置信息
-        this.restoreTablePositions();
     },
 
     computed: {
@@ -154,6 +151,21 @@ export default {
     },
 
     methods: {
+        // 加載桌位
+        async fetchTables() {
+            try {
+                const response = await axios.get('http://localhost:8080/tableManagement/getAllTables');
+                // 將 API 返回的桌位數據轉換成符合前端顯示的結構
+                this.tables = response.data.map(table => ({
+                id: table.tableNumber,
+                capacity: table.tableCapacity,
+                status: table.tableStatus,  // 使用原本的狀態
+                }));
+                console.log('桌位資料加載成功:', this.tables);
+            } catch (error) {
+                console.error('無法獲取桌位資料:', error);
+            }
+        },
         // 刷新
         refresh() {
             // 可在此實作刷新功能
@@ -186,6 +198,8 @@ export default {
             const positions = JSON.parse(localStorage.getItem('tablePositions')) || {};
             const tables = this.$refs.tableItem;
 
+            if (Array.isArray(tables)) {
+            // 如果 $refs 是陣列，遍歷每個桌位
             tables.forEach(table => {
                 const tableId = table.getAttribute('data-id');
                 if (positions[tableId]) {
@@ -195,6 +209,18 @@ export default {
                     table.setAttribute('data-y', y);
                 }
             });
+            } else if (tables) {
+                // 單一桌位處理
+                const tableId = tables.getAttribute('data-id');
+                if (positions[tableId]) {
+                    const { x, y } = positions[tableId];
+                    tables.style.transform = `translate(${x}px, ${y}px)`;
+                    tables.setAttribute('data-x', x);
+                    tables.setAttribute('data-y', y);
+                }
+            } else {
+                console.error('無法找到任何桌位元素');
+            }
         },
 
         // 訂位資訊日期切換
@@ -300,7 +326,7 @@ export default {
                 <div v-for="table in tables" :key="table.id" :data-id="table.id" class="tableItem" ref="tableItem" 
                 :style="{width: `${getWidthByCapacity(table.capacity)}px`, height: `${getHeightByCapacity(table.capacity)}px`}">
                     <div :class="['circle', table.status]" @click="selectTable(table)">
-                        <div class="tableNumber">{{ table.name }}</div>
+                        <div class="tableNumber">{{ table.id }}</div>
                         <div class="tableCapacity">
                             <i class="fa-solid fa-user-group"></i>
                             {{ table.capacity }}
@@ -433,7 +459,7 @@ export default {
                     <!-- 桌號、訂單編號、會員電話 -->
                     <div class="dataArea">
                         <!-- 桌號 -->
-                        <div class="tableNumber">{{ selectedTable.name }}</div>
+                        <div class="tableNumber">{{ selectedTable.id }}</div>
 
                         <!-- 訂單編號 -->
                         <div class="orderNumber">

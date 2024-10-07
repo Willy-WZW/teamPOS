@@ -32,7 +32,8 @@ export default {
             ],
 
             businessHoursList: [], // 營業時間管理的數據
-            toBeDeleted: []  // 儲存要刪除的營業時間
+            toBeDeleted: [],  // 儲存要刪除的營業時間
+            diningDurations: [],
         };
     },
 
