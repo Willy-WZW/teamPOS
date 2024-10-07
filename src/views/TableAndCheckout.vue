@@ -15,8 +15,8 @@ export default {
             memberPhoneNumber: '', // 會員電話號碼
             memberDiscount: null, // 會員折扣
             orderItems: [  // 假設餐點明細資料
-                { name: '卡拉雞腿堡', notes: ['不加美乃滋', '加蛋'], price: 150 },
-                { name: '1號餐', notes: ['麥香雞堡', '薯條', '可樂'], price: 200 },
+                { name: '卡拉雞腿堡(少冰,不要蛋,不要蛋)', notes: [], price: 150 },
+                { name: '1號餐', notes: ['麥香雞堡(少冰)', '薯條', '可樂'], price: 200 },
                 { name: '2號餐', notes: ['海洋珍珠堡', '雞塊', '奶茶'], price: 230 },
                 { name: '3號餐', notes: ['麥香雞堡', '雞塊', '奶茶'], price: 210 },
                 { name: '4號餐', notes: ['海洋珍珠堡', '薯條', '可樂'], price: 220 },
@@ -467,7 +467,7 @@ export default {
                             #202409251509{{ selectedTable.name }}
                         </div>
 
-                        <!-- 會員電話輸入框 -->
+                        <!-- 會員電話輸入框 
                         <div class="memberArea">
                             <div class="memberPhone">
                                 <input type="search" class="phoneInput" placeholder="輸入會員電話" v-model="memberPhoneNumber"/>
@@ -476,7 +476,7 @@ export default {
                             <div v-if="memberDiscount" class="memberDiscount">
                                 <span>黃金會員 {{ memberDiscount }} 折</span>
                             </div>
-                        </div>
+                        </div>-->
                     </div>
                 </div>
 
@@ -509,10 +509,10 @@ export default {
                                 <p>總金額</p> 
                                 $ {{ total }}
                             </div>
-                            <div class="priceDiscount">
+                            <!-- <div class="priceDiscount">
                                 <p>折扣</p>
                                 黃金會員 {{ memberDiscount || 100 }} 折
-                            </div>
+                            </div> -->
                             <div class="summary">
                                 <p>小計</p>
                                 $ {{ subtotal }}
