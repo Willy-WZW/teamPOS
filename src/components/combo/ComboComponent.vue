@@ -90,7 +90,6 @@ export default {
 
         },  
 
-
         cancelIcon(){
             this.editeMode = false
             this.createMode = false
