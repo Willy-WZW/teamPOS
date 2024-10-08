@@ -9,6 +9,8 @@ export default {
             showEditPen: false,
             selectedCategory: null, // 選中的菜單分類
             selectedCategoryId: null, // 選中的菜單分類Id
+            selectedWorkbench: "0", //選中的工作檯
+            editingWorkbench: false,
             categories: [],// 已存在資料庫的菜單分類
             cgInput: [],// 菜單分類的input
             editingIndexes: [],  // 用來追蹤正在編輯的菜單分類
@@ -21,6 +23,9 @@ export default {
             custList: [],// 客製化的input
             editStates: [],// 客製化的編輯狀態
             originalOptions: [], // 儲存原始數據
+            workstationData: [],
+            selectedWorkstationId: "", //當前選擇的工作檯ID
+            selectedWorkstation: "", //當前選擇的工作檯名稱
         }
     },
     methods: {
@@ -227,6 +232,17 @@ export default {
         },
         removeCust(index) {
             this.custList.splice(index, 1)
+        },
+        updateWorkbench(event) {
+            this.selectedWorkstationId = Number(event.target.value); // 確保將選項值轉為數字
+            this.selectedWorkstation = this.workstationData.find(wsItem => wsItem.workstationId === this.selectedWorkstationId);
+
+            if (this.selectedWorkstation) {
+                console.log("選擇的工作檯 ID:", this.selectedWorkstationId);
+                console.log("選擇的工作檯名稱:", this.selectedWorkstation.workstationName); // 印出對應的工作檯名稱
+            } else {
+                console.log("找不到對應的工作檯");
+            }
         },
         addOption(custIndex) {
             // 獲取 custList 的最後一個索引
@@ -528,11 +544,16 @@ export default {
                 this.editedMenuItems.push({ ...itemToEdit });
             }
 
-            console.log("目前正在編輯的項目:", this.editedMenuItems);
+            // console.log("目前正在編輯的項目:", this.editedMenuItems);
         },
-        editAllMenus() {
-            this.editIndexList = this.savedMenuList.map(item => item.mealName); // 進入編輯模式，所有菜單項目可編輯
-            this.editedMenuItems = this.savedMenuList.map(item => ({ ...item })); // 初始化所有項目
+        editWorkbench() {
+            this.editingWorkbench = !this.editingWorkbench;
+
+            // 如果結束編輯模式，將工作檯名稱顯示出來
+            if (!this.editingWorkbench) {
+                const selected = this.workstationData.find(ws => ws.workstationId === this.selectedWorkstationId);
+                this.selectedWorkstation.workstationName = selected ? selected.workstationName : '未選擇工作檯';
+            }
         },
         updateEditedItem(item) {
             const index = this.editedMenuItems.findIndex(editedItem => editedItem.mealName === item.mealName);
@@ -614,7 +635,7 @@ export default {
                             });
                             // 清空 originalOptions
                             this.originalOptions = [];
-                            this.editStates = false
+                            this.editStates = [];
                             this.fetchCust(); // 重新加載資料
                         } else {
                             Swal.fire({
@@ -752,7 +773,7 @@ export default {
                 this.savedCustList = response.data;
                 //console.log(this.savedCustList);
             } catch (error) {
-                console.error('獲取菜單時發生錯誤:', error);
+                console.error('獲取客製化選項時發生錯誤:', error);
                 Swal.fire({
                     title: '錯誤',
                     text: '無法獲取客製化菜單資料，請稍後再試',
@@ -837,12 +858,28 @@ export default {
                 this.originalOptions[index].optionType = newType;
             }
         },
+        async workstationFromDB() {
+            try {
+                const response = await axios.post('http://localhost:8080/workstation/searchworkstation', { workstationId: "" });
+                this.workstationData = response.data.data;
+                console.log(this.workstationData);
+            } catch (error) {
+                console.error('獲取工作檯時發生錯誤:', error);
+                Swal.fire({
+                    title: '錯誤',
+                    text: '無法獲取工作檯資料，請稍後再試',
+                    icon: 'error',
+                    confirmButtonText: '好的'
+                });
+            }
+        }
     },
     mounted() {
         this.fetchCategories(); // 載入時獲取分類
         this.fetchMenu(); // 載入時獲取菜單
         this.fetchCust(); // 載入時獲取客製化菜單資料
         this.initializeEditStates();
+        this.workstationFromDB();// 載入時獲得工作檯資料
     },
     computed: {
         // 計算各菜單分類的菜單選項
@@ -931,18 +968,20 @@ export default {
                         <span>{{ selectedCategory || '菜單分類' }}</span>
                     </div>
                     <div class="mtMid">
-                        <i class="fa-solid fa-square-pen" @click="editAllMenus()"></i>
-                        <span class="subtitle">工作檯</span>
-                        <select>
+                        <i class="fa-solid fa-square-pen" :class="{ 'disIcon': selectedCategory == null }"
+                            :style="{ 'pointer-events': selectedCategory == null ? 'none' : 'auto' }"
+                            @click="editWorkbench()"></i>
+                        <span class="subtitle" v-if="editingWorkbench">工作檯</span>
+                        <select v-if="editingWorkbench" @change="updateWorkbench">
                             <option value="0">工作檯選擇</option>
-                            <option value="1">漢堡檯</option>
-                            <option value="2">吐司檯</option>
-                            <option value="3">煎檯</option>
-                            <option value="4">冷盤檯</option>
-                            <option value="5">煮製檯</option>
-                            <option value="6">炸檯</option>
-                            <option value="7">飲料檯</option>
+                            <option v-for="wsItem in workstationData" :key="wsItem.workstationId"
+                                :value="wsItem.workstationId">
+                                {{ wsItem.workstationName }}
+                            </option>
                         </select>
+                        <span class="subtitle" v-if="!editingWorkbench && selectedWorkstation">
+                            {{ selectedWorkstation.workstationName }}
+                        </span>
                     </div>
                     <div class="mtRight">
                         <div class="saveBtn" @click="saveMenu()">儲存</div>
@@ -971,7 +1010,7 @@ export default {
                                 <option value="0">工作檯選擇</option>
                             </select>
                         </div>
-                        <div class="itembot">
+                        <div class="itemBot">
                             <div class="itemStatus" v-if="!editIndexList.includes(item.mealName)"
                                 :class="{ soldOut: item.available == false }">
                                 <span>{{ item.available ? "供應中" : "售完" }}</span>
@@ -980,7 +1019,7 @@ export default {
                                 <span>{{ item.available ? "供應中" : "售完" }}</span>
                             </div>
                             <div class="itemIcon">
-                                <!-- <i class="fa-solid fa-square-pen" @click="editMenuFromDB(item.mealName)"></i> -->
+                                <i class="fa-solid fa-square-pen" @click="editMenuFromDB(item.mealName)"></i>
                                 <i class="fa-solid fa-trash-can" @click="deleteMenuFromDB(item.mealName)"></i>
                             </div>
                         </div>
@@ -1002,7 +1041,7 @@ export default {
                                 <option value="0">工作檯選擇</option>
                             </select>
                         </div>
-                        <div class="itembot">
+                        <div class="itemBot">
                             <div class="itemStatus" :class="{ flip: !menu.available }" @click="switchSta(menu)">
                                 <span>{{ menu.available ? "供應中" : "售完" }}</span>
                             </div>
@@ -1319,9 +1358,10 @@ $editColor: #e6b800;
                     margin-bottom: 1%;
                     font-family: "Noto Sans TC", sans-serif;
                 }
-                
-                .mtMid{
+
+                .mtMid {
                     width: 30%;
+
                     .subtitle {
                         font-size: 15px;
                         font-weight: bold;
@@ -1329,23 +1369,27 @@ $editColor: #e6b800;
                         font-family: "Noto Sans TC", sans-serif;
                         color: $borderBot;
                     }
-    
+
                     .fa-square-pen {
                         font-size: 18px;
                         margin-right: 1%;
                         cursor: pointer;
-    
+
                         &:hover {
                             color: $editColor;
                         }
                     }
 
-                    select
-                    ,option{
+                    select,
+                    option {
                         width: 35%;
                         font-weight: bold;
                         letter-spacing: 3px;
                         font-family: "Noto Sans TC", sans-serif;
+                    }
+
+                    .disIcon {
+                        color: $borderBot;
                     }
 
                 }
@@ -1501,7 +1545,7 @@ $editColor: #e6b800;
                         }
                     }
 
-                    .itembot {
+                    .itemBot {
                         grid-area: 8 / 1 / 9 / 7;
                         margin: 0 4%;
                         display: flex;
@@ -1542,7 +1586,7 @@ $editColor: #e6b800;
                             width: 35%;
                             margin-left: 8%;
                             display: flex;
-                            justify-content: end;
+                            justify-content: space-between;
                             align-items: center;
 
                             .fa-solid {
