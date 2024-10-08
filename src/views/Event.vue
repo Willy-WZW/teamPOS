@@ -104,7 +104,7 @@ export default {
                     (startYear === currentYear || endYear === currentYear);
             });
         },
-        
+
         handleDateClick(info) {
             const calendarApi = info.view.calendar;
             calendarApi.gotoDate(info.date);
@@ -124,17 +124,19 @@ export default {
             });
         },
         showAnnouncePreview(announce) {
+            const imageHtml = announce.announcePictureName
+                ? `<img src="${announce.announcePictureName}" alt="圖片預覽" style="width: 100%; height: auto;"/>`
+                : "";
             Swal.fire({
                 html: `
-                <img src="${announce.announcePictureName}" alt="圖片預覽" style="width: 100%; height: auto;"/>
-                <h3 style="text-align: left;"> ${announce.announceTitle}</h3>
-                <p style="text-align: left;">活動時間 ${announce.announceStartTime} ~ ${announce.announceEndTime}</p>
-                <p style="text-align: left;">${announce.announceContent}</p>
-            `,
+            ${imageHtml}
+            <h3 style="text-align: left;">${announce.announceTitle}</h3>
+            <p style="text-align: left;">活動時間 ${announce.announceStartTime} ~ ${announce.announceEndTime}</p>
+            <p style="text-align: left;">${announce.announceContent}</p>
+        `,
                 focusConfirm: false,
                 confirmButtonText: '關閉',
                 width: '800px',
-
             });
         },
     }
@@ -159,8 +161,9 @@ export default {
                     <div class="announcebox-content">
                         <div v-for="announce in displayedAnnouncements" :key="announce.announceId"
                             class="announcement-item" @click="showAnnouncePreview(announce)">
-                            <img :src="announce.announcePictureName" v-if="announce.announcePictureName"
+                            <img v-if="announce.announcePictureName" :src="announce.announcePictureName"
                                 class="preview-image" />
+                            <img v-else src="/images/Logo.jpg" class="preview-image" />
                             <div class="announcetext">
                                 <h3>{{ announce.announceTitle }}</h3>
                                 <span>活動時間{{ announce.announceStartTime }}~</span>

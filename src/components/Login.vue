@@ -140,7 +140,7 @@ export default {
 <template>
     <div class="login-container">
         <div class="login-box">
-            <img src="../assets/Logo.jpg" alt="logo" class="logo" />
+            <img src="/images/Logo.jpg" alt="logo" class="logo" />
             <h2>登入</h2>
             <form @submit.prevent="handleSubmit">
                 <div class="input-group">

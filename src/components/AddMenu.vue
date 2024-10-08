@@ -229,23 +229,30 @@ export default {
             this.custList.splice(index, 1)
         },
         addOption(custIndex) {
-            this.custList[custIndex].options.push({
-                optionContent: "", // 選項內容
-                extraPrice: "" // 選項金額
-            });
-            this.$nextTick(() => {
-                // 獲取特定的 custInput 容器
-                const custInputs = this.$el.querySelectorAll('.custInput');
-                const targetCustInput = custInputs[custIndex];
+            // 獲取 custList 的最後一個索引
+            const lastCustIndex = this.custList.length - 1;
+            const lastCustItem = this.custList[lastCustIndex];
 
-                if (targetCustInput) {
-                    // 在該 custInput 容器中找到最後一個 oneOption 元素
-                    const lastOption = targetCustInput.querySelector('.oneOption:last-child');
-                    if (lastOption) {
-                        lastOption.scrollIntoView({ behavior: 'smooth' }); // 平滑滾動到新增的選項
+            // 檢查最後一個項目是否存在，然後新增選項
+            if (lastCustItem) {
+                lastCustItem.options.push({
+                    optionContent: "", // 選項內容
+                    extraPrice: "" // 選項金額
+                });
+
+                // 平滑滾動到新增的選項
+                this.$nextTick(() => {
+                    const groupedOptionsLength = Object.keys(this.groupedOptions).length;
+                    const custInputs = this.$el.querySelectorAll('.custInput');
+                    const targetCustInput = custInputs[lastCustIndex + groupedOptionsLength]; // 動態計算目標索引
+                    if (targetCustInput) {
+                        const lastOption = targetCustInput.querySelector('.oneOption:last-child');
+                        if (lastOption) {
+                            lastOption.scrollIntoView({ behavior: 'smooth' });
+                        }
                     }
-                }
-            });
+                });
+            }
         },
         // 儲存菜單分類
         async saveCategory() {
@@ -921,18 +928,23 @@ export default {
             <div class="menuArea">
                 <div class="menuTop">
                     <div class="mtLeft">
-                        <span>餐點</span>
+                        <span>{{ selectedCategory || '菜單分類' }}</span>
+                    </div>
+                    <div class="mtMid">
+                        <i class="fa-solid fa-square-pen" @click="editAllMenus()"></i>
                         <span class="subtitle">工作檯</span>
                         <select>
                             <option value="0">工作檯選擇</option>
+                            <option value="1">漢堡檯</option>
+                            <option value="2">吐司檯</option>
+                            <option value="3">煎檯</option>
+                            <option value="4">冷盤檯</option>
+                            <option value="5">煮製檯</option>
+                            <option value="6">炸檯</option>
+                            <option value="7">飲料檯</option>
                         </select>
-                        <i class="fa-solid fa-square-pen" @click="editAllMenus()"></i>
                     </div>
                     <div class="mtRight">
-                        <div class="selCate">
-                            <span>{{ selectedCategory || '菜單分類' }}</span>
-                            <div class="countOp">{{ categoryMenuCount[selectedCategoryId] || 0 }}</div>
-                        </div>
                         <div class="saveBtn" @click="saveMenu()">儲存</div>
                     </div>
                 </div>
@@ -1018,11 +1030,11 @@ export default {
                 <div class="custItem">
                     <div class="addItem" @click="addCust()">+&nbsp&nbsp新增客製化選項</div>
                     <!-- 已存在資料庫的客製化選項 -->
-                    <div class="custInput" v-for="(item, index) in Object.values(groupedOptions)" :key="index">
+                    <div class="custInput" v-for="(item, dbIndex) in Object.values(groupedOptions)" :key="dbIndex">
                         <div class="cuTitle">
                             <span>{{ item.optionTitle }}</span>
-                            <span v-if="!editStates[index]">{{ item.optionType == 'checkbox' ? '多選' : '單選' }}</span>
-                            <select v-else v-model="item.optionType" @change="onTypeChange(item.optionType, index)">
+                            <span v-if="!editStates[dbIndex]">{{ item.optionType == 'checkbox' ? '多選' : '單選' }}</span>
+                            <select v-else v-model="item.optionType" @change="onTypeChange(item.optionType, dbIndex)">
                                 <option value="checkbox">多選</option>
                                 <option value="radio">單選</option>
                             </select>
@@ -1034,20 +1046,20 @@ export default {
                                 </div>
                                 <div class="optionPrice">
                                     <span>$</span>
-                                    <span v-if="!editStates[index]">{{ option.extraPrice }}</span>
+                                    <span v-if="!editStates[dbIndex]">{{ option.extraPrice }}</span>
                                     <input v-else v-model="option.extraPrice" class="editOpPrice" type="number"
-                                        @input="onPriceChange(option, index, opIndex)">
+                                        @input="onPriceChange(option, dbIndex, opIndex)">
                                 </div>
                             </div>
                         </div>
                         <div class="cuInputCtrl">
-                            <i class="fa-solid fa-trash-can" @click="deleteCustFromDB(index)"></i>
+                            <i class="fa-solid fa-trash-can" @click="deleteCustFromDB(dbIndex)"></i>
                             <i class="fa-solid fa-pencil" @click="editThisCust(item)"></i>
                             <i class="fa-solid disable fa-circle-plus" style="pointer-events: none;"></i>
                         </div>
                     </div>
                     <!-- 動態新增的輸入框 -->
-                    <div class="custInput" v-for="(cust, index) in custList" :key="index">
+                    <div class="custInput" v-for="(cust, custIndex) in custList" :key="custIndex">
                         <div class="cuTitle">
                             <input type="text" v-model="cust.optionTitle" placeholder="客製化標題">
                             <select v-model="cust.optionType">
@@ -1071,8 +1083,8 @@ export default {
                             </div>
                         </div>
                         <div class="cuInputCtrl">
-                            <i class="fa-solid fa-trash-can" @click="removeCust(index)"></i>
-                            <i class="fa-solid fa-circle-plus" @click="addOption(index)"></i>
+                            <i class="fa-solid fa-trash-can" @click="removeCust(custIndex)"></i>
+                            <i class="fa-solid fa-circle-plus" @click="addOption(custIndex)"></i>
                         </div>
                     </div>
                 </div>
@@ -1299,30 +1311,47 @@ $editColor: #e6b800;
                 align-items: center;
 
                 .mtLeft {
-                    width: 50%;
+                    width: 30%;
                     font-size: 30px;
                     font-weight: bold;
                     letter-spacing: 3px;
                     margin-left: 1%;
                     margin-bottom: 1%;
                     font-family: "Noto Sans TC", sans-serif;
-
+                }
+                
+                .mtMid{
+                    width: 30%;
                     .subtitle {
                         font-size: 15px;
+                        font-weight: bold;
+                        letter-spacing: 3px;
+                        font-family: "Noto Sans TC", sans-serif;
                         color: $borderBot;
                     }
-
+    
                     .fa-square-pen {
+                        font-size: 18px;
+                        margin-right: 1%;
                         cursor: pointer;
-
+    
                         &:hover {
                             color: $editColor;
                         }
                     }
+
+                    select
+                    ,option{
+                        width: 35%;
+                        font-weight: bold;
+                        letter-spacing: 3px;
+                        font-family: "Noto Sans TC", sans-serif;
+                    }
+
                 }
 
                 .mtRight {
-                    width: 50%;
+                    width: 20%;
                     display: flex;
                     justify-content: end;
                     align-items: center;
@@ -1355,7 +1384,7 @@ $editColor: #e6b800;
                     }
 
                     .saveBtn {
-                        width: 17.4%;
+                        width: 43.4%;
                         height: 91%;
                         border-radius: 5px;
                         color: white;
