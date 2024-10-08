@@ -9,7 +9,7 @@ export default {
             // editeMode:true,
             editeMode:false,
             createMode:false,
-            menus:[{"name":"豬排漢堡", "price": 160},
+            menus:[{"name":"豬排漢堡", "price": 160,},
                 {"name":"雞排漢堡", "price": 160},
                 {"name":"美味蟹堡", "price": 160},
                 {"name":"炸雞", "price": 50},
@@ -25,7 +25,6 @@ export default {
             comboDetail:[], // [[], []]
             comboContentInnerQuantity:0,
             discountAmount:0,
-
             //searchCombo container 
             comboItemsList:[]
 
@@ -44,6 +43,7 @@ export default {
             this.comboItemsList.forEach(comboItem => {
                 comboItem.comboDetail = JSON.parse(comboItem.comboDetail);
             });
+            console.log(response)
         })
         .catch(error => {
                 console.error("Error:", error.response ? error.response.data : error.message);
