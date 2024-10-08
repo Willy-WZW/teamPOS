@@ -1,6 +1,7 @@
 <script>
 import Swal from 'sweetalert2';
 import axios from 'axios';
+import ComboComponent from './combo/ComboComponent.vue';
 export default {
     data() {
         return {
@@ -26,7 +27,12 @@ export default {
             workstationData: [],
             selectedWorkstationId: "", //當前選擇的工作檯ID
             selectedWorkstation: "", //當前選擇的工作檯名稱
+            comboPage:true,
+            // comboPage:false
         }
+    },
+    components:{
+        ComboComponent
     },
     methods: {
         startTouch(event, index) {
@@ -962,7 +968,7 @@ export default {
             <div class="editCategory" @click="editCategory()">編輯</div>
         </div>
         <div class="menuAndCust">
-            <div class="menuArea">
+            <div class="menuArea" v-if="!comboPage">
                 <div class="menuTop">
                     <div class="mtLeft">
                         <span>{{ selectedCategory || '菜單分類' }}</span>
@@ -1053,6 +1059,7 @@ export default {
                     </div>
                 </div>
             </div>
+            <ComboComponent v-if="comboPage"></ComboComponent>
             <div class="customerization">
                 <div class="cuTop">
                     <div class="cuLeft">
