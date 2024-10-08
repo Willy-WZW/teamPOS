@@ -111,6 +111,11 @@ export default {
         // 新增、刪除、更新桌號操作
         async saveChanges() {
             try {
+                // 確保 originalTableList 不為 undefined
+                if (!this.originalTableList) {
+                    this.originalTableList = [];
+                }
+
                 // 進行所有桌位資料的檢查
                 for (const table of this.tableList) {
                     // 檢查桌號是否有輸入
@@ -123,7 +128,7 @@ export default {
                         return; // 阻止儲存操作
                     }
 
-                    // 檢查桌號格式是否正確（大寫字母+兩個數字）
+                     // 檢查桌號格式是否正確（大寫字母+兩個數字）
                     const tableNumberPattern = /^[A-Z]\d{2}$/;
                     if (!table.table_number.trim().match(tableNumberPattern)) {
                         Swal.fire({
@@ -149,9 +154,9 @@ export default {
                 // 處理桌位更新
                 for (const table of this.tableList) {
                     const originalTable = this.originalTableList.find(orig => orig.table_number === table.table_number);
-                    
+
                     if (originalTable) {
-                        // 判斷桌號或容納人數是否改變，若改變則發送更新請求
+                        // 如果桌號或容納人數發生變更，則進行更新
                         if (originalTable.table_number !== table.table_number || originalTable.table_capacity !== table.table_capacity) {
                             await axios.put('http://localhost:8080/tableManagement/updateTable', null, {
                                 params: {
