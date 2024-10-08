@@ -22,6 +22,10 @@ export default {
             this.$emit('changeComponent', 'BusiSetting');
             this.selectRoute('busiSetting');
         },
+        authorizations(){
+            this.$emit('changeComponent', 'Authorizations');
+            this.selectRoute('authorizations');
+        },
         selectRoute(option){
             this.selected = option
         }
@@ -43,6 +47,9 @@ export default {
         <div class="busiSetting":class="{isSelected: selected === 'busiSetting'}" @click="selectBusiSetting">
             <span>桌位與訂位</span>
         </div>
+        <div class="authorizations":class="{isSelected: selected === 'authorizations'}" @click="authorizations">
+            <span>權限管理</span>
+        </div>
     </div>
 </template>
 
@@ -63,7 +70,8 @@ $textColor: #697077;
     .menuManage,
     .workbench,
     .announce,
-    .busiSetting {
+    .busiSetting ,
+    .authorizations {
         width: 10%;
         height: 100%;
         cursor: pointer;
@@ -81,7 +89,8 @@ $textColor: #697077;
     .menuManage::before,
     .workbench::before,
     .announce::before,
-    .busiSetting::before {
+    .busiSetting::before,
+    .authorizations::before{
         content: "";
         position: absolute;
         bottom: 0;

@@ -5,6 +5,7 @@ import FullCalendar from '@fullcalendar/vue3'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import interactionPlugin from '@fullcalendar/interaction'
 import zhLocale from '@fullcalendar/core/locales/zh-tw'
+import Swal from 'sweetalert2';
 
 export default {
     components: {
@@ -55,7 +56,6 @@ export default {
                 });
         },
 
-
         getEvents() {
             const colorPalette = ['#FF0000', '#0000E3', '#00BB00', '#BF0060'];
             const assignedEvents = [];
@@ -67,8 +67,11 @@ export default {
                     .filter(event => !(new Date(event.end) < startDate || new Date(event.start) > endDate))
                     .map(event => event.color);
 
-                const availableColors = colorPalette.filter(color => !overlappingColors.includes(color));
-                const eventColor = availableColors.length > 0 ? availableColors[0] : colorPalette[0];
+                // 使用隨機顏色，避免重疊顏色
+                let eventColor;
+                do {
+                    eventColor = colorPalette[Math.floor(Math.random() * colorPalette.length)];
+                } while (overlappingColors.includes(eventColor));
 
                 assignedEvents.push({
                     title: announce.announceTitle,
@@ -101,6 +104,7 @@ export default {
                     (startYear === currentYear || endYear === currentYear);
             });
         },
+
         handleDateClick(info) {
             const calendarApi = info.view.calendar;
             calendarApi.gotoDate(info.date);
@@ -117,6 +121,22 @@ export default {
                 const startDate = new Date(announce.announceStartTime).toISOString().split("T")[0];
                 const endDate = new Date(announce.announceEndTime).toISOString().split("T")[0];
                 return this.selectDate >= startDate && this.selectDate <= endDate;
+            });
+        },
+        showAnnouncePreview(announce) {
+            const imageHtml = announce.announcePictureName
+                ? `<img src="${announce.announcePictureName}" alt="圖片預覽" style="width: 100%; height: auto;"/>`
+                : "";
+            Swal.fire({
+                html: `
+            ${imageHtml}
+            <h3 style="text-align: left;">${announce.announceTitle}</h3>
+            <p style="text-align: left;">活動時間 ${announce.announceStartTime} ~ ${announce.announceEndTime}</p>
+            <p style="text-align: left;">${announce.announceContent}</p>
+        `,
+                focusConfirm: false,
+                confirmButtonText: '關閉',
+                width: '800px',
             });
         },
     }
@@ -140,9 +160,10 @@ export default {
                     </div>
                     <div class="announcebox-content">
                         <div v-for="announce in displayedAnnouncements" :key="announce.announceId"
-                            class="announcement-item">
-                            <img :src="announce.announcePictureName" v-if="announce.announcePictureName"
+                            class="announcement-item" @click="showAnnouncePreview(announce)">
+                            <img v-if="announce.announcePictureName" :src="announce.announcePictureName"
                                 class="preview-image" />
+                            <img v-else src="/images/Logo.jpg" class="preview-image" />
                             <div class="announcetext">
                                 <h3>{{ announce.announceTitle }}</h3>
                                 <span>活動時間{{ announce.announceStartTime }}~</span>
@@ -206,7 +227,7 @@ export default {
 
 .announcebox-content {
     width: 100%;
-    max-height: 870px;
+    max-height: 620px;
     overflow-y: scroll;
     display: flex;
     flex-direction: column;
@@ -217,8 +238,9 @@ export default {
 .announcement-item {
     width: 300px;
     height: 300px;
-    margin-top: 5%;
-    margin-bottom: 5%;
+    margin-top: 4%;
+    margin-bottom: 4%;
+    cursor: pointer;
 }
 
 .preview-image {
@@ -283,7 +305,7 @@ export default {
 }
 
 .fc .fc-daygrid-day {
-    width: 100px;
-    height: 120px;
+    width: 70px;
+    height: 85px;
 }
 </style>

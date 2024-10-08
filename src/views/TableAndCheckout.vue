@@ -1,28 +1,22 @@
 <script>
 import LeftBar from "@/components/LeftBar.vue";
 import interact from 'interactjs';
+import axios from 'axios';
 
 export default {
     data () {
         return {
             // 桌位資訊 tableArea 數據
             isDragging: false,   // 用來追踪是否是拖動動作
-            tables: [
-                { id: 1, name: "A01", capacity: 4, status: "active" },
-                { id: 2, name: "A02", capacity: 2, status: "reserved" },
-                { id: 3, name: "A03", capacity: 6, status: "available" },
-                { id: 4, name: "A04", capacity: 10, status: "active" },
-                { id: 5, name: "A05", capacity: 8, status: "available" },
-                // 可依據需要新增更多桌位
-            ],
+            tables: [],
 
             // 點擊桌位側邊欄 tableSlider 數據
             selectedTable: null, // 存儲被選擇的桌位
             memberPhoneNumber: '', // 會員電話號碼
             memberDiscount: null, // 會員折扣
             orderItems: [  // 假設餐點明細資料
-                { name: '卡拉雞腿堡', notes: ['不加美乃滋', '加蛋'], price: 150 },
-                { name: '1號餐', notes: ['麥香雞堡', '薯條', '可樂'], price: 200 },
+                { name: '卡拉雞腿堡(少冰,不要蛋,不要蛋)', notes: [], price: 150 },
+                { name: '1號餐', notes: ['麥香雞堡(少冰)', '薯條', '可樂'], price: 200 },
                 { name: '2號餐', notes: ['海洋珍珠堡', '雞塊', '奶茶'], price: 230 },
                 { name: '3號餐', notes: ['麥香雞堡', '雞塊', '奶茶'], price: 210 },
                 { name: '4號餐', notes: ['海洋珍珠堡', '薯條', '可樂'], price: 220 },
@@ -52,6 +46,18 @@ export default {
                 { id: 5, name: '翁明泰', phone: '0911223345', table: 'A08', time: '20:30', date: '2024-10-03', partySize: 3 },
                 { id: 6, name: '孫秉家', phone: '0911223345', table: 'A06', time: '19:00', date: '2024-10-03', partySize: 6 }
             ],
+            // 訂位資訊
+            newReservation: {
+            partySize: '',  // 人數
+            date: '',       // 日期
+            time: '',       // 時段
+            name: '',       // 訂位人姓名
+            title: '先生',  // 預設稱謂
+            phone: '',      // 電話號碼
+            email: ''       // 電子郵件
+            },
+            availableTimes: ['11:00', '12:30', '14:00', '17:00', '18:30', '20:00'], // 可選時段
+            showReservationModal: false,
             
             // 現場候位 waitlist 數據
             filteredWaitlist: [], // 根據日期篩選後的候位資訊（稍後初始化）
@@ -71,6 +77,12 @@ export default {
     },
 
     mounted() {
+        this.fetchTables().then(() => {
+            this.$nextTick(() => {
+                this.restoreTablePositions(); // 確保 DOM 渲染完成後再還原桌位位置
+            });
+        });
+
         // 初始化可拖動元素
         interact('.tableItem').draggable({
             listeners: {
@@ -105,11 +117,16 @@ export default {
 
                     console.log(`桌位 ${tableId} 的位置已保存`, { x, y });
                 }
-            }
-        });
+            },
 
-        // 加載時恢復桌位位置信息
-        this.restoreTablePositions();
+            modifiers: [
+                interact.modifiers.restrict({
+                    restriction: '.tableGrid', // 限制桌位只能在 tableGrid 容器內移動
+                    endOnly: true, // 僅在拖動結束時生效
+                    elementRect: { top: 0, left: 0, bottom: 1, right: 1 } // 元素邊界
+                })
+            ]
+        });
     },
 
     computed: {
@@ -142,6 +159,21 @@ export default {
     },
 
     methods: {
+        // 加載桌位
+        async fetchTables() {
+            try {
+                const response = await axios.get('http://localhost:8080/tableManagement/getAllTables');
+                // 將 API 返回的桌位數據轉換成符合前端顯示的結構
+                this.tables = response.data.map(table => ({
+                id: table.tableNumber,
+                capacity: table.tableCapacity,
+                status: table.tableStatus,  // 使用原本的狀態
+                }));
+                console.log('桌位資料加載成功:', this.tables);
+            } catch (error) {
+                console.error('無法獲取桌位資料:', error);
+            }
+        },
         // 刷新
         refresh() {
             // 可在此實作刷新功能
@@ -174,6 +206,8 @@ export default {
             const positions = JSON.parse(localStorage.getItem('tablePositions')) || {};
             const tables = this.$refs.tableItem;
 
+            if (Array.isArray(tables)) {
+            // 如果 $refs 是陣列，遍歷每個桌位
             tables.forEach(table => {
                 const tableId = table.getAttribute('data-id');
                 if (positions[tableId]) {
@@ -183,6 +217,18 @@ export default {
                     table.setAttribute('data-y', y);
                 }
             });
+            } else if (tables) {
+                // 單一桌位處理
+                const tableId = tables.getAttribute('data-id');
+                if (positions[tableId]) {
+                    const { x, y } = positions[tableId];
+                    tables.style.transform = `translate(${x}px, ${y}px)`;
+                    tables.setAttribute('data-x', x);
+                    tables.setAttribute('data-y', y);
+                }
+            } else {
+                console.error('無法找到任何桌位元素');
+            }
         },
 
         // 訂位資訊日期切換
@@ -215,6 +261,44 @@ export default {
                 this.memberDiscount = 100; // 默認無折扣
             }
         },
+
+        // 選擇時段
+    selectTimeSlot(time) {
+      this.reservation.timeSlot = time;
+    },
+    // 關閉訂位模態視窗
+    closeReservationModal() {
+      this.showReservationModal = false;
+      this.resetReservationData();
+    },
+    // 確認訂位
+    confirmReservation() {
+      if (this.validateReservation()) {
+        // 在這裡提交訂位資訊（如調用 API 或是更新資料）
+        console.log('訂位成功', this.reservation);
+
+        // 關閉視窗並重置表單
+        this.closeReservationModal();
+      } else {
+        alert('請填寫完整的訂位資訊');
+      }
+    },
+    // 重置訂位表單
+    resetReservationData() {
+      this.reservation = {
+        partySize: '',
+        date: '',
+        timeSlot: '',
+        name: '',
+        phone: '',
+        email: ''
+      };
+    },
+    // 驗證表單資料
+    validateReservation() {
+      const { partySize, date, timeSlot, name, phone, email } = this.reservation;
+      return partySize && date && timeSlot && name && phone && email;
+    }
     },
 };
 </script>
@@ -250,7 +334,7 @@ export default {
                 <div v-for="table in tables" :key="table.id" :data-id="table.id" class="tableItem" ref="tableItem" 
                 :style="{width: `${getWidthByCapacity(table.capacity)}px`, height: `${getHeightByCapacity(table.capacity)}px`}">
                     <div :class="['circle', table.status]" @click="selectTable(table)">
-                        <div class="tableNumber">{{ table.name }}</div>
+                        <div class="tableNumber">{{ table.id }}</div>
                         <div class="tableCapacity">
                             <i class="fa-solid fa-user-group"></i>
                             {{ table.capacity }}
@@ -322,7 +406,7 @@ export default {
                 </div>
             </div>
 
-            <button v-if="viewType === 'reservation'" class="newReservation">
+            <button v-if="viewType === 'reservation'" class="newReservation" @click="showReservationModal = true">
                 <i class="fa-solid fa-plus"></i>
                 新增訂位
             </button>
@@ -365,11 +449,11 @@ export default {
             </button>
         </div>
 
-        <!-- 側邊欄區域 -->
+        <!-- 結帳側邊欄區域 -->
         <div v-if="selectedTable" class="sidebarArea">
             <!-- 黑色背景層 -->
             <div class="sidebarBackground" @click="closePanel"></div>
-    
+
             <!-- 側邊欄 -->
             <div class="sidebar">
                 <div class="sideHeader">
@@ -383,7 +467,7 @@ export default {
                     <!-- 桌號、訂單編號、會員電話 -->
                     <div class="dataArea">
                         <!-- 桌號 -->
-                        <div class="tableNumber">{{ selectedTable.name }}</div>
+                        <div class="tableNumber">{{ selectedTable.id }}</div>
 
                         <!-- 訂單編號 -->
                         <div class="orderNumber">
@@ -391,7 +475,7 @@ export default {
                             #202409251509{{ selectedTable.name }}
                         </div>
 
-                        <!-- 會員電話輸入框 -->
+                        <!-- 會員電話輸入框 
                         <div class="memberArea">
                             <div class="memberPhone">
                                 <input type="search" class="phoneInput" placeholder="輸入會員電話" v-model="memberPhoneNumber"/>
@@ -400,7 +484,7 @@ export default {
                             <div v-if="memberDiscount" class="memberDiscount">
                                 <span>黃金會員 {{ memberDiscount }} 折</span>
                             </div>
-                        </div>
+                        </div>-->
                     </div>
                 </div>
 
@@ -433,10 +517,10 @@ export default {
                                 <p>總金額</p> 
                                 $ {{ total }}
                             </div>
-                            <div class="priceDiscount">
+                            <!-- <div class="priceDiscount">
                                 <p>折扣</p>
                                 黃金會員 {{ memberDiscount || 100 }} 折
-                            </div>
+                            </div> -->
                             <div class="summary">
                                 <p>小計</p>
                                 $ {{ subtotal }}
@@ -497,6 +581,88 @@ export default {
                             <button class="confirmButton">確認付款</button>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 新增訂位 Modal -->
+        <div v-if="showReservationModal" class="reservationModal" @click="closeReservationModal">
+            <div class="modalContent">
+                <!-- 訂位區域 -->
+                <div class="reserveInfoArea">
+                    <h3 class="reserveInfoTitle">訂位資訊</h3>
+                
+                    <div class="partySizeAndDateArea">
+                        <!-- 人數選擇 -->
+                        <div class="partySizeArea">
+                            <label for="partySize">人數</label>
+                            <select v-model="newReservation.partySize">
+                                <option disabled value="">選擇人數</option>
+                                <option v-for="n in 10" :key="n" :value="n">{{ n }}</option>
+                            </select>
+                        </div>
+
+                        <!-- 日期選擇 -->
+                        <div class="dateArea">
+                            <label for="date">日期</label>
+                            <input type="date" v-model="newReservation.date" />
+                        </div>
+                    </div>
+
+
+                <!-- 時段選擇 -->
+                    <div class="timeSlotsArea">
+                        <label for="time">時段</label>
+                        <div class="timeButtonArea">
+                            <button  v-for="time in availableTimes" :key="time" :class="{ selected: newReservation.time === time }" @click="newReservation.time = time">
+                                {{ time }}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 聯絡資料 -->
+                <div class="contactInfoArea">
+                    <h3 class="contactInfoTitle">聯絡資料</h3>
+
+                    <div class="nameAndTitleArea">
+                        <!-- 訂位人姓名 -->
+                        <div class="nameArea">
+                            <label for="name">訂位人姓名</label>
+                            <input type="text" v-model="newReservation.name"/>
+                        </div>
+                        <!-- 稱謂選擇 -->
+                        <div class="titleArea">
+                            <label>
+                                <input type="radio" v-model="newReservation.title" value="先生" /> 先生
+                            </label>
+                            <label>
+                                <input type="radio" v-model="newReservation.title" value="小姐" /> 小姐
+                            </label>
+                            <label>
+                                <input type="radio" v-model="newReservation.title" value="其他" /> 其他
+                            </label>
+                        </div>
+                    </div>
+
+
+                    <!-- 電話號碼 -->
+                    <div class="phoneArea">
+                        <label for="phone">電話號碼</label>
+                        <input type="text" v-model="newReservation.phone" />
+                    </div>
+
+                    <!-- 電子郵件 -->
+                    <div class="mailArea">
+                        <label for="email">電子郵件Email</label>
+                        <input type="email" v-model="newReservation.email" />
+                    </div>
+                </div>
+
+                <!-- 按鈕 -->
+                <div class="buttonArea">
+                    <button class="cancelButton" @click="closeReservationModal">取消</button>
+                    <button class="addButton" @click="addReservation">確認</button>
                 </div>
             </div>
         </div>
@@ -595,13 +761,14 @@ export default {
             }
 
             .tableGrid {
-                height: 90%;
+                height: 90%; /* 確保父容器有具體高度 */
                 border-radius: 10px;
                 background-color: #f2f4f8;
                 display: grid;
                 grid-template-columns: repeat(4, 1fr);
                 gap: 20px;
                 justify-items: center;
+                overflow: hidden; /* 防止元素超出容器 */
 
                 .tableItem {
                     border: 1px solid #ccc;
@@ -612,6 +779,7 @@ export default {
                     justify-content: center;
                     align-items: center;
                     position: relative;
+                    cursor: move; 
 
                     .circle {
                         width: 100px;
@@ -622,6 +790,7 @@ export default {
                         justify-content: center;
                         align-items: center;
                         flex-direction: column;
+                        cursor: pointer;
 
                         &.active {
                             background-color: #878d96; /* 用餐中狀態 */
@@ -1309,6 +1478,278 @@ export default {
                                 cursor: pointer;
                             }
                         }
+                    }
+                }
+            }
+        }
+
+        .reservationModal {
+            width: 100dvw;
+            height: 100dvh;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+
+            .modalContent {
+                width: 50%;
+                height: 75%;
+                border-radius: 10px;
+                background: white;
+                padding: 20px;
+
+                .reserveInfoArea {
+                    width: 100%;
+                    height: 45%;
+
+                    .reserveInfoTitle {
+                        font-size: 20px;
+                        letter-spacing: 3px;
+                        margin-bottom: 8px;
+                    }
+
+                    .partySizeAndDateArea {
+                        height: 35%;
+                        border-top: 2px solid #C1C7CD;
+                        display: flex;
+                        justify-content: space-between;
+                        padding: 10px;
+
+                        .partySizeArea {
+                            width: 50%;
+                            height: 100%;
+                            display: flex;
+                            flex-direction: column;
+                            justify-content: space-evenly;
+
+                            label {
+                                font-size: 17px;
+                                letter-spacing: 4px;
+                                margin-bottom: 5px;
+                            }
+
+                            select {
+                                width: 65%;
+                                height: 35px;
+                                border-radius: 10px;
+                                border: 1px solid #C1C7CD;
+                                letter-spacing: 5px;
+                                padding-left: 10px;
+                                appearance: none; /* 隱藏默認的箭頭 */
+                                background: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyLjcxNzUgNi41NDc1QzEzLjE3OTcgNi4xNDcyIDEzLjI4MjIgNS40MTMgMTIuOTg3MiA0LjkzMjVDMTIuNjkzMiA0LjQ1MjUgMTIuMDEwNCA0LjQ1MjUgMTEuNzE3IDQuOTMyNUw4IDkuMzM1NEw0LjI4MjUgNC45MzI1QzMuOTg5NiA0LjQ1MjUgMy4zMDY4IDQuNDUyNSAyLjAxMjggNC45MzI1QzEuNzE4OCA1LjQxMyAxLjgyMTEgNi4xNDcyIDIuMjg0MTIgNi41NDc1TDcuMzE1MTIgMTEuNTA2QzcuNzU4NDEgMTEuOTYxIDguMjQxNiAxMS45NjEgOC42ODY4IDExLjUwNkMxMC4xNzA4IDEwLjI1NyAxMS41OTExIDguOTAzNTggMTIuNzE3NSA3LjY2MjVIMTIuNzE3NVoiIGZpbGw9IiMyMjIyMjIiLz4KPC9zdmc+') no-repeat; /* 使用 base64 格式的箭頭圖標 */
+                                background-position: calc(100% - 15px) center; /* 調整箭頭的位置，讓它距離左邊更近 */
+                                background-size: 15px; /* 調整箭頭大小 */
+                                outline: none;
+                                cursor: pointer;
+                            }
+                        }
+
+                        .dateArea {
+                            width: 35%;
+                            height: 100%;
+                            display: flex;
+                            flex-direction: column;
+                            justify-content: space-evenly;
+
+                            label {
+                                font-size: 17px;
+                                letter-spacing: 4px;
+                                margin-bottom: 5px;
+                            }
+
+                            input {
+                                width: 90%;
+                                height: 35px;
+                                border-radius: 10px;
+                                border: 1px solid #C1C7CD;
+                                text-indent: 3px;
+                                outline: none;
+                                cursor: pointer;
+                            }
+                        }
+                    }
+
+                    .timeSlotsArea {
+                        height: 50%;
+                        display: flex;
+                        flex-direction: column;
+                        padding: 10px;
+
+                        label {
+                            font-size: 17px;
+                            letter-spacing: 4px;
+                            margin-bottom: 5px;
+                        }
+
+                        .timeButtonArea {
+                            display: flex;
+                            justify-content: space-between;
+
+                            button {
+                                border: none;
+                                border-radius: 10px;
+                                background-color: #E5E8EB;
+                                font-size: 16px;
+                                padding: 15px 25px;
+                                cursor: pointer;
+
+                                &.selected {
+                                    background-color: #4D5358;
+                                    color: #FFFFFF;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                .contactInfoArea {
+                    width: 100%;
+                    height: 45%;
+
+                    .contactInfoTitle {
+                        font-size: 20px;
+                        letter-spacing: 3px;
+                        margin-bottom: 8px;
+                    }
+
+                    .nameAndTitleArea {
+                        height: 30%;
+                        border-top: 2px solid #C1C7CD;
+                        display: flex;
+                        padding: 10px;
+
+                        .nameArea {
+                            width: 50%;
+                            height: 100%;
+                            display: flex;
+                            flex-direction: column;
+                            justify-content: space-evenly;
+
+                            label {
+                                font-size: 17px;
+                                letter-spacing: 4px;
+                                margin-bottom: 5px;
+                            }
+
+                            input {
+                                width: 90%;
+                                height: 35px;
+                                border-radius: 10px;
+                                border: 1px solid #C1C7CD;
+                                text-indent: 5px;
+                                letter-spacing: 3px;
+                                outline: none;
+                                cursor: pointer;
+                            }
+                        }
+
+                        .titleArea {
+                            width: 35%;
+                            height: 100%;
+                            display: flex;
+                            justify-content: space-between;
+                            align-items: center;
+                            margin-top: 20px;
+
+                            label {
+                                font-size: 17px;
+                                letter-spacing: 4px;
+                                display: flex;
+                                align-items: center;  
+                                margin-right: 10px;
+                            }
+
+                            input[type="radio"] {
+                                margin-right: 10px; 
+                                cursor: pointer;  
+                            }
+                        }
+                    }
+
+                    .phoneArea {
+                        width: 100%;
+                        height: 30%;
+                        display: flex;
+                        flex-direction: column;
+                        justify-content: space-evenly;
+                        padding: 10px;
+
+                        label {
+                            font-size: 17px;
+                            letter-spacing: 4px;
+                            margin-bottom: 5px;
+                        }
+
+                        input {
+                            width: 70%;
+                            height: 35px;
+                            border-radius: 10px;
+                            border: 1px solid #C1C7CD;
+                            text-indent: 5px;
+                            letter-spacing: 3px;
+                            outline: none;
+                            cursor: pointer;
+                        }
+                    }
+
+                    .mailArea {
+                        width: 100%;
+                        height: 30%;
+                        display: flex;
+                        flex-direction: column;
+                        justify-content: space-evenly;
+                        padding: 10px;
+
+                        label {
+                            font-size: 17px;
+                            letter-spacing: 4px;
+                            margin-bottom: 5px;
+                        }
+
+                        input {
+                            width: 70%;
+                            height: 35px;
+                            border-radius: 10px;
+                            border: 1px solid #C1C7CD;
+                            text-indent: 5px;
+                            letter-spacing: 3px;
+                            outline: none;
+                            cursor: pointer;
+                        }
+                    }
+                }
+
+                .buttonArea {
+                    display: flex;
+                    justify-content: space-evenly;
+                    align-items: center;
+
+                    .cancelButton {
+                        border: none;
+                        border-radius: 10px;
+                        background-color: #DDE1E6;
+                        font-size: 15px;
+                        letter-spacing: 3px;
+                        margin-top: 15px;
+                        padding: 15px 140px;
+                        cursor: pointer;
+                        color: #21272A;
+                    }
+
+                    .addButton {
+                        border: none;
+                        border-radius: 10px;
+                        background-color: #343A3F;
+                        font-size: 15px;
+                        letter-spacing: 3px;
+                        padding: 15px 140px;
+                        margin-top: 15px;
+                        cursor: pointer;
+                        color: white;
                     }
                 }
             }
