@@ -2,111 +2,327 @@
 import LeftBar from '@/components/LeftBar.vue'
 import Header from '@/components/Header.vue'
 import Swal from 'sweetalert2';
+import axios from 'axios';
 export default {
     data() {
         return {
-            startX: 0,
-            translateX: 0,
-            supply: true,
-            categories: [
-                { text: "", translateX: 0 },
+            // editeMode:true,
+            editeMode:false,
+            createMode:false,
+            menus:[{"name":"豬排漢堡", "price": 160},
+                {"name":"雞排漢堡", "price": 160},
+                {"name":"美味蟹堡", "price": 160},
+                {"name":"炸雞", "price": 50},
+                {"name":"雞塊", "price": 40},
+                {"name":"紅茶", "price": 20},
+                {"name":"奶茶", "price": 30},
+                {"name":"可樂", "price": 20},
             ],
-            cgInput: [],
-            activeNames: [],
-            collapses: [],
-            
-            showComboArea:true
-        };
+            //edit template
+            comboItemIndex:null,
+            comboName:null,
+            selectedMeal:[],  // ['', '']
+            comboDetail:[], // [[], []]
+            comboContentInnerQuantity:0,
+            discountAmount:0,
+
+            //searchCombo container 
+            comboItemsList:[]
+
+        }
     },
     components: {
         LeftBar,
         Header
     },
+    created(){
+        axios.post("http://localhost:8080/pos/searchCombo",{
+            "comboName":""
+        })
+        .then(response=>{
+            this.comboItemsList = response.data.comboItemsList
+            this.comboItemsList.forEach(comboItem => {
+                comboItem.comboDetail = JSON.parse(comboItem.comboDetail);
+            });
+        })
+        .catch(error => {
+                console.error("Error:", error.response ? error.response.data : error.message);
+        });
+    },
+
     methods: {
-        startTouch(event, index) {
-            this.categories[index].startX = event.touches[0].clientX;
+        createMeal(){
+            this.editeMode = true
+            this.createMode = true
         },
-        moveTouch(event, index) {
-            const currentX = event.touches[0].clientX;
-            this.categories[index].translateX = currentX - this.categories[index].startX; // 根據滑動距離更新 translateX
-            if (this.categories[index].translateX < -55) {
-                this.categories[index].translateX = -55
-            }
-            if (this.categories[index].translateX > 0) {
-                this.categories[index].translateX = 0; // 避免滑動超過初始位置
-            }
+        saveMeal(){
+            axios.post("http://localhost:8080/pos/createCombo",{
+                "comboName":this.comboName,
+                "comboDetail":JSON.stringify(this.comboDetail),
+                "discountAmount":this.discountAmount
+            })
+            .then(response=>{
+                console.log(response)
+                return axios.post("http://localhost:8080/pos/searchCombo", {
+                    "comboName": "",
+                });
+            })
+
+            .then(response=>{
+                console.log(response)
+                this.comboItemsList = response.data.comboItemsList
+                this.comboItemsList.forEach(comboItem => {
+                    comboItem.comboDetail = JSON.parse(comboItem.comboDetail);
+                });
+            })
+            .catch(error => {
+                console.error("Error:", error.response ? error.response.data : error.message);
+            });
+
+            this.editeMode = false
+            this.createMode = false
+            this.comboItemIndex = null,
+            this.comboName = null,
+            this.selectedMeal = [],  // ['', '']
+            this.comboDetail = [], // [[], []]
+            this.comboContentInnerQuantity = 0,
+            this.discountAmount = 0
+
+        },  
+
+
+        cancelIcon(){
+            this.editeMode = false
+            this.createMode = false
+            this.comboItemIndex = null,
+            this.comboName = null,
+            this.selectedMeal = [],  // ['', '']
+            this.comboDetail = [], // [[], []]
+            this.comboContentInnerQuantity = 0,
+            this.discountAmount = 0
         },
-        endTouch(index) {
-            if (this.categories[index].translateX > -50) {
-                this.categories[index].translateX = 0;
+
+
+        editeMeal(comboItem, comboItemIndex){
+            this.editeMode = true
+            this.comboItemIndex = comboItemIndex
+            this.comboName = JSON.parse(JSON.stringify(comboItem.comboName))
+            for (let i=0; i<comboItem.comboDetail.length; i++){
+                this.selectedMeal.push('')
             }
+            
+            this.comboDetail = JSON.parse(JSON.stringify(comboItem.comboDetail))
+            this.discountAmount = JSON.parse(JSON.stringify(comboItem.discountAmount))
         },
-        confirmDelete() {
-            Swal.fire({
-                title: '確定要刪除這條訊息嗎？',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: '確定',
-                cancelButtonText: '取消',
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    Swal.fire('已刪除!', '該訊息已被刪除。', 'success');
-                    // 在這裡處理刪除訊息的邏輯
+        updateMeal(){
+            console.log(this.comboDetail)
+            axios.post("http://localhost:8080/pos/updateCombo",{
+                "oldComboName":this.comboName,
+                "comboName":this.comboName,
+                "comboDetail":JSON.stringify(this.comboDetail),
+                "discountAmount":this.discountAmount
+            })
+            .then(response=>{
+                console.log(response)
+                return axios.post("http://localhost:8080/pos/searchCombo", {
+                    "comboName": "",
+                });
+            })
+
+            .then(response=>{
+                console.log(response)
+                this.comboItemsList = response.data.comboItemsList
+                this.comboItemsList.forEach(comboItem => {
+                    comboItem.comboDetail = JSON.parse(comboItem.comboDetail);
+                });
+            })
+            .catch(error => {
+                console.error("Error:", error.response ? error.response.data : error.message);
+            });
+
+            this.editeMode = false
+            this.createMode = false
+            this.comboItemIndex = null,
+            this.comboName = null,
+            this.selectedMeal = [],  // ['', '']
+            this.comboDetail = [], // [[], []]
+            this.comboContentInnerQuantity = 0,
+            this.discountAmount = 0
+
+        },  
+
+
+        trashMeal(comboName){
+            axios.post("http://localhost:8080/pos/deleteCombo",{
+                "comboName":comboName,
+            })
+            .then(response=>{
+                console.log(response)
+                return axios.post("http://localhost:8080/pos/searchCombo", {
+                    "comboName": "",
+                });
+            })
+            .then(response=>{
+                console.log(response)
+                this.comboItemsList = response.data.comboItemsList
+                this.comboItemsList.forEach(comboItem => {
+                    comboItem.comboDetail = JSON.parse(comboItem.comboDetail);
+                });
+            })
+            .catch(error => {
+                console.error("Error:", error.response ? error.response.data : error.message);
+            });
+        },
+
+
+        addComboContentInner(){
+            const existMainMeal = this.comboDetail.some(item=>item.detailName == "主餐")
+            if(existMainMeal){
+                this.comboDetail.push({"detailName":"副餐",
+                "detailList":[]})
+            }
+            else{
+                this.comboDetail.splice(0,0,{"detailName":"主餐",
+                "detailList":[]})
+            }
+          
+            this.selectedMeal.push('')
+        },
+        totalPrice(comboItem) {
+            let totalAmount = 0;
+            comboItem.comboDetail.forEach(item => {
+                // 确保 detailList 存在且有元素
+                if (item.detailList && item.detailList.length > 0) {
+                    const meal = item.detailList[0]; // 取第一个元素
+                    const menu = this.menus.find(menu => menu.name === meal);
+                    
+                    // 确保找到了对应的菜单
+                    if (menu) {
+                        totalAmount += menu.price;
+                    } else {
+                        console.warn(`Menu not found for meal: ${meal}`);
+                    }
+                } else {
+                    console.warn(`detailList is empty or undefined for item: ${item}`);
                 }
             });
+
+            totalAmount += Number(comboItem.discountAmount) || 0; // 确保 discountAmount 是有效数字
+
+            return totalAmount;
         },
-        addCgInput() {
-            this.cgInput.push(
-                { text: "" },
-            )
-        },
-        switchSta() {
-            this.supply = !this.supply
-        },
-        clearOption(collapse) {
-            collapse.options.forEach(option => {
-                option.text = ""
-            });
-        },
-        addOptionBox(collapse) {
-            collapse.options.push({ text: '' })
-        },
-        removeOption(collapse, opIndex) {
-            if (collapse.options.length > 2) {
-                collapse.options.splice(opIndex, 1)
+
+
+        addMeal(comboItemIndex){
+            const meals = this.comboDetail[comboItemIndex]
+            const mealExists = meals.detailList.some(meal => meal == this.selectedMeal[comboItemIndex]);
+
+            if(!mealExists){
+                const selectedMeal = this.menus.find(menu => menu.name == this.selectedMeal[comboItemIndex]);
+                this.comboDetail[comboItemIndex].detailList.push(selectedMeal.name)
             }
         },
-        addCustomization() {
-            const newIndex = this.collapses.length + 1;
-            const newCollapse = {
-                name: newIndex.toString(),
-                title: "",
-                type: "radio",
-                options: [
-                    { text: "" },
-                    { text: "" },
-                ]
-            };
-            this.collapses.push(newCollapse);
-            // this.activeNames.push(newCollapse.name);
+        deleteMeal(comboItemIndex, meal){
+                // 獲取指定容器
+                const subContainer = this.comboDetail[comboItemIndex];
+
+                // 使用filter刪除指定的餐點
+                this.comboDetail[comboItemIndex].detailList = subContainer.detailList.filter(subContainerMeal => subContainerMeal!=meal);
+            },
+
+        searchMealPrice(meal){
+            const mealItem = this.menus.find(menu=> menu.name == meal)
+            return mealItem ? mealItem.price : 0; // 或者你可以返回其他值，例如 '未找到' 等
         },
-        deleteThisCollapse(index) {
-            this.collapses.splice(index, 1)
-        },
-        updateTitle(collapse, index) {
-            this.collapses[index].title = collapse.title;
+        editTotalPrice(){
+            let totalPrice = 0;
+    
+            // 遍歷 comboDetail 中的每個容器
+            this.comboDetail.forEach(container => {
+                // 確保每個 container 都有 detailList 並且不為空
+                if (container.detailList && container.detailList.length > 0) {
+                        const meal = container.detailList[0]
+                        // 獲取對應的價格
+                        const menu = this.menus.find(menu => menu.name === meal);
+                        if (menu) {
+                            totalPrice += menu.price; // 累加價格
+                        }
+                }
+            });
+
+            totalPrice += Number(this.discountAmount); // 加上折扣
+            return totalPrice;
         }
+
+        
+
     }
 }
 
 </script>
 
 <template>
+
     <div class="big">
         <div class="leftBar">
             <LeftBar />
         </div>
         <div class="mainArea">
+
+ 
+            <div class="glassMorphism" v-if="editeMode">
+
+            </div>
+
+            <div class="windowArea" v-if="editeMode">
+                <div class="comboName">
+                    <input type="text" placeholder="套餐名稱" v-model="comboName">
+                </div>
+                <!-- <h1>{{ selectedMeal }}</h1> -->
+                <!-- <h1>{{ comboDetail }}</h1> -->
+                <!-- <h1>{{ comboItemsList }}</h1> -->
+                <div class="comboContent">
+                    <div class="comboContentInner" v-for="(comboItem, comboItemIndex) in comboDetail">    
+                        <select :name="`select${comboItemIndex}`" v-model="selectedMeal[comboItemIndex]" @change="addMeal(comboItemIndex)">
+                            <option value="" disabled selected >{{comboItem.detailName}}</option>
+                            <option v-for="(menu, index) in menus" :key="index" :value="menu.name" >{{ menu.name }}</option>
+                        </select>
+                        <div class="comboDetail" v-for="(meal, mealIndex) in comboItem.detailList">
+                            <p>• {{ meal }}</p>
+                            <p>$ {{ searchMealPrice(meal) }}</p>
+                            <i class="fa-solid fa-circle-xmark" @click="deleteMeal(comboItemIndex, meal)"></i>
+                        </div>
+                    </div>  
+                </div>
+                <div class="plusIcon" @click="addComboContentInner">
+                    <i class="fa-solid fa-circle-plus"></i>                            
+                </div>
+                <div class="comboTotal">
+                    <div class="discount" >
+                        <p>折扣 </p>
+                        <input type="text" placeholder="-10" v-model="discountAmount">
+                    </div>
+                    <div class="total">
+                        <p>合計</p>
+                        <p>${{ editTotalPrice()}}</p>
+                    </div>                                    
+                </div>
+                <div class="editAndDelete">
+                    <button @click="updateMeal" v-if="!createMode">更新</button>
+                </div>
+                <div class="editAndDelete">
+                    <button @click="saveMeal" v-if="createMode">儲存</button>
+                </div>
+                <div class="cancelIcon">
+                    <i class="fa-regular fa-circle-xmark" @click="cancelIcon"></i>
+                </div>
+            </div>
+
+
+
+
+
+            
             <div class="header">
                 <Header />
             </div>
@@ -133,116 +349,70 @@ export default {
                 <div class="saveCategory">儲存</div>
                 <div class="editCategory">編輯</div>
             </div>
+
             <div class="menuAndCust">
-                <div class="menuArea" v-if="showComboArea">
-                    <div class="menuTop">
+                <div class="comboArea">
+                    <!-- <h1>editeMode {{ editeMode }}</h1> -->
+                    <!-- <h1>createMode {{ createMode }}</h1> -->
+                    <div class="comboTop">
                         <div class="mtLeft">
                             <span>餐點</span>
                         </div>
                         <div class="mtRight">
                             <div class="selCate">
                                 <span>套餐</span>
-                                <div class="countOp">55</div>
+                                <div class="countOp">{{ comboItemsList.length }}</div>
                             </div>
-                            <div class="saveBtn">儲存</div>
+                            <!-- <div class="saveBtn">儲存</div> -->
                         </div>
                     </div>
-                    <div class="menuMain">
-                        <div class="addMenuDiv">+&nbsp&nbsp新增套餐</div>
-                        <div class="menuItem">
-                            <h1>套餐名稱</h1>
-                            <div>
-                                <label for="meal1">餐點選單</label>
-                                <select id="meal1">
-                                    <option value="豬排漢堡">豬排漢堡</option>
-                                    <option value="雞排漢堡">雞排漢堡</option>
-                                    <option value="美味蟹堡">美味蟹堡</option>
-                                </select>
-                                <div>
-                                    <p>卡拉雞腿堡</p>
-                                    <p>$160</p>
-                                </div>
+                        <!-- <h1>{{ mealContainer }}</h1> -->
+                        <!-- <h1>{{ discountAmount }}</h1> -->
+                        <!-- <h1 v-if="mealContainer[0].length>0 && mealContainer[1].length>0">{{ totalPrice() }}</h1> -->
+                    <div class="comboMain">
+                        <div class="createCombo" @click="createMeal">+&nbsp&nbsp新增套餐</div>
+                        <div class="comboItem" v-for="(comboItem, comboItemIndex) in comboItemsList">
+                            <div class="comboName">
+                                <!-- <input type="text" placeholder="套餐名稱"> -->
+                                <h1>{{ comboItem.comboName }}</h1>
                             </div>
-                            <div>
-                                <label for="meal2">餐點選單</label>
-                                <select id="meal2">
-                                    <option value="紅茶">紅茶</option>
-                                    <option value="奶茶">奶茶</option>
-                                </select>
-                                <div>
-                                    <div>
-                                        <p>紅茶</p>
-                                        <p>$25</p>
+                            <div class="comboContent">
+                                <div class="comboContentInner" v-for="(detailItem, detailItemIndex) in comboItem.comboDetail">    
+                                    <!-- <h1>{{ containerIndex }}</h1> -->
+                                    <!-- <h1>{{ selectedMeal }}</h1> -->
+                                    <!-- <select :name="`select${comboItemIndex}${detailItemIndex}`" v-model="selectedMeal[containerIndex]" @change="addMeal(containerIndex)">
+                                        <option value="" disabled selected >{{ detailItem.detailName}}</option>
+                                        <option v-for="(menu, index) in detailItem.detailList" :key="index" :value="menu.name" >{{ menu.name }}</option>
+                                    </select> -->
+                                    <h2 class="detailName">{{ detailItem.detailName }}</h2>
+                                    <div class="comboDetail" v-for="(meal, mealIndex) in detailItem.detailList">
+                                        <p>• {{ meal }}</p>
+                                        <p>$ {{ searchMealPrice(meal) }}</p>
                                     </div>
-                                    <div>
-                                        <p>奶茶</p>
-                                        <p>$30</p>
-                                    </div>
-                                </div>
-                            </div>   
-                            <div class="itemIcon">
-                                    <i class="fa-solid fa-square-pen"></i>
+                                </div>  
                             </div>
-                                <!-- <div class="itemPic"></div>
-                            <div class="itemName">青醬蛤蠣義大利麵</div>
-                            <div class="itemPrice">$ 250</div>
-                            <div class="itemWorksta">
-                                <span>工作檯</span>
-                                <select>
-                                    <option value="0">工作檯選擇</option>
-                                </select>
-                            </div>
-                            <div class="itembot">
-                                <div class="itemStatus" :class="{ flip: !supply }" @click="switchSta()">
-                                    <span>{{ supply ? "供應中" : "售完" }}</span>
-                                </div>
-                                <div class="itemIcon">
-                                    <i class="fa-solid fa-square-pen"></i>
-                                    <i class="fa-solid fa-trash-can"></i>
-                                </div>
+                            
+                            <!-- <div class="plusIcon" @click="addComboContentInner">
+                                <i class="fa-solid fa-circle-plus"></i>                            
                             </div> -->
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="menuArea" v-if="!showComboArea">
-                    <div class="menuTop">
-                        <div class="mtLeft">
-                            <span>餐點</span>
-                        </div>
-                        <div class="mtRight">
-                            <div class="selCate">
-                                <span>菜單分類</span>
-                                <div class="countOp">55</div>
-                            </div>
-                            <div class="saveBtn">儲存</div>
-                        </div>
-                    </div>
-                    <div class="menuMain">
-                        <div class="addMenuDiv">+&nbsp&nbsp新增餐點</div>
-                        <div class="menuItem">
-                            <div class="itemPic"> </div>
-                            <div class="itemName">青醬蛤蠣義大利麵</div>
-                            <div class="itemPrice">$ 250</div>
-                            <div class="itemWorksta">
-                                <span>工作檯</span>
-                                <select>
-                                    <option value="0">工作檯選擇</option>
-                                </select>
-                            </div>
-                            <div class="itembot">
-                                <div class="itemStatus" :class="{ flip: !supply }" @click="switchSta()">
-                                    <span>{{ supply ? "供應中" : "售完" }}</span>
+                            <div class="comboTotal">
+                                <div class="discount" >
+                                    <p>折扣 </p>
+                                    <!-- <input type="text" placeholder="-10" v-model="discountAmount"> -->
+                                    <p>{{ comboItem.discountAmount }}</p>
                                 </div>
-                                <div class="itemIcon">
-                                    <i class="fa-solid fa-square-pen"></i>
-                                    <i class="fa-solid fa-trash-can"></i>
-                                </div>
+                                <div class="total">
+                                    <p>合計</p>
+                                    <p>${{ totalPrice(comboItem)}}</p> 
+                                </div>                                    
+                            </div>
+                            <div class="editAndDelete" v-if="!editeMode">
+                                <i class="fa-solid fa-pen-to-square" @click="editeMeal(comboItem, comboItemIndex)"></i>
+                                <i class="fa-solid fa-trash" @click="trashMeal(comboItem.comboName)"></i>
                             </div>
                         </div>
                     </div>
                 </div>
-                
                 <div class="customerization">
                     <div class="cuTop">
                         <div class="cuLeft">
@@ -256,12 +426,10 @@ export default {
                             <div class="saveBtn">儲存</div>
                         </div>
                     </div>
-                    <div class="menuMain"></div>
+                    <div class="comboMain"></div>
                 </div>
+
             </div>
-
-
-
         </div>
     </div>
 </template>
@@ -270,13 +438,15 @@ export default {
 $divColor: #fff;
 $addDiv: #343a3f;
 
+
+
+
 .big {
     width: 100%;
     height: 100dvh;
     display: flex;
     justify-content: center;
     align-items: center;
-
     .leftBar {
         width: 10%;
         height: 100vh;
@@ -292,10 +462,163 @@ $addDiv: #343a3f;
         height: 100%;
         overflow-y: scroll;
         display: flex;
+        flex-direction: column;
         justify-content: start;
         align-items: start;
-        flex-direction: column;
         position: relative;
+
+        .glassMorphism{
+            width: 100%;
+            height: 100dvh;
+            background-color: rgba(0, 0, 0, 0.5); /* 背景颜色 */
+            backdrop-filter: blur(5px); /* 磨砂玻璃效果 */
+            z-index: 99;
+            position: absolute
+        }
+      
+        .windowArea {
+            width: 25%;
+            height: 80%;
+            border-radius: 10px;
+            border: 2px solid rgba(0,0,0,1);
+            border-radius: 20px;
+            background-color: white;
+            margin: 5% 4% 1% 35%;
+            padding: 2% 1%;
+            overflow:hidden;
+            overflow-y: auto;
+            z-index: 99;
+            position: relative;
+            .comboName{
+                margin: 0 0 10% 0;
+                h1{
+                    font-size: 20px;
+                }
+                input{
+                    width: 100%;
+                    height: 40px;
+                    font-size: 20px;
+                    border-radius: 6px;
+                    border: 1px solid rgba(0, 0, 0, 0.4);
+                    background-color: white;
+                    padding: 2% 5%;
+                    &:focus{
+                        outline: none;
+                        background-color: rgba(0, 0, 0, 0.05);
+                    }
+                }
+            }
+            .comboContent{
+                .comboContentInner{
+                    margin: 0 0 5% 0;
+                    select{
+                        width: 50%;
+                        font-size: 20px;
+                        border: 1px solid rgba(0, 0, 0, 0.2);
+                        border-radius: 6px;
+                        background-color: rgba(0, 0, 0, 0.05);
+                        cursor: pointer;
+                        padding: 0 5%;
+                        margin: 0 0 2% 0;
+                    }
+                    .comboDetail{
+                        display: flex;
+                        align-items: center;
+                        justify-content: space-between;
+                        padding: 0 2% 0 5%;
+                        p{
+                            width: 30%;
+                        }
+                        i{
+                            cursor: pointer;
+                        }
+                    }
+                }
+            }
+            .plusIcon{
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 80%;
+                height: 5%;
+                font-size: 18px;
+                cursor: pointer;
+                border: 1px solid rgba(0, 0, 0, 0.3);
+                border-radius: 6px;
+                background-color: rgba(0, 0, 0, 0.05);
+                margin: 0 0 5% 0;
+                    
+            }
+            .comboTotal{
+                display: flex;
+                flex-direction: column;
+                align-items: flex-end;
+                justify-content: center;
+                width: 100%;
+                margin: 0 0 10% 0;
+                position: relative;
+                .discount{
+                    width: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: flex-start;
+                    p{
+                        margin: 0 10% 0 0;
+                    }
+                    input{
+                        width:30%;
+                        font-size: 15px;
+                        border: 1px solid rgba(0, 0, 0, 0.3);
+                        border-radius: 6px;
+                        background-color: rgba(0, 0, 0, 0.05);                                    outline: none;
+                        padding: 2% 5%;
+                    }
+                }
+                .total{
+                    width: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: flex-start;
+                    p{
+                        margin: 0 10% 0 0;
+                    }
+                }
+                &:before{
+                    position: absolute;
+                    content: "";
+                    width: 100%;
+                    height: 1px;
+                    left: 0;
+                    bottom: -30%;
+                    background-color: #697077;
+                }
+            }
+            .editAndDelete{
+                width: 100%;
+                height: 5%;
+                display: flex;
+                align-items: start;
+                justify-content: flex-end;
+                button{
+                    width: 30%;
+                    height: 100%;
+                    border: none;
+                    border-radius: 6px;
+                    font-size: 20px;
+                    color: white;
+                    background-color: black;
+                    cursor: pointer;
+                }
+            }
+            .cancelIcon{
+                position: absolute;
+                cursor: pointer;
+                right: 2%;
+                top: 0;
+                font-size: 25px;
+                color: red;
+            }
+        }
 
         .header {
             width: 96%;
@@ -304,7 +627,6 @@ $addDiv: #343a3f;
             top: 2%;
             left: 2%;
         }
-
         .menuCategory {
             width: 21%;
             height: 87%;
@@ -449,7 +771,6 @@ $addDiv: #343a3f;
                 font-family: "Noto Sans TC", sans-serif;
             }
         }
-
         .menuAndCust {
             width: 73.5%;
             height: 87%;
@@ -461,6 +782,281 @@ $addDiv: #343a3f;
             top: 9.5%;
             right: 2%;
 
+            .comboArea {
+                width: 100%;
+                height: 71%;
+                border-radius: 10px;
+                display: flex;
+                justify-content: start;
+                align-items: center;
+                flex-direction: column;
+                background-color: $divColor;
+                .comboTop {
+                    width: 97%;
+                    height: 7%;
+                    margin: 2% 0 1% 0;
+                    border-bottom: 1px solid #343a3f;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+
+                    .mtLeft {
+                        width: 20%;
+                        font-size: 30px;
+                        font-weight: bold;
+                        letter-spacing: 3px;
+                        margin-left: 1%;
+                        font-family: "Noto Sans TC", sans-serif;
+                    }
+
+                    .mtRight {
+                        width: 26%;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        letter-spacing: 3px;
+
+                        .selCate {
+                            width: 66%;
+                            display: flex;
+                            justify-content: space-evenly;
+                            align-items: center;
+                            font-weight: bold;
+                            font-family: "Noto Sans TC", sans-serif;
+
+                            .countOp {
+                                min-width: 20%;
+                                letter-spacing: 0px;
+                                font-weight: 500;
+                                color: white;
+                                background-color: rgb(0, 0, 0);
+                                border-radius: 30px;
+                                display: flex;
+                                justify-content: center;
+                                align-items: center;
+                            }
+                        }
+
+                        .saveBtn {
+                            width: 32.4%;
+                            height: 91%;
+                            border-radius: 5px;
+                            color: white;
+                            background-color: black;
+                            display: flex;
+                            justify-content: center;
+                            align-items: center;
+                            font-family: "Noto Sans TC", sans-serif;
+                        }
+                    }
+                }
+                .comboMain {
+                    width: 97%;
+                    height: 85%;
+                    display: flex;
+                    overflow-y: scroll;
+                    flex-wrap: wrap;
+                    .createCombo {
+                        width: 22%;
+                        height: 52%;
+                        margin: 0 4% 1% 0;
+                        border-radius: 10px;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        color: white;
+                        background-color: $addDiv;
+                        font-size: 25px;
+                        cursor: pointer;
+                        font-family: "Noto Sans TC", sans-serif;
+                    }
+                    .createCombo:nth-child(4n) {
+                        margin: 0 0 1% 0;
+                    }
+                    .comboItem {
+                        width: 22%;
+                        height: 52%;
+                        border-radius: 10px;
+                        border: 1px solid black;
+                        margin: 0 4% 3% 0;
+                        padding: 1% 1% 0 1%;
+                        overflow-y: auto;
+                        .comboName{
+                            margin: 0 0 10% 0;
+                            h1{
+                                width: max-content;
+                                display: flex;
+                                align-items: center;
+                                justify-content: start;
+                                font-size: 20px;
+                                font-weight: 600;
+                                border-radius: 12px;
+                                color: white;
+                                background-color: rgba(17, 146, 0, 0.849);
+                                padding: 2% 6%;
+                            }
+                            input{
+                                width: 100%;
+                                height: 40px;
+                                font-size: 20px;
+                                border-radius: 6px;
+                                border: 1px solid rgba(0, 0, 0, 0.4);
+                                background-color: white;
+                                padding: 2% 5%;
+                                &:focus{
+                                    outline: none;
+                                    background-color: rgba(0, 0, 0, 0.05);
+                                }
+                            }
+                        }
+                        .comboContent{
+                            margin: 0 0 10% 0;
+                            .comboContentInner{
+                                margin: 0 0 5% 0;
+                                select{
+                                    width: 80%;
+                                    font-size: 20px;
+                                    border: 1px solid rgba(0, 0, 0, 0.2);
+                                    border-radius: 6px;
+                                    background-color: rgba(0, 0, 0, 0.05);
+                                    cursor: pointer;
+                                    padding: 0 5%;
+                                    margin: 0 0 2% 0;
+                                }
+                                h2{
+                                    width: 80%;
+                                    // background-color: rgba(250, 235, 215, 0.623);
+                                    border: 1px solid rgba(0, 0, 0, 0.453);
+                                    border-radius: 12px;
+                                    background-color: rgba(0, 0, 0, 0.1);
+                                    padding: 0 4%;
+                                    margin: 2% 0;
+                                }
+                                .comboDetail{
+                                    display: flex;
+                                    align-items: center;
+                                    justify-content: space-between;
+                                    font-size: 20px;
+                                    font-weight: 700;
+                                    padding: 0 2% 0 5%;
+                                    p:nth-child(1){
+                                        width: 70%;
+                                        display: flex;
+                                        align-items: center;
+                                        justify-content: start;
+                                    }
+                                    p:nth-child(2){
+                                        width: 30%;
+                                        display: flex;
+                                        align-items: center;
+                                        justify-content: start;
+                                    }
+                                }
+                            }
+                        }
+                        .plusIcon{
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            width: 80%;
+                            height: 12%;
+                            font-size: 18px;
+                            cursor: pointer;
+                            border: 1px solid rgba(0, 0, 0, 0.3);
+                            border-radius: 6px;
+                            background-color: rgba(0, 0, 0, 0.05);
+                            margin: 0 0 5% 0;
+                              
+                        }
+                        .comboTotal{
+                            display: flex;
+                            flex-direction: column;
+                            align-items: flex-end;
+                            justify-content: center;
+                            width: 100%;
+                            margin: 0 0 10% 0;
+                            position: relative;
+                            font-size: 20px;
+                            font-weight: 900;
+                            .discount{
+                                width: 50%;
+                                display: flex;
+                                align-items: center;
+                                justify-content: flex-start;
+                                p{
+                                    margin: 0 10% 0 0;
+                                }
+                                input{
+                                    width:50%;
+                                    font-size: 15px;
+                                    border: 1px solid rgba(0, 0, 0, 0.3);
+                                    border-radius: 6px;
+                                    background-color: rgba(0, 0, 0, 0.05);                                    outline: none;
+                                    padding: 2% 5%;
+                                }
+                            }
+                            .total{
+                                width: 50%;
+                                display: flex;
+                                align-items: center;
+                                justify-content: flex-start;
+                                p{
+                                    margin: 0 5% 0 0;
+                                }
+                            }
+                            &:before{
+                                position: absolute;
+                                content: "";
+                                width: 100%;
+                                height: 1px;
+                                left: 0;
+                                bottom: -5px;
+                                background-color: #697077;
+                            }
+                        }
+                        .editAndDelete{
+                            width: 100%;
+                            height: 20%;
+                            display: flex;
+                            align-items: center;
+                            justify-content: flex-end;
+                            i{
+                                width: 50%;
+                                height: 100%;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                font-size: 30px;
+                                margin: 0 2%;
+                                &:nth-child(1){
+                                    cursor: pointer;
+                                    border-radius: 6px;
+                                    color: white;
+                                    background-color: #697077;
+                                }
+                                &:nth-child(2){
+                                    cursor: pointer;
+                                    border-radius: 6px;
+                                    background-color: #697077;
+                                }
+                            }
+                            // button{
+                            //     width: 30%;
+                            //     height: 80%;
+                            //     border: none;
+                            //     border-radius: 6px;
+                            //     color: white;
+                            //     background-color: black;
+                            //     cursor: pointer;
+                            // }
+
+                        }
+                    }
+                    .comboItem:nth-child(4n) {
+                        margin: 0 0 1% 0;
+                    }
+                }
+            }
             .menuArea {
                 width: 100%;
                 height: 71%;
@@ -471,7 +1067,7 @@ $addDiv: #343a3f;
                 flex-direction: column;
                 background-color: $divColor;
 
-                .menuTop {
+                .comboTop {
                     width: 97%;
                     height: 7%;
                     margin: 2% 0 1% 0;
@@ -531,14 +1127,14 @@ $addDiv: #343a3f;
                     }
                 }
 
-                .menuMain {
+                .comboMain {
                     width: 97%;
                     height: 85%;
                     display: flex;
                     overflow-y: scroll;
                     flex-wrap: wrap;
 
-                    .addMenuDiv {
+                    .createCombo {
                         width: 22%;
                         height: 52%;
                         margin: 0 4% 1% 0;
@@ -552,11 +1148,11 @@ $addDiv: #343a3f;
                         font-family: "Noto Sans TC", sans-serif;
                     }
 
-                    .addMenuDiv:nth-child(4n) {
+                    .createCombo:nth-child(4n) {
                         margin: 0 0 1% 0;
                     }
 
-                    .menuItem {
+                    .comboItem {
                         display: grid;
                         grid-template-columns: repeat(6, 1fr);
                         grid-template-rows: repeat(8, 1fr);
@@ -654,7 +1250,7 @@ $addDiv: #343a3f;
 
                     }
 
-                    .menuItem:nth-child(4n) {
+                    .comboItem:nth-child(4n) {
                         margin: 0 0 1% 0;
                     }
 
@@ -733,143 +1329,6 @@ $addDiv: #343a3f;
                 }
             }
         }
-
-        // .mealNameArea {
-        //     width: 90%;
-        //     padding-bottom: 5px;
-        //     font-size: 20px;
-        //     border-bottom: 2px solid black;
-
-        //     span {
-        //         margin-right: 5px;
-        //     }
-
-        //     input {
-        //         width: 50%;
-        //         border: none;
-        //         color: transparent;
-        //         font-size: 20px;
-        //         margin-right: 30px;
-        //         color: black;
-        //     }
-
-        //     select {
-        //         font-size: 20px;
-        //         margin-right: 20px;
-        //     }
-
-        //     .price {
-        //         width: 120px;
-        //         color: black;
-        //     }
-        // }
-
-        // .mealImage {
-        //     width: 90%;
-        //     margin-top: 5px;
-
-        //     input {
-        //         cursor: pointer;
-        //         width: 70px;
-        //     }
-
-        //     span {
-        //         margin-right: 5px;
-        //     }
-        // }
-
-        // .mealDescription {
-        //     width: 90%;
-        //     margin-top: 5px;
-
-        //     .mealDes {
-        //         width: 80%;
-        //         height: 80px;
-        //         font-size: 18px;
-        //     }
-        // }
-
-        // .collTitle {
-        //     width: 230px;
-        //     font-size: 26px;
-        //     margin-left: 10px;
-        // }
-
-        // .el-collapse {
-        //     width: 90%;
-        //     margin: 30px auto;
-        //     --el-collapse-header-font-size: 20px;
-        //     --el-collapse-header-bg-color: #b0f079;
-
-        //     .el-collapse-item {
-        //         margin-bottom: 10px;
-        //     }
-
-        //     .editOption {
-        //         width: 100%;
-        //         display: flex;
-        //         justify-content: space-around;
-        //         align-items: center;
-        //         margin: 2% auto;
-
-        //         select {
-        //             font-size: 30px;
-        //         }
-
-        //         .fa-plus {
-        //             font-size: 40px;
-        //             cursor: pointer;
-        //         }
-
-        //         .fa-file-circle-xmark {
-        //             font-size: 40px;
-        //             cursor: pointer;
-        //         }
-
-        //     }
-
-        //     .option {
-        //         width: 100%;
-        //         margin: 2% auto;
-        //         display: flex;
-        //         align-items: center;
-
-        //         input[type=checkbox],
-        //         input[type=radio] {
-        //             margin: 0 30px;
-        //             scale: 2;
-        //         }
-
-        //         .markupOption {
-        //             width: 60%;
-        //             font-size: 40px;
-        //             margin-right: 100px
-        //         }
-
-        //         .markup {
-        //             width: 15%;
-        //             font-size: 40px;
-        //             margin-right: 70px;
-        //         }
-
-        //         .fa-trash {
-        //             font-size: 40px;
-        //             cursor: pointer;
-        //         }
-        //     }
-        // }
-
-        // .addOption {
-        //     width: 90%;
-        //     margin-top: 30px;
-        //     display: flex;
-        //     justify-content: center;
-
-        //     .fa-square-plus {
-        //         font-size: 40px;
-        //         cursor: pointer;
-        //     }
-        // }
     }
 
 }

@@ -85,6 +85,75 @@ export default{
                         data: [20],
                     }
                 ]
+            },
+
+            option:{
+                title: {
+                    text: 'Rainfall vs Evaporation',
+                    subtext: 'Fake Data'
+                },
+                tooltip: {
+                    trigger: 'axis'
+                },
+                legend: {
+                    data: ['Rainfall', 'Evaporation']
+                },
+                toolbox: {
+                    show: true,
+                    feature: {
+                    dataView: { show: true, readOnly: false },
+                    magicType: { show: true, type: ['line', 'bar'] },
+                    restore: { show: true },
+                    saveAsImage: { show: true }
+                    }
+                },
+                calculable: true,
+                xAxis: [
+                    {
+                    type: 'category',
+                    // prettier-ignore
+                    data: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+                    }
+                ],
+                yAxis: [
+                    {
+                    type: 'value'
+                    }
+                ],
+                series: [
+                    {
+                    name: 'Rainfall',
+                    type: 'bar',
+                    data: [
+                        2.0, 4.9, 7.0, 23.2, 25.6, 76.7, 135.6, 162.2, 32.6, 20.0, 6.4, 3.3
+                    ],
+                    markPoint: {
+                        data: [
+                        { type: 'max', name: 'Max' },
+                        { type: 'min', name: 'Min' }
+                        ]
+                    },
+                    markLine: {
+                        data: [{ type: 'average', name: 'Avg' }]
+                    }
+                    },
+                    {
+                    name: 'Evaporation',
+                    type: 'bar',
+                    data: [
+                        2.6, 5.9, 9.0, 26.4, 28.7, 70.7, 175.6, 182.2, 48.7, 18.8, 6.0, 2.3
+                    ],
+                    markPoint: {
+                        data: [
+                        { name: 'Max', value: 182.2, xAxis: 7, yAxis: 183 },
+                        { name: 'Min', value: 2.3, xAxis: 11, yAxis: 3 }
+                        ]
+                    },
+                    markLine: {
+                        data: [{ type: 'average', name: 'Avg' }]
+                    }
+                    }
+                ]
             }
         }
     },
@@ -531,7 +600,7 @@ export default{
     <div class="innerContainer0">
 
         <p class="topStyle" :class="{topStyleClick: currentTopSelect == '日常統計'}" @click="currentTopSelect = '日常統計'">日常統計</p>
-        <p class="topStyle" :class="{topStyleClick: currentTopSelect == '指定統計'}"  @click="currentTopSelect = '指定統計'">指定統計</p>
+        <p class="topStyle" :class="{topStyleClick: currentTopSelect == '活動統計'}"  @click="currentTopSelect = '活動統計'">活動統計</p>
     </div>
     <!-- <h1>{{ allDateList }}</h1>
     <h1 >{{ dateForDay }}</h1>
@@ -616,7 +685,7 @@ export default{
                             <p class="compareWhat" v-if="currentHead=='年'">vs 前一年</p>
                         </div>    
                     </div>
-                    <div class="compareItem">
+                    <!-- <div class="compareItem">
                         <p class="title">總銷售量</p>
                         <div class="content">
                             <p class="contentNumber" v-if="analysis && analysis.totalOrders !== null">{{ analysis.totalOrders }}</p>
@@ -635,7 +704,7 @@ export default{
                             <p class="compareWhat" v-if="currentHead=='季'">vs 前一季</p>
                             <p class="compareWhat" v-if="currentHead=='年'">vs 前一年</p>
                         </div>    
-                    </div>
+                    </div> -->
                 </div>
                 <div class="chartContainer">
                     <h1>營運分析圖</h1>
@@ -669,7 +738,7 @@ export default{
             </div>
     </div>
 
-    <div class="innerContainerSpecific" v-if="currentTopSelect == '指定統計'">
+    <div class="innerContainerSpecific" v-if="currentTopSelect == '活動統計'">
         <OperationSpecificComponent/>
     </div>
 
@@ -866,7 +935,7 @@ $down-font: #388e3c;
             border-radius: 12px;
             margin: 0 1% 0 0;
             .compareContainer{
-                width: 100%;
+                width: 40%;
                 height: 25%;
                 display: flex;
                 align-items: center;
@@ -878,7 +947,7 @@ $down-font: #388e3c;
                 margin: 0 0 2% 0;
 
                 .compareItem{
-                    width: 50%;
+                    width: 100%;
                     height: 100%;
                     padding: 20px 20px;
                     display: flex;

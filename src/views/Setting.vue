@@ -16,7 +16,7 @@ export default {
         Header,
         AddMenu,
         Workbench,
-        BusiSetting
+        BusiSetting,
     },
     methods: {
         handleComponentChange(component) {

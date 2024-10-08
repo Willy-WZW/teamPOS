@@ -1,5 +1,6 @@
 <script>
 import LeftBar from '@/components/LeftBar.vue'
+import OrderStatusComponent from '@/components/orderStatus/OrderStatusComponent.vue';
 export default {
     data() {
         return {
@@ -7,7 +8,8 @@ export default {
         }
     },
     components: {
-        LeftBar
+        LeftBar,
+        OrderStatusComponent
     },
 }
 </script>
@@ -18,7 +20,7 @@ export default {
             <LeftBar />
         </div>
         <div class="mainArea">
-
+            <OrderStatusComponent />
         </div>
     </div>
 </template>
@@ -43,7 +45,7 @@ export default {
 
     .mainArea {
         width: 100%;
-        height: 90%;
+        height: 100%;
         overflow-y: scroll;
         display: flex;
         justify-content: start;

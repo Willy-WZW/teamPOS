@@ -43,6 +43,7 @@ export default {
         <div class="busiSetting":class="{isSelected: selected === 'busiSetting'}" @click="selectBusiSetting">
             <span>桌位與訂位</span>
         </div>
+        <router-link class="comboLink" :to="{ name: 'comboPage' }">套餐入口</router-link>
     </div>
 </template>
 
@@ -59,6 +60,7 @@ $textColor: #697077;
     justify-content: center;
     align-items: center;
     background-color: $bgColor;
+    position: relative;
 
     .menuManage,
     .workbench,
@@ -98,6 +100,17 @@ $textColor: #697077;
 
     .isSelected::before {
         width: 100%;
+    }
+
+    .comboLink{
+        position: absolute;
+        left: 0;
+        top: 0;
+        font-size: 20px;
+        color:red;
+        // background-color: red;
+        text-decoration: none;
+        cursor:default;
     }
 }
 </style>
