@@ -1,92 +1,34 @@
 ﻿<script>
 import * as echarts from 'echarts';
 import axios from 'axios';
+import OperationSpecificComponent from './OperationSpecificComponent.vue';
 export default{
     data(){
         return{
             currentHead:'日',
-            dateForDay: new Date(),
+            currentTopSelect: '日常統計',
+            firstOperationDate:null,
+            allDateList:[],
+            allRevenueList:[],
+
+            dateForDay: null,
             dateForMonth: new Date(),
             dateForSeason: new Date(),
             dateForYear: new Date(),
             startDate: null,
             endDate: null,
-            // analysis: {
-            //     "totalRevenue": 600,
-            //     "totalOrders": 12,
-            //     "popularDishes": [
-            //         {
-            //             "name": "天堂漢堡",
-            //             "orders": 1
-            //         },
-            //         {
-            //             "name": "地獄漢堡",
-            //             "orders": 1
-            //         },
-            //         {
-            //             "name": "恐龍漢堡",
-            //             "orders": 1
-            //         },
-            //         {
-            //             "name": "水母漢堡",
-            //             "orders": 1
-            //         },
-            //         {
-            //             "name": "草尼碼漢堡",
-            //             "orders": 1
-            //         },
-            //         {
-            //             "name": "飛雷神漢堡",
-            //             "orders": 1
-            //         },
-            //         {
-            //             "name": "金妮漢堡",
-            //             "orders": 2
-            //         },
-            //         {
-            //             "name": "幻影俠客漢堡",
-            //             "orders": 1
-            //         },
-            //         {
-            //             "name": "天使破壞者漢堡",
-            //             "orders": 1
-            //         },
-            //         {
-            //             "name": "精靈射手漢堡",
-            //             "orders": 1
-            //         },
-            //         {
-            //             "name": "吐司漢堡",
-            //             "orders": 1
-            //         }
-            //     ],
-            //     "revenueGrowth": [
-            //         {
-            //             "day": "2024-09-26",
-            //             "revenue": 600
-            //         }
-            //     ]
-            // },
             analysis:null,
-            preDateForDay: new Date(new Date().setDate(new Date().getDate() - 1)),
+
+            preDateForDay: null,
             preDateForMonth: new Date(new Date().setMonth(new Date().getMonth() - 1)),
             preDateForSeason: new Date(new Date().setMonth(new Date().getMonth() - 2)),
             preDateForYear: new Date(new Date().setYear(new Date().getFullYear() - 1)),
             preStartDate: null,
             preEndDate: null,
-            // preAnalysis:{
-            //     "totalRevenue": 0,
-            //     "totalOrders": 0,
-            //     "popularDishes": [],
-            //     "revenueGrowth": [
-            //         {
-            //             "day": "2024-09-25",
-            //             "revenue": 0
-            //         }
-            //     ]
-            // },
             preAnalysis:null,
+            
             joinOrderList:[],
+
 
             optionLine:{
                 tooltip: {
@@ -110,7 +52,8 @@ export default{
                 xAxis: {
                     type: 'category',
                     data:["123"],
-                    boundaryGap: false // 不留白，从原点开始
+                    boundaryGap: true, // 不留白，从原点开始
+                    boundaryGap: ['1%', '1%'] // 左右邊界分別設置為 20%
                 },
                 yAxis: {
                     type: 'value'
@@ -142,33 +85,117 @@ export default{
                         data: [20],
                     }
                 ]
+            },
+
+            option:{
+                title: {
+                    text: 'Rainfall vs Evaporation',
+                    subtext: 'Fake Data'
+                },
+                tooltip: {
+                    trigger: 'axis'
+                },
+                legend: {
+                    data: ['Rainfall', 'Evaporation']
+                },
+                toolbox: {
+                    show: true,
+                    feature: {
+                    dataView: { show: true, readOnly: false },
+                    magicType: { show: true, type: ['line', 'bar'] },
+                    restore: { show: true },
+                    saveAsImage: { show: true }
+                    }
+                },
+                calculable: true,
+                xAxis: [
+                    {
+                    type: 'category',
+                    // prettier-ignore
+                    data: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+                    }
+                ],
+                yAxis: [
+                    {
+                    type: 'value'
+                    }
+                ],
+                series: [
+                    {
+                    name: 'Rainfall',
+                    type: 'bar',
+                    data: [
+                        2.0, 4.9, 7.0, 23.2, 25.6, 76.7, 135.6, 162.2, 32.6, 20.0, 6.4, 3.3
+                    ],
+                    markPoint: {
+                        data: [
+                        { type: 'max', name: 'Max' },
+                        { type: 'min', name: 'Min' }
+                        ]
+                    },
+                    markLine: {
+                        data: [{ type: 'average', name: 'Avg' }]
+                    }
+                    },
+                    {
+                    name: 'Evaporation',
+                    type: 'bar',
+                    data: [
+                        2.6, 5.9, 9.0, 26.4, 28.7, 70.7, 175.6, 182.2, 48.7, 18.8, 6.0, 2.3
+                    ],
+                    markPoint: {
+                        data: [
+                        { name: 'Max', value: 182.2, xAxis: 7, yAxis: 183 },
+                        { name: 'Min', value: 2.3, xAxis: 11, yAxis: 3 }
+                        ]
+                    },
+                    markLine: {
+                        data: [{ type: 'average', name: 'Avg' }]
+                    }
+                    }
+                ]
             }
         }
     },
+    components:{
+        OperationSpecificComponent
+    },
     created(){
+        
     },
     mounted() {
-        this.getTodayDate() 
-        this.optionLine.xAxis.data = this.getPeriodDate(this.startDate, this.endDate) 
+        axios.post("http://localhost:8080/pos/analysis", {   
+            "startDate": "",
+            "endDate": ""
+        })
+        .then(response=>{
+            this.allDateList = response.data.analysis.revenueGrowth.map(item => new Date(item.day));
+            this.firstOperationDate = response.data.analysis.revenueGrowth[0].day
+            this.dateForDay = this.allDateList[this.allDateList.length - 1]
+            this.preDateForDay = this.allDateList[this.allDateList.length - 2]
 
-        Promise.all([
-            axios.post("http://localhost:8080/pos/analysis", {   
-                "startDate": this.startDate,
-                "endDate": this.endDate
-            }),
-            axios.post("http://localhost:8080/pos/analysis", {   
-                "startDate": this.preStartDate,
-                "endDate": this.preEndDate
-            })
-        ])
-        .then(([response1, response2]) => {
-            this.analysis = response1.data.analysis;
-            this.analysis.popularDishes = this.analysis.popularDishes.sort((a, b) => b.orders - a.orders);
-
-            this.preAnalysis  = response2.data.analysis;
         })
         .then(()=>{
-            this.optionLine.xAxis.data = this.getPeriodDate(this.startDate, this.endDate)
+            return Promise.all([
+                        axios.post("http://localhost:8080/pos/analysis", {   
+                        "startDate": this.dateForDay,
+                        "endDate": this.dateForDay
+                    }),
+                        axios.post("http://localhost:8080/pos/analysis", {   
+                        "startDate": this.preDateForDay,
+                        "endDate": this.preDateForDay
+                    }),
+            ])
+        })
+        
+        .then(([response2, response3]) => {
+            this.analysis = response2.data.analysis;
+            this.analysis.popularDishes = this.analysis.popularDishes.sort((a, b) => b.orders - a.orders);
+            this.preAnalysis = response3.data.analysis;
+
+        })   
+        .then(()=>{
+            this.optionLine.xAxis.data = this.allDateList[this.allDateList.length-1]
             this.optionLine.series[0].data = this.analysis.revenueGrowth.map(item=>{
                 return item.revenue
             })
@@ -176,14 +203,12 @@ export default{
         .catch(error => {
             console.error("Error fetching analysis:", error);
         });
-
         this.$nextTick(() => {
             this.drawChart();  // 初始化图表
         });
     },
     computed:{
         currentDay() {
-            
             const year = this.dateForDay.getFullYear();
             const month = String(this.dateForDay.getMonth() + 1).padStart(2, '0'); // 月份從 0 開始，需加 1
             const day = String(this.dateForDay.getDate()).padStart(2, '0'); // 格式化日期，確保兩位數
@@ -207,23 +232,31 @@ export default{
 
 
         previousDay() {
-            const newDate = new Date(this.dateForDay); // 先複製當前日期
-            newDate.setDate(newDate.getDate() - 1); // 修改新日期的值
-            this.dateForDay = newDate; // 賦值給 date，這樣 Vue 才能監測變化
+            const index = this.allDateList.indexOf(this.dateForDay)
+            this.dateForDay = this.allDateList[index-1]
+            this.preDateForDay = this.allDateList[index-2]
 
-            const newDate2 = new Date(this.preDateForDay); // 先複製當前日期
-            newDate2.setDate(newDate2.getDate() - 1); // 修改新日期的值
-            this.preDateForDay = newDate2; // 賦值給 date，這樣 Vue 才能監測變化
+            // const newDate = new Date(this.dateForDay); // 先複製當前日期
+            // newDate.setDate(newDate.getDate() - 1); // 修改新日期的值
+            // this.dateForDay = newDate; // 賦值給 date，這樣 Vue 才能監測變化
+
+            // const newDate2 = new Date(this.preDateForDay); // 先複製當前日期
+            // newDate2.setDate(newDate2.getDate() - 1); // 修改新日期的值
+            // this.preDateForDay = newDate2; // 賦值給 date，這樣 Vue 才能監測變化
 
         },
         nextDay() {
-            const newDate = new Date(this.dateForDay); // 先複製當前日期
-            newDate.setDate(newDate.getDate() + 1); // 修改新日期的值
-            this.dateForDay = newDate; // 賦值給 date，這樣 Vue 才能監測變化
+            const index = this.allDateList.indexOf(this.dateForDay)
+            this.dateForDay = this.allDateList[index+1]
+            this.preDateForDay = this.allDateList[index+2]
 
-            const newDate2 = new Date(this.preDateForDay); // 先複製當前日期
-            newDate2.setDate(newDate2.getDate() + 1); // 修改新日期的值
-            this.preDateForDay = newDate2; // 賦值給 date，這樣 Vue 才能監測變化
+            // const newDate = new Date(this.dateForDay); // 先複製當前日期
+            // newDate.setDate(newDate.getDate() + 1); // 修改新日期的值
+            // this.dateForDay = newDate; // 賦值給 date，這樣 Vue 才能監測變化
+
+            // const newDate2 = new Date(this.preDateForDay); // 先複製當前日期
+            // newDate2.setDate(newDate2.getDate() + 1); // 修改新日期的值
+            // this.preDateForDay = newDate2; // 賦值給 date，這樣 Vue 才能監測變化
         },
 
         ///////////////////////////////////////////////////////////
@@ -422,6 +455,51 @@ export default{
 
     },
     methods:{
+        todayDate(){
+            let today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0'); 
+            const day = String(today.getDate()).padStart(2, '0'); 
+
+            return `${year}年${month}月${day}日`;
+        },
+        isFirstOperationDateBeforeMonth(firstOperationDate, dateForMonth) {
+            const firstDate = new Date(firstOperationDate);
+            const comparisonDate = new Date(dateForMonth);
+
+            // 比較年份
+            if (firstDate.getFullYear() < comparisonDate.getFullYear()) {
+                return true;
+            } else if (firstDate.getFullYear() === comparisonDate.getFullYear()) {
+                // 如果年份相同，則比較月份
+                return firstDate.getMonth() < comparisonDate.getMonth();
+            }
+            return false;
+        },
+        getSeason(date) {
+            const month = date.getMonth() + 1; // 月份從 0 開始，所以要加 1
+            if (month >= 1 && month <= 3) return 1; // 第一季
+            if (month >= 4 && month <= 6) return 2; // 第二季
+            if (month >= 7 && month <= 9) return 3; // 第三季
+            if (month >= 10 && month <= 12) return 4; // 第四季
+        },
+
+        isFirstOperationDateBeforeSeason(firstOperationDate, dateForSeason) {
+            const firstDate = new Date(firstOperationDate);
+            const comparisonDate = new Date(dateForSeason);
+
+            // 獲取季節
+            const firstSeason = this.getSeason(firstDate);
+            const comparisonSeason = this.getSeason(comparisonDate);
+
+            // 比較年份和季節
+            if (firstDate.getFullYear() < comparisonDate.getFullYear()) {
+                return true;
+            } else if (firstDate.getFullYear() === comparisonDate.getFullYear()) {
+                return firstSeason < comparisonSeason; // 只比較季節
+            }
+            return false;
+        },
         drawChart() {
             const myChart = echarts.init(document.getElementById("echart"));
             if (myChart) {
@@ -435,8 +513,6 @@ export default{
             this.currentHead = type
         },
         calRevenueGrowth(){
-            console.log(this.analysis.totalRevenue)
-            console.log(this.preAnalysis.totalRevenue)
             let revenueUpRate = (this.analysis.totalRevenue-this.preAnalysis.totalRevenue)/(this.preAnalysis.totalRevenue) * 100
             revenueUpRate = Math.round(revenueUpRate)
             return revenueUpRate
@@ -457,7 +533,9 @@ export default{
                 this.analysis.popularDishes.sort((a,b)=>{return b.orders-a.orders})
             })
             .then(()=>{
-                this.optionLine.xAxis.data = this.getPeriodDate(startDate, endDate)
+                this.optionLine.xAxis.data = this.analysis.revenueGrowth.map(item=>{
+                    return item.day
+                })
                 this.optionLine.series[0].data = this.analysis.revenueGrowth.map(item=>{
                     return item.revenue
                 })
@@ -518,42 +596,54 @@ export default{
 
 <template>
 
-<div class="container">
-    <div class="innerContainer">
+<div class="container" v-if="analysis">
+    <div class="innerContainer0">
+
+        <p class="topStyle" :class="{topStyleClick: currentTopSelect == '日常統計'}" @click="currentTopSelect = '日常統計'">日常統計</p>
+        <p class="topStyle" :class="{topStyleClick: currentTopSelect == '活動統計'}"  @click="currentTopSelect = '活動統計'">活動統計</p>
+    </div>
+    <!-- <h1>{{ allDateList }}</h1>
+    <h1 >{{ dateForDay }}</h1>
+    <h1 >{{ preDateForDay }}</h1>
+    <h1 v-if="analysis">{{ analysis.totalRevenue }}</h1>
+    <h1 v-if="preAnalysis">{{ preAnalysis.totalRevenue }}</h1> -->
+    <div class="innerContainer" v-if="currentTopSelect == '日常統計'">
         <div class="dashboardLeft">
             <div class="navHead">
+
                 <h1 class="headStyle" :class="{headStyleClick: currentHead == '日'}" @click="selectPeriod('日')">日</h1>
                 <h1 class="headStyle" :class="{headStyleClick: currentHead == '月'}" @click="selectPeriod('月')">月</h1>
                 <h1 class="headStyle" :class="{headStyleClick: currentHead == '季'}" @click="selectPeriod('季')">季</h1>
                 <h1 class="headStyle" :class="{headStyleClick: currentHead == '年'}" @click="selectPeriod('年')">年</h1>
                 <!-- <h1 class="headStyle" :class="{headStyleClick: currentHead == '自訂'}" @click="selectPeriod('自訂')">自訂</h1> -->
             </div>
+
             <div class="echartContainer" v-if="currentHead=='日'">
                 <div class="leftRightContainer">
-                    <i class='bx bx-chevron-left' @click="previousDay"></i>
+                    <i class='bx bx-chevron-left' @click="previousDay" v-if="new Date(firstOperationDate).toISOString().split('T')[0] < dateForDay.toISOString().split('T')[0]"></i>
                     <p>{{ currentDay }}</p>
-                    <i class='bx bx-chevron-right' @click="nextDay"></i>
+                    <i class='bx bx-chevron-right' @click="nextDay" v-if="dateForDay.toISOString().split('T')[0] < new Date().toISOString().split('T')[0]"></i>
                 </div>
             </div>
             <div class="echartContainer" v-if="currentHead=='月'">
                 <div class="leftRightContainer">
-                    <i class='bx bx-chevron-left' @click="previousMonth"></i>
+                    <i class='bx bx-chevron-left' @click="previousMonth" v-if="isFirstOperationDateBeforeMonth(firstOperationDate, dateForMonth)"></i>
                     <p>{{ currentMonth }}</p>
-                    <i class='bx bx-chevron-right' @click="nextMonth"></i>
+                    <i class='bx bx-chevron-right' @click="nextMonth" v-if="dateForMonth.toISOString().split('T')[0] < new Date().toISOString().split('T')[0]"></i>
                 </div>
             </div>
             <div class="echartContainer" v-if="currentHead=='季'">
                 <div class="leftRightContainer">
-                    <i class='bx bx-chevron-left' @click="previousSeason"></i>
+                    <i class='bx bx-chevron-left' @click="previousSeason" v-if="isFirstOperationDateBeforeSeason(firstOperationDate, dateForSeason)"></i>
                     <p>{{ currentSeason }}</p> 
-                    <i class='bx bx-chevron-right' @click="nextSeason"></i>
+                    <i class='bx bx-chevron-right' @click="nextSeason" v-if="dateForSeason.toISOString().split('T')[0] < new Date().toISOString().split('T')[0]"></i>
                 </div>
             </div>
             <div class="echartContainer" v-if="currentHead=='年'">
                 <div class="leftRightContainer">
-                    <i class='bx bx-chevron-left' @click="previousYear"></i>
+                    <i class='bx bx-chevron-left' @click="previousYear" v-if="new Date(firstOperationDate).getFullYear() < dateForYear.getFullYear()"></i>
                     <p>{{ currentYear }}</p>
-                    <i class='bx bx-chevron-right' @click="nextYear"></i>
+                    <i class='bx bx-chevron-right' @click="nextYear" v-if="dateForYear.toISOString().split('T')[0] < new Date().toISOString().split('T')[0]"></i>
                 </div>
             </div>
             <!-- <div class="echartContainer" v-if="currentHead=='自訂'">
@@ -571,8 +661,7 @@ export default{
             <button>下載檔案</button>
         </div>
     </div>
-
-    <div class="innerContainer2">
+    <div class="innerContainer2" v-if="currentTopSelect == '日常統計'">
             <div class="innerContainer2-Left">
                 <div class="compareContainer">
                     <div class="compareItem">
@@ -590,13 +679,13 @@ export default{
                                 <i class='bx bx-down-arrow-alt'></i>
                                 <p>{{calRevenueGrowth()}}%</p>
                             </div>
-                            <p class="compareWhat" v-if="currentHead=='日'">vs 昨日</p>
+                            <p class="compareWhat" v-if="currentHead=='日'">vs 上個營業日</p>
                             <p class="compareWhat" v-if="currentHead=='月'">vs 前一月</p>
                             <p class="compareWhat" v-if="currentHead=='季'">vs 前一季</p>
                             <p class="compareWhat" v-if="currentHead=='年'">vs 前一年</p>
                         </div>    
                     </div>
-                    <div class="compareItem">
+                    <!-- <div class="compareItem">
                         <p class="title">總銷售量</p>
                         <div class="content">
                             <p class="contentNumber" v-if="analysis && analysis.totalOrders !== null">{{ analysis.totalOrders }}</p>
@@ -610,12 +699,12 @@ export default{
                                 <i class='bx bx-down-arrow-alt'></i>
                                 <p>{{calOrdersGrowth()}}%</p>
                             </div>
-                            <p class="compareWhat" v-if="currentHead=='日'">vs 昨日</p>
+                            <p class="compareWhat" v-if="currentHead=='日'">vs 上個營業日</p>
                             <p class="compareWhat" v-if="currentHead=='月'">vs 前一月</p>
                             <p class="compareWhat" v-if="currentHead=='季'">vs 前一季</p>
                             <p class="compareWhat" v-if="currentHead=='年'">vs 前一年</p>
                         </div>    
-                    </div>
+                    </div> -->
                 </div>
                 <div class="chartContainer">
                     <h1>營運分析圖</h1>
@@ -647,7 +736,13 @@ export default{
 
                 </div>
             </div>
-        </div>
+    </div>
+
+    <div class="innerContainerSpecific" v-if="currentTopSelect == '活動統計'">
+        <OperationSpecificComponent/>
+    </div>
+
+
 </div>
 
 </template>
@@ -675,7 +770,45 @@ $down-font: #388e3c;
     flex-direction: column;
     align-items: flex-start;
     justify-content: flex-start;
-    padding: 5% 0 10% 0;
+    padding: 2% 0 4% 0;
+    .innerContainer0{
+        width: 100%;
+        height: 10%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: white;
+        border-radius: 12px;
+        border: 2px solid rgba(0, 0, 0, 0.25);
+        margin: 0 0 1% 0;
+
+        .topStyle{
+            width: 8%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: 600;
+            color: rgba(0, 0, 0, 0.7);
+            cursor: pointer;
+            
+        }
+        .topStyleClick{
+            color: black;
+            position: relative;
+            &::before{
+                position: absolute;
+                content: "";
+                width: 100%;
+                height: 2px;
+                left: 0;
+                bottom: 0;
+                color: black;
+                background-color: black;
+            }
+        }
+    }
     .innerContainer{
         width: 100%;
         height: 10%;
@@ -684,19 +817,19 @@ $down-font: #388e3c;
         justify-content: space-between;
         margin: 0 0 0 0;
         .dashboardLeft{
-            width: 88%;
+            width: 90%;
             height: 45px;
             display: flex;
             align-items: center;
             justify-content: flex-start;
             .navHead{
-                width: 100%;
+                width: 40%;
                 height: 100%;
                 display: flex;
                 justify-content: center;
                 align-items: center;
                 background-color: rgba(255, 255, 255, 0.7);
-                border-radius: 10px;
+                border-radius: 12px;
                 border: 2px solid rgba(0, 0, 0, 0.25);
                 padding: 0 10px;
                 margin: 0 5% 0 0;
@@ -714,25 +847,25 @@ $down-font: #388e3c;
                     &:hover{
                         color: white;
                         background-color: rgba(0, 0, 255, 0.301);
-                        border-radius: 10px;
+                        border-radius: 12px;
                     }
                 }
 
                 .headStyleClick {
                     color: white;
                     background-color: rgba(0, 0, 255, 0.301);
-                    border-radius: 10px;
+                    border-radius: 12px;
                 }
 
             }
             .echartContainer {
-                width: 100%;
+                width: 35%;
                 height: 100%;
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 background-color: rgba(255, 255, 255, 0.7);
-                border-radius: 10px;
+                border-radius: 12px;
                 border: 2px solid rgba(0, 0, 0, 0.25);
                 .leftRightContainer{
                     width: 100%;
@@ -747,7 +880,7 @@ $down-font: #388e3c;
                         background-color: rgba(0, 0, 0, 0.121);
                         font-size: 30px;
                         cursor: pointer;
-                        border-radius: 6px;
+                        border-radius: 12px;
                         padding: 2px 0 0 0;
                     }
                     p{
@@ -780,7 +913,7 @@ $down-font: #388e3c;
                 font-size: 18px;
                 color: white;
                 border: none;
-                border-radius: 10px;
+                border-radius: 12px;
                 background-color: #2DB976;
                 cursor: pointer;
             }
@@ -788,7 +921,7 @@ $down-font: #388e3c;
     }
     .innerContainer2{
         width: 100%;
-        height: 100%;
+        height: 80%;
         display: flex;
         align-items: flex-start;
         justify-content: flex-start;
@@ -802,19 +935,19 @@ $down-font: #388e3c;
             border-radius: 12px;
             margin: 0 1% 0 0;
             .compareContainer{
-                width: 100%;
+                width: 40%;
                 height: 25%;
                 display: flex;
                 align-items: center;
                 justify-content: flex-start;
-                border-radius: 6px;
+                border-radius: 12px;
                 background-color: white;
                 border: 2px solid rgba(0, 0, 0, 0.25);
                 padding: 0 5%;
                 margin: 0 0 2% 0;
 
                 .compareItem{
-                    width: 50%;
+                    width: 100%;
                     height: 100%;
                     padding: 20px 20px;
                     display: flex;
@@ -896,10 +1029,10 @@ $down-font: #388e3c;
                 flex-direction: column;
                 align-items: flex-start;
                 justify-content: flex-start;
-                border-radius: 6px;
+                border-radius: 12px;
                 background-color: white;
                 border: 2px solid rgba(0, 0, 0, 0.25);
-                padding: 5% 4%;
+                padding: 2% 4%;
 
                 h1{
                     font-size: 25px;
@@ -917,7 +1050,7 @@ $down-font: #388e3c;
         }
         .innerContainer2-Right{
             width: 35%;
-            height: 65%;
+            height: 100%;
             display: flex;
             flex-direction: column;
             align-items: flex-start;
@@ -1009,5 +1142,11 @@ $down-font: #388e3c;
         }
 
     }
+    .innerContainerSpecific{
+        width: 100%;
+        height: 100%;
+    }
+
+
 }
 </style>
