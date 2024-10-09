@@ -162,9 +162,9 @@ export default {
                 </div>
                 <button type="submit" class="login-btn">登入</button>
             </form>
-            <div class="extra-links">
+            <!-- <div class="extra-links">
                 <router-link class="register-link" to="/register">註冊(沒有會員功能了 但要進去可以先註冊之後去弄一個員工帳號 最終版會移除這個)</router-link>
-            </div>
+            </div> -->
         </div>
     </div>
 </template>

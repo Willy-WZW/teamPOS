@@ -75,6 +75,11 @@ const router = createRouter({
       name: 'userInfo',
       component: () => import('../views/UserInfoView.vue')
     },
+    {
+      path: '/comboPage',
+      name: 'comboPage',
+      component: () => import('../components/combo/ComboComponent.vue')
+    },
   ]
 });
 

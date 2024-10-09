@@ -1,6 +1,7 @@
 <script>
 import Swal from 'sweetalert2';
 import axios from 'axios';
+import ComboComponent from './combo/ComboComponent.vue';
 export default {
     data() {
         return {
@@ -9,6 +10,8 @@ export default {
             showEditPen: false,
             selectedCategory: null, // 選中的菜單分類
             selectedCategoryId: null, // 選中的菜單分類Id
+            selectedWorkbench: "0", //選中的工作檯
+            editingWorkbench: false,
             categories: [],// 已存在資料庫的菜單分類
             cgInput: [],// 菜單分類的input
             editingIndexes: [],  // 用來追蹤正在編輯的菜單分類
@@ -21,7 +24,15 @@ export default {
             custList: [],// 客製化的input
             editStates: [],// 客製化的編輯狀態
             originalOptions: [], // 儲存原始數據
+            workstationData: [],
+            selectedWorkstationId: "", //當前選擇的工作檯ID
+            selectedWorkstation: "", //當前選擇的工作檯名稱
+            comboPage:false,
+            // comboPage:false
         }
+    },
+    components:{
+        ComboComponent
     },
     methods: {
         startTouch(event, index) {
@@ -65,6 +76,12 @@ export default {
             this.selectedCategoryId = category.categoryId;
             // console.log(this.selectedCategory);
             // console.log(this.selectedCategoryId);
+            if(category.category == '套餐'){
+                this.comboPage = true
+            }
+            else{
+                this.comboPage = false
+            }
         },
         // 刪除菜單分類
         confirmDelete(cIndex) {
@@ -228,24 +245,42 @@ export default {
         removeCust(index) {
             this.custList.splice(index, 1)
         },
-        addOption(custIndex) {
-            this.custList[custIndex].options.push({
-                optionContent: "", // 選項內容
-                extraPrice: "" // 選項金額
-            });
-            this.$nextTick(() => {
-                // 獲取特定的 custInput 容器
-                const custInputs = this.$el.querySelectorAll('.custInput');
-                const targetCustInput = custInputs[custIndex];
+        updateWorkbench(event) {
+            this.selectedWorkstationId = Number(event.target.value); // 確保將選項值轉為數字
+            this.selectedWorkstation = this.workstationData.find(wsItem => wsItem.workstationId === this.selectedWorkstationId);
 
-                if (targetCustInput) {
-                    // 在該 custInput 容器中找到最後一個 oneOption 元素
-                    const lastOption = targetCustInput.querySelector('.oneOption:last-child');
-                    if (lastOption) {
-                        lastOption.scrollIntoView({ behavior: 'smooth' }); // 平滑滾動到新增的選項
+            if (this.selectedWorkstation) {
+                console.log("選擇的工作檯 ID:", this.selectedWorkstationId);
+                console.log("選擇的工作檯名稱:", this.selectedWorkstation.workstationName); // 印出對應的工作檯名稱
+            } else {
+                console.log("找不到對應的工作檯");
+            }
+        },
+        addOption(custIndex) {
+            // 獲取 custList 的最後一個索引
+            const lastCustIndex = this.custList.length - 1;
+            const lastCustItem = this.custList[lastCustIndex];
+
+            // 檢查最後一個項目是否存在，然後新增選項
+            if (lastCustItem) {
+                lastCustItem.options.push({
+                    optionContent: "", // 選項內容
+                    extraPrice: "" // 選項金額
+                });
+
+                // 平滑滾動到新增的選項
+                this.$nextTick(() => {
+                    const groupedOptionsLength = Object.keys(this.groupedOptions).length;
+                    const custInputs = this.$el.querySelectorAll('.custInput');
+                    const targetCustInput = custInputs[lastCustIndex + groupedOptionsLength]; // 動態計算目標索引
+                    if (targetCustInput) {
+                        const lastOption = targetCustInput.querySelector('.oneOption:last-child');
+                        if (lastOption) {
+                            lastOption.scrollIntoView({ behavior: 'smooth' });
+                        }
                     }
-                }
-            });
+                });
+            }
         },
         // 儲存菜單分類
         async saveCategory() {
@@ -521,11 +556,16 @@ export default {
                 this.editedMenuItems.push({ ...itemToEdit });
             }
 
-            console.log("目前正在編輯的項目:", this.editedMenuItems);
+            // console.log("目前正在編輯的項目:", this.editedMenuItems);
         },
-        editAllMenus() {
-            this.editIndexList = this.savedMenuList.map(item => item.mealName); // 進入編輯模式，所有菜單項目可編輯
-            this.editedMenuItems = this.savedMenuList.map(item => ({ ...item })); // 初始化所有項目
+        editWorkbench() {
+            this.editingWorkbench = !this.editingWorkbench;
+
+            // 如果結束編輯模式，將工作檯名稱顯示出來
+            if (!this.editingWorkbench) {
+                const selected = this.workstationData.find(ws => ws.workstationId === this.selectedWorkstationId);
+                this.selectedWorkstation.workstationName = selected ? selected.workstationName : '未選擇工作檯';
+            }
         },
         updateEditedItem(item) {
             const index = this.editedMenuItems.findIndex(editedItem => editedItem.mealName === item.mealName);
@@ -607,7 +647,7 @@ export default {
                             });
                             // 清空 originalOptions
                             this.originalOptions = [];
-                            this.editStates = false
+                            this.editStates = [];
                             this.fetchCust(); // 重新加載資料
                         } else {
                             Swal.fire({
@@ -745,7 +785,7 @@ export default {
                 this.savedCustList = response.data;
                 //console.log(this.savedCustList);
             } catch (error) {
-                console.error('獲取菜單時發生錯誤:', error);
+                console.error('獲取客製化選項時發生錯誤:', error);
                 Swal.fire({
                     title: '錯誤',
                     text: '無法獲取客製化菜單資料，請稍後再試',
@@ -830,12 +870,28 @@ export default {
                 this.originalOptions[index].optionType = newType;
             }
         },
+        async workstationFromDB() {
+            try {
+                const response = await axios.post('http://localhost:8080/workstation/searchworkstation', { workstationId: "" });
+                this.workstationData = response.data.data;
+                console.log(this.workstationData);
+            } catch (error) {
+                console.error('獲取工作檯時發生錯誤:', error);
+                Swal.fire({
+                    title: '錯誤',
+                    text: '無法獲取工作檯資料，請稍後再試',
+                    icon: 'error',
+                    confirmButtonText: '好的'
+                });
+            }
+        }
     },
     mounted() {
         this.fetchCategories(); // 載入時獲取分類
         this.fetchMenu(); // 載入時獲取菜單
         this.fetchCust(); // 載入時獲取客製化菜單資料
         this.initializeEditStates();
+        this.workstationFromDB();// 載入時獲得工作檯資料
     },
     computed: {
         // 計算各菜單分類的菜單選項
@@ -918,21 +974,28 @@ export default {
             <div class="editCategory" @click="editCategory()">編輯</div>
         </div>
         <div class="menuAndCust">
-            <div class="menuArea">
+            <div class="menuArea" v-if="!comboPage">
                 <div class="menuTop">
                     <div class="mtLeft">
-                        <span>餐點</span>
-                        <span class="subtitle">工作檯</span>
-                        <select>
+                        <span>{{ selectedCategory || '菜單分類' }}</span>
+                    </div>
+                    <div class="mtMid">
+                        <i class="fa-solid fa-square-pen" :class="{ 'disIcon': selectedCategory == null }"
+                            :style="{ 'pointer-events': selectedCategory == null ? 'none' : 'auto' }"
+                            @click="editWorkbench()"></i>
+                        <span class="subtitle" v-if="editingWorkbench">工作檯</span>
+                        <select v-if="editingWorkbench" @change="updateWorkbench">
                             <option value="0">工作檯選擇</option>
+                            <option v-for="wsItem in workstationData" :key="wsItem.workstationId"
+                                :value="wsItem.workstationId">
+                                {{ wsItem.workstationName }}
+                            </option>
                         </select>
-                        <i class="fa-solid fa-square-pen" @click="editAllMenus()"></i>
+                        <span class="subtitle" v-if="!editingWorkbench && selectedWorkstation">
+                            {{ selectedWorkstation.workstationName }}
+                        </span>
                     </div>
                     <div class="mtRight">
-                        <div class="selCate">
-                            <span>{{ selectedCategory || '菜單分類' }}</span>
-                            <div class="countOp">{{ categoryMenuCount[selectedCategoryId] || 0 }}</div>
-                        </div>
                         <div class="saveBtn" @click="saveMenu()">儲存</div>
                     </div>
                 </div>
@@ -959,7 +1022,7 @@ export default {
                                 <option value="0">工作檯選擇</option>
                             </select>
                         </div>
-                        <div class="itembot">
+                        <div class="itemBot">
                             <div class="itemStatus" v-if="!editIndexList.includes(item.mealName)"
                                 :class="{ soldOut: item.available == false }">
                                 <span>{{ item.available ? "供應中" : "售完" }}</span>
@@ -968,7 +1031,7 @@ export default {
                                 <span>{{ item.available ? "供應中" : "售完" }}</span>
                             </div>
                             <div class="itemIcon">
-                                <!-- <i class="fa-solid fa-square-pen" @click="editMenuFromDB(item.mealName)"></i> -->
+                                <i class="fa-solid fa-square-pen" @click="editMenuFromDB(item.mealName)"></i>
                                 <i class="fa-solid fa-trash-can" @click="deleteMenuFromDB(item.mealName)"></i>
                             </div>
                         </div>
@@ -990,7 +1053,7 @@ export default {
                                 <option value="0">工作檯選擇</option>
                             </select>
                         </div>
-                        <div class="itembot">
+                        <div class="itemBot">
                             <div class="itemStatus" :class="{ flip: !menu.available }" @click="switchSta(menu)">
                                 <span>{{ menu.available ? "供應中" : "售完" }}</span>
                             </div>
@@ -1002,6 +1065,7 @@ export default {
                     </div>
                 </div>
             </div>
+            <ComboComponent class="comboArea" v-if="comboPage"></ComboComponent>
             <div class="customerization">
                 <div class="cuTop">
                     <div class="cuLeft">
@@ -1018,11 +1082,11 @@ export default {
                 <div class="custItem">
                     <div class="addItem" @click="addCust()">+&nbsp&nbsp新增客製化選項</div>
                     <!-- 已存在資料庫的客製化選項 -->
-                    <div class="custInput" v-for="(item, index) in Object.values(groupedOptions)" :key="index">
+                    <div class="custInput" v-for="(item, dbIndex) in Object.values(groupedOptions)" :key="dbIndex">
                         <div class="cuTitle">
                             <span>{{ item.optionTitle }}</span>
-                            <span v-if="!editStates[index]">{{ item.optionType == 'checkbox' ? '多選' : '單選' }}</span>
-                            <select v-else v-model="item.optionType" @change="onTypeChange(item.optionType, index)">
+                            <span v-if="!editStates[dbIndex]">{{ item.optionType == 'checkbox' ? '多選' : '單選' }}</span>
+                            <select v-else v-model="item.optionType" @change="onTypeChange(item.optionType, dbIndex)">
                                 <option value="checkbox">多選</option>
                                 <option value="radio">單選</option>
                             </select>
@@ -1034,20 +1098,20 @@ export default {
                                 </div>
                                 <div class="optionPrice">
                                     <span>$</span>
-                                    <span v-if="!editStates[index]">{{ option.extraPrice }}</span>
+                                    <span v-if="!editStates[dbIndex]">{{ option.extraPrice }}</span>
                                     <input v-else v-model="option.extraPrice" class="editOpPrice" type="number"
-                                        @input="onPriceChange(option, index, opIndex)">
+                                        @input="onPriceChange(option, dbIndex, opIndex)">
                                 </div>
                             </div>
                         </div>
                         <div class="cuInputCtrl">
-                            <i class="fa-solid fa-trash-can" @click="deleteCustFromDB(index)"></i>
+                            <i class="fa-solid fa-trash-can" @click="deleteCustFromDB(dbIndex)"></i>
                             <i class="fa-solid fa-pencil" @click="editThisCust(item)"></i>
                             <i class="fa-solid disable fa-circle-plus" style="pointer-events: none;"></i>
                         </div>
                     </div>
                     <!-- 動態新增的輸入框 -->
-                    <div class="custInput" v-for="(cust, index) in custList" :key="index">
+                    <div class="custInput" v-for="(cust, custIndex) in custList" :key="custIndex">
                         <div class="cuTitle">
                             <input type="text" v-model="cust.optionTitle" placeholder="客製化標題">
                             <select v-model="cust.optionType">
@@ -1071,8 +1135,8 @@ export default {
                             </div>
                         </div>
                         <div class="cuInputCtrl">
-                            <i class="fa-solid fa-trash-can" @click="removeCust(index)"></i>
-                            <i class="fa-solid fa-circle-plus" @click="addOption(index)"></i>
+                            <i class="fa-solid fa-trash-can" @click="removeCust(custIndex)"></i>
+                            <i class="fa-solid fa-circle-plus" @click="addOption(custIndex)"></i>
                         </div>
                     </div>
                 </div>
@@ -1092,7 +1156,7 @@ $editColor: #e6b800;
 .addMenu {
     width: 100%;
     height: 100%;
-
+    position: relative;
     .menuCategory {
         width: 21.7%;
         height: 100%;
@@ -1267,7 +1331,6 @@ $editColor: #e6b800;
             font-family: "Noto Sans TC", sans-serif;
         }
     }
-
     .menuAndCust {
         width: 76.5%;
         height: 100%;
@@ -1281,13 +1344,16 @@ $editColor: #e6b800;
 
         .menuArea {
             width: 100%;
-            min-height: 457px; //71%
+            // Smin-height: 457px; //71%
+            height: 100%; 
             border-radius: 10px;
             display: flex;
             justify-content: start;
             align-items: center;
             flex-direction: column;
             background-color: $divColor;
+            overflow-y: scroll;
+            scrollbar-width: none;
 
             .menuTop {
                 width: 97%;
@@ -1299,30 +1365,52 @@ $editColor: #e6b800;
                 align-items: center;
 
                 .mtLeft {
-                    width: 50%;
+                    width: 30%;
                     font-size: 30px;
                     font-weight: bold;
                     letter-spacing: 3px;
                     margin-left: 1%;
                     margin-bottom: 1%;
                     font-family: "Noto Sans TC", sans-serif;
+                }
+
+                .mtMid {
+                    width: 30%;
 
                     .subtitle {
                         font-size: 15px;
+                        font-weight: bold;
+                        letter-spacing: 3px;
+                        font-family: "Noto Sans TC", sans-serif;
                         color: $borderBot;
                     }
 
                     .fa-square-pen {
+                        font-size: 18px;
+                        margin-right: 1%;
                         cursor: pointer;
 
                         &:hover {
                             color: $editColor;
                         }
                     }
+
+                    select,
+                    option {
+                        width: 35%;
+                        font-weight: bold;
+                        letter-spacing: 3px;
+                        font-family: "Noto Sans TC", sans-serif;
+                    }
+
+                    .disIcon {
+                        color: $borderBot;
+                    }
+
                 }
 
                 .mtRight {
-                    width: 50%;
+                    width: 20%;
                     display: flex;
                     justify-content: end;
                     align-items: center;
@@ -1355,7 +1443,7 @@ $editColor: #e6b800;
                     }
 
                     .saveBtn {
-                        width: 17.4%;
+                        width: 43.4%;
                         height: 91%;
                         border-radius: 5px;
                         color: white;
@@ -1472,7 +1560,7 @@ $editColor: #e6b800;
                         }
                     }
 
-                    .itembot {
+                    .itemBot {
                         grid-area: 8 / 1 / 9 / 7;
                         margin: 0 4%;
                         display: flex;
@@ -1513,7 +1601,7 @@ $editColor: #e6b800;
                             width: 35%;
                             margin-left: 8%;
                             display: flex;
-                            justify-content: end;
+                            justify-content: space-between;
                             align-items: center;
 
                             .fa-solid {
@@ -1546,6 +1634,10 @@ $editColor: #e6b800;
                 }
 
             }
+        }
+
+        .comboArea{
+            z-index: 99;
         }
 
         .customerization {
@@ -1778,6 +1870,7 @@ $editColor: #e6b800;
 
             }
         }
+
     }
 }
 </style>

@@ -1731,20 +1731,24 @@ export default {
                     .cancelButton {
                         border: none;
                         border-radius: 10px;
-                        margin-top: 15px;
-                        padding: 15px 150px;
-                        cursor: pointer;
                         background-color: #DDE1E6;
+                        font-size: 15px;
+                        letter-spacing: 3px;
+                        margin-top: 15px;
+                        padding: 15px 140px;
+                        cursor: pointer;
                         color: #21272A;
                     }
 
                     .addButton {
                         border: none;
                         border-radius: 10px;
-                        margin-top: 15px;
-                        padding: 15px 150px;
-                        cursor: pointer;
                         background-color: #343A3F;
+                        font-size: 15px;
+                        letter-spacing: 3px;
+                        padding: 15px 140px;
+                        margin-top: 15px;
+                        cursor: pointer;
                         color: white;
                     }
                 }
