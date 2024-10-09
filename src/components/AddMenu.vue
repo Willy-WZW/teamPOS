@@ -1,6 +1,7 @@
 <script>
 import Swal from 'sweetalert2';
 import axios from 'axios';
+import { number } from 'echarts';
 import ComboComponent from './combo/ComboComponent.vue';
 export default {
     data() {
@@ -24,14 +25,15 @@ export default {
             custList: [],// 客製化的input
             editStates: [],// 客製化的編輯狀態
             originalOptions: [], // 儲存原始數據
-            workstationData: [],
-            selectedWorkstationId: "", //當前選擇的工作檯ID
+            workstationData: [], // DB中的工作檯數據
+            selectedWorkstationId: this.selectedWorkstation ? this.selectedWorkstation.workstationId : 0, //當前選擇的工作檯ID
             selectedWorkstation: "", //當前選擇的工作檯名稱
-            comboPage:false,
+            lastSelectedWorkstationId: 0, // 用於儲存上次的選擇
+            comboPage: false,
             // comboPage:false
         }
     },
-    components:{
+    components: {
         ComboComponent
     },
     methods: {
@@ -74,12 +76,16 @@ export default {
             }
             this.selectedCategory = category.category;
             this.selectedCategoryId = category.categoryId;
+            this.lastSelectedWorkstationId = category.workstationId;
+            this.selectedWorkstationId = this.lastSelectedWorkstationId;
+            this.selectedWorkstation = this.workstationData.find(wsItem => wsItem.workstationId === this.lastSelectedWorkstationId);
+            this.editingWorkbench = false;
             // console.log(this.selectedCategory);
             // console.log(this.selectedCategoryId);
-            if(category.category == '套餐'){
+            if (category.category == '套餐') {
                 this.comboPage = true
             }
-            else{
+            else {
                 this.comboPage = false
             }
         },
@@ -201,7 +207,7 @@ export default {
             this.menuList.push({
                 mealName: "", // 餐點名稱
                 price: "", // 餐點金額
-                workstationId: 0, // 工作檯
+                workstationId: this.selectedWorkstationId, // 工作檯
                 available: true, // 供應狀態
                 categoryId: this.selectedCategoryId //餐點的菜單分類Id
             });
@@ -246,12 +252,13 @@ export default {
             this.custList.splice(index, 1)
         },
         updateWorkbench(event) {
-            this.selectedWorkstationId = Number(event.target.value); // 確保將選項值轉為數字
-            this.selectedWorkstation = this.workstationData.find(wsItem => wsItem.workstationId === this.selectedWorkstationId);
+            // 確保將選項值轉為數字
+            this.selectedWorkstationId = Number(event.target.value);
+            this.selectedWorkstation = this.workstationData.find(wsItem => wsItem.workstationId === this.selectedWorkstationId) || null;
 
             if (this.selectedWorkstation) {
                 console.log("選擇的工作檯 ID:", this.selectedWorkstationId);
-                console.log("選擇的工作檯名稱:", this.selectedWorkstation.workstationName); // 印出對應的工作檯名稱
+                console.log("選擇的工作檯名稱:", this.selectedWorkstation.workstationName);
             } else {
                 console.log("找不到對應的工作檯");
             }
@@ -381,7 +388,7 @@ export default {
         // 執行新增或編輯操作
         saveMenu() {
             // 檢查是否有新增或修改的菜單項目
-            if (this.menuList.length > 0 || this.editedMenuItems.length > 0) {
+            if (this.menuList.length > 0 || this.editedMenuItems.length > 0 || this.selectedWorkstationId !== this.lastSelectedWorkstationId) {
                 if (this.menuList.length > 0) {
                     this.createMenu(); // 處理新增菜單
                     console.log(this.menuList);
@@ -389,6 +396,9 @@ export default {
                 if (this.editedMenuItems.length > 0) {
                     this.updateMenu(); // 處理修改菜單
                     console.log(this.editedMenuItems);
+                }
+                if (this.selectedWorkstationId !== this.lastSelectedWorkstationId) {
+                    this.updateMenuWorkId(); // 處理修改菜單的工作檯
                 }
             } else {
                 Swal.fire({
@@ -399,7 +409,7 @@ export default {
                 });
             }
         },
-        // 新增菜單
+        // 新增菜單到資料庫
         async createMenu() {
             console.log(this.menuList);
 
@@ -525,6 +535,45 @@ export default {
                 });
             }
         },
+        // 編輯菜單的workId
+        async updateMenuWorkId() {
+            const categoryId = this.selectedCategoryId;
+            const workstationId = this.selectedWorkstationId;
+
+            try {
+                const response = await axios.post('http://localhost:8080/menu/updateWorkId', {
+                    workstationId, categoryId
+                });
+
+                if (response.data.code === 200) {
+                    Swal.fire({
+                        title: '成功',
+                        text: '工作檯更新成功',
+                        icon: 'success',
+                        confirmButtonText: '好的'
+                    });
+                    // this.lastSelectedWorkstationId = this.selectedWorkstationId; // 更新 lastSelectedWorkstationId
+                } else {
+                    Swal.fire({
+                        title: '錯誤',
+                        text: response.data.message,
+                        icon: 'error',
+                        confirmButtonText: '好的'
+                    });
+                }
+                this.editingWorkbench = false;
+            }
+            catch (error) {
+                console.error('工作檯更新失敗:', error);
+                Swal.fire({
+                    title: '錯誤',
+                    text: '請稍後再試',
+                    icon: 'error',
+                    confirmButtonText: '好的'
+                });
+            }
+        },
+
         // 更新菜單
         async fetchMenu() {
             try {
@@ -559,12 +608,16 @@ export default {
             // console.log("目前正在編輯的項目:", this.editedMenuItems);
         },
         editWorkbench() {
+            // 切換編輯模式
             this.editingWorkbench = !this.editingWorkbench;
 
-            // 如果結束編輯模式，將工作檯名稱顯示出來
-            if (!this.editingWorkbench) {
+            if (this.editingWorkbench) {
+                // 開始編輯時設置 selectedWorkstationId 為當前選中的工作檯 ID
+                this.selectedWorkstationId = this.selectedWorkstation ? this.selectedWorkstation.workstationId : null;
+            } else {
+                // 停止編輯時，顯示當前選擇的工作檯名稱
                 const selected = this.workstationData.find(ws => ws.workstationId === this.selectedWorkstationId);
-                this.selectedWorkstation.workstationName = selected ? selected.workstationName : '未選擇工作檯';
+                this.selectedWorkstation = selected || { workstationName: '未選擇工作檯' };
             }
         },
         updateEditedItem(item) {
@@ -976,6 +1029,8 @@ export default {
         <div class="menuAndCust">
             <div class="menuArea" v-if="!comboPage">
                 <div class="menuTop">
+                    {{ "watch last:" + selectedCategoryId }}
+                    {{ "watch wId:" + selectedWorkstationId }}
                     <div class="mtLeft">
                         <span>{{ selectedCategory || '菜單分類' }}</span>
                     </div>
@@ -984,8 +1039,8 @@ export default {
                             :style="{ 'pointer-events': selectedCategory == null ? 'none' : 'auto' }"
                             @click="editWorkbench()"></i>
                         <span class="subtitle" v-if="editingWorkbench">工作檯</span>
-                        <select v-if="editingWorkbench" @change="updateWorkbench">
-                            <option value="0">工作檯選擇</option>
+                        <select v-if="editingWorkbench" v-model="selectedWorkstationId" @change="updateWorkbench">
+                            <option value="0" disabled>工作檯選擇</option>
                             <option v-for="wsItem in workstationData" :key="wsItem.workstationId"
                                 :value="wsItem.workstationId">
                                 {{ wsItem.workstationName }}
@@ -1015,13 +1070,13 @@ export default {
                             <span v-if="!editIndexList.includes(item.mealName)">${{ item.price }}</span>
                             <input v-else v-model="item.price" type="number" @input="updateEditedItem(item)">
                         </div>
-                        <div class="itemWorksta">
+                        <!-- <div class="itemWorksta">
                             <span>工作檯</span>
                             <span v-if="!editIndexList.includes(item.mealName)">{{ item.workstationId }}</span>
                             <select v-else v-model="item.workstationId" @change="updateEditedItem(item)">
                                 <option value="0">工作檯選擇</option>
                             </select>
-                        </div>
+                        </div> -->
                         <div class="itemBot">
                             <div class="itemStatus" v-if="!editIndexList.includes(item.mealName)"
                                 :class="{ soldOut: item.available == false }">
@@ -1048,17 +1103,17 @@ export default {
                             <input type="number" v-model.number="menu.price" placeholder="餐點金額">
                         </div>
                         <div class="itemWorksta">
-                            <span>工作檯</span>
+                            <!-- <span>工作檯</span>
                             <select v-model="menu.workstationId">
                                 <option value="0">工作檯選擇</option>
-                            </select>
+                            </select> -->
                         </div>
                         <div class="itemBot">
                             <div class="itemStatus" :class="{ flip: !menu.available }" @click="switchSta(menu)">
                                 <span>{{ menu.available ? "供應中" : "售完" }}</span>
                             </div>
                             <div class="itemIcon">
-                                <!-- <i class="fa-solid disable fa-square-pen" style="pointer-events: none;"></i> -->
+                                <i class="fa-solid disable fa-square-pen" style="pointer-events: none;"></i>
                                 <i class="fa-solid fa-trash-can" @click="removeMenu(index)"></i>
                             </div>
                         </div>
@@ -1157,6 +1212,7 @@ $editColor: #e6b800;
     width: 100%;
     height: 100%;
     position: relative;
+
     .menuCategory {
         width: 21.7%;
         height: 100%;
@@ -1331,6 +1387,7 @@ $editColor: #e6b800;
             font-family: "Noto Sans TC", sans-serif;
         }
     }
+
     .menuAndCust {
         width: 76.5%;
         height: 100%;
@@ -1345,7 +1402,7 @@ $editColor: #e6b800;
         .menuArea {
             width: 100%;
             // Smin-height: 457px; //71%
-            height: 100%; 
+            height: 100%;
             border-radius: 10px;
             display: flex;
             justify-content: start;
@@ -1636,7 +1693,7 @@ $editColor: #e6b800;
             }
         }
 
-        .comboArea{
+        .comboArea {
             z-index: 99;
         }
 

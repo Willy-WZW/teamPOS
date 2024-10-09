@@ -1,6 +1,7 @@
 <script>
 import axios from 'axios';
 import Swal from 'sweetalert2';
+import { useCounterStore } from '@/stores/counter'
 
 export default {
     data () {
@@ -41,6 +42,11 @@ export default {
         this.loadInitialTableData();
         this.loadBusinessHours();  // 初始化時加載營業時間數據
         this.loadDiningDurations();
+         // 從 LocalStorage 中讀取用餐時間並轉換回數字
+        const storedDuration = localStorage.getItem('diningDuration');
+        if (storedDuration) {
+        this.diningDuration = JSON.parse(storedDuration);  // 讀取並轉換為數字
+        }
     },
 
     watch: {
@@ -302,7 +308,7 @@ export default {
             // 檢查所有的值是否已經填寫完畢
             if (this.openingTime && this.closingTime && this.diningDuration) {
                 try {
-                const response = await axios.get('http://localhost:8080/reservationManagement/calculateAvailableStartTimes', {
+                const response = await axios.get('http://localhost:8080/reservation/calculateAvailableStartTimes', {
                     params: {
                     openingTime: this.openingTime,
                     closingTime: this.closingTime,
@@ -372,7 +378,18 @@ export default {
             try {
                 const response = await axios.get('http://localhost:8080/diningDuration/getAllDiningDurations');
                 this.diningDurations = response.data;  // 獲取所有的用餐時間資料
-                console.log('用餐時間加載成功:', this.diningDurations);
+
+                // 假設只取第一個用餐時間的 durationMinutes
+                if (this.diningDurations.length > 0) {
+                    const durationMinutes = this.diningDurations[0].durationMinutes;
+
+                    // 確保 durationMinutes 是數字，並儲存到 LocalStorage
+                    localStorage.setItem('diningDuration', JSON.stringify(durationMinutes));
+
+                    console.log('用餐時間已存入 LocalStorage:', durationMinutes);
+                } else {
+                    console.warn('無有效的用餐時間資料');
+                }
             } catch (error) {
                 console.error('加載用餐時間失敗:', error);
                 Swal.fire({
@@ -582,7 +599,7 @@ export default {
 
     <!-- 訂位時段管理注意事項 -->
     <p class="reminderText">
-        所有已設定的營業時間如下，用餐時間皆為 {{ diningDurations.length > 0 ? diningDurations[0].durationMinutes : '無資料' }} 分鐘
+        所有已設定的營業時間如下，用餐時間皆為 {{ diningDuration ? diningDuration : '無資料' }} 分鐘
     </p>
 
     <!-- 顯示訂位時段表格區域 -->

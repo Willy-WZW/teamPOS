@@ -9,15 +9,15 @@ export default {
             // editeMode:true,
             editeMode:false,
             createMode:false,
-            menus:[{"name":"豬排漢堡", "price": 160,},
-                {"name":"雞排漢堡", "price": 160},
-                {"name":"美味蟹堡", "price": 160},
-                {"name":"炸雞", "price": 50},
-                {"name":"雞塊", "price": 40},
-                {"name":"紅茶", "price": 20},
-                {"name":"奶茶", "price": 30},
-                {"name":"可樂", "price": 20},
-            ],
+            menus:[],    
+            // {
+            // "mealName": "九層塔蛋餅",
+            // "categoryId": 4,
+            // "workstationId": 3,
+            // "price": 45,
+            // "available": true,
+            // "pictureName": null
+            // },
             //edit template
             comboItemIndex:null,
             comboName:null,
@@ -43,10 +43,18 @@ export default {
                 comboItem.comboDetail = JSON.parse(comboItem.comboDetail);
             });
             console.log(response)
+
+            return  axios.get("http://localhost:8080/menu/all",{
+            })
+        })
+        .then(response=>{
+            this.menus = response.data
+            console.log(response)
         })
         .catch(error => {
                 console.error("Error:", error.response ? error.response.data : error.message);
         });
+
     },
     methods: {
         createMeal(){
@@ -189,9 +197,9 @@ export default {
             let totalAmount = 0;
             comboItem.comboDetail.forEach(item => {
                 // 确保 detailList 存在且有元素
-                if (item.detailList && item.detailList.length > 0) {
-                    const meal = item.detailList[0]; // 取第一个元素
-                    const menu = this.menus.find(menu => menu.name === meal);
+                if (item.dishes && item.dishes.length > 0) {
+                    const meal = item.dishes[0]; // 取第一个元素
+                    const menu = this.menus.find(menu => menu.mealName == meal);
                     
                     // 确保找到了对应的菜单
                     if (menu) {
@@ -228,7 +236,7 @@ export default {
             },
 
         searchMealPrice(meal){
-            const mealItem = this.menus.find(menu=> menu.name == meal)
+            const mealItem = this.menus.find(menu=> menu.mealName == meal)
             return mealItem ? mealItem.price : 0; // 或者你可以返回其他值，例如 '未找到' 等
         },
         editTotalPrice(){
@@ -259,8 +267,8 @@ export default {
 
 <template>
         <div class="mainArea">
-            <div class="glassMorphism" v-if="editeMode">
 
+            <div class="glassMorphism" v-if="editeMode">
             </div>
             <div class="windowArea" v-if="editeMode">
                 <div class="comboName">
@@ -324,8 +332,10 @@ export default {
                     <!-- <h1>{{ discountAmount }}</h1> -->
                     <!-- <h1 v-if="mealContainer[0].length>0 && mealContainer[1].length>0">{{ totalPrice() }}</h1> -->
                 <div class="comboMain">
+                    <h1>{{ comboItemsList[0] }}</h1>
                     <div class="createCombo" @click="createMeal">+&nbsp&nbsp新增套餐</div>
                     <div class="comboItem" v-for="(comboItem, comboItemIndex) in comboItemsList">
+                       
                         <div class="comboName">
                             <!-- <input type="text" placeholder="套餐名稱"> -->
                             <h1>{{ comboItem.comboName }}</h1>
@@ -338,9 +348,12 @@ export default {
                                     <option value="" disabled selected >{{ detailItem.detailName}}</option>
                                     <option v-for="(menu, index) in detailItem.detailList" :key="index" :value="menu.name" >{{ menu.name }}</option>
                                 </select> -->
-                                <h2 class="detailName">{{ detailItem.detailName }}</h2>
-                                <div class="comboDetail" v-for="(meal, mealIndex) in detailItem.detailList">
-                                    <p>• {{ meal }}</p>
+
+                                <!-- this.menus.find(menu=>menu.categoryId == detailItem.categoryId) -->
+
+                                <h2 class="detailName">{{ this.menus.find(menu=>menu.categoryId == detailItem.categoryId) }}</h2>
+                                <div class="comboDetail" v-for="(meal, mealIndex) in detailItem.dishes">
+                                    <p class="mealName" :class="{'firstMealClass': mealIndex == 0}">• {{ meal }}</p>
                                     <p>$ {{ searchMealPrice(meal) }}</p>
                                 </div>
                             </div>  
@@ -450,6 +463,7 @@ $addDiv: #343a3f;
                         i{
                             cursor: pointer;
                         }
+                        
                     }
                 }
             }
@@ -697,16 +711,22 @@ $addDiv: #343a3f;
                                 font-weight: 700;
                                 padding: 0 2% 0 5%;
                                 p:nth-child(1){
-                                    width: 70%;
+                                    width: max-content;
                                     display: flex;
                                     align-items: center;
                                     justify-content: start;
+                                    padding: 0 4%;
                                 }
                                 p:nth-child(2){
                                     width: 30%;
                                     display: flex;
                                     align-items: center;
                                     justify-content: start;
+                                }
+                                .firstMealClass{
+                                    width: 30%;
+                                    border-radius: 12px;
+                                    background-color: rgba(255, 51, 0, 0.226);
                                 }
                             }
                         }

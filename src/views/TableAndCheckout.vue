@@ -44,15 +44,15 @@ export default {
             ],
             // 訂位資訊
             newReservation: {
-            partySize: '',  // 人數
-            date: '',       // 日期
+            partySize: 2,  // 人數
+            date: this.formatDate(new Date()), // 預設日期為當前日期
             time: '',       // 時段
             name: '',       // 訂位人姓名
             title: '先生',  // 預設稱謂
             phone: '',      // 電話號碼
             email: ''       // 電子郵件
             },
-            availableTimes: ['11:00', '12:30', '14:00', '17:00', '18:30', '20:00'], // 可選時段
+            availableTimes: [], // 可選時段
             showReservationModal: false,
             
             // 現場候位 waitlist 數據
@@ -73,6 +73,13 @@ export default {
     },
 
     mounted() {
+        // 從 LocalStorage 中獲取用餐時間
+        const storedDiningDuration = localStorage.getItem('diningDuration');
+        if (storedDiningDuration) {
+            this.diningDuration = JSON.parse(storedDiningDuration); // 將儲存的資料轉換為數字
+            console.log('從 LocalStorage 獲取的用餐時間:', this.diningDuration);
+        }
+
         this.fetchTables().then(() => {
             this.$nextTick(() => {
                 this.restoreTablePositions(); // 確保 DOM 渲染完成後再還原桌位位置
@@ -123,6 +130,14 @@ export default {
                 })
             ]
         });
+
+        this.fetchAvailableTimes();
+    },
+
+    watch: {
+        'newReservation.date': 'fetchAvailableTimes',  // 監聽日期變化，當變化時調用 fetchAvailableTimes
+        'diningDuration': 'fetchAvailableTimes',      // 當用餐時長變化時，也可以自動調用
+        'newReservation.partySize': 'fetchAvailableTimes' 
     },
 
     computed: {
@@ -326,43 +341,43 @@ export default {
             }
         },
 
-        // 選擇時段
-    selectTimeSlot(time) {
-      this.reservation.timeSlot = time;
-    },
-    // 關閉訂位模態視窗
-    closeReservationModal() {
-      this.showReservationModal = false;
-      this.resetReservationData();
-    },
-    // 確認訂位
-    confirmReservation() {
-      if (this.validateReservation()) {
-        // 在這裡提交訂位資訊（如調用 API 或是更新資料）
-        console.log('訂位成功', this.reservation);
+        formatDate(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0'); // 月份從0開始，需要+1
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        },
 
-        // 關閉視窗並重置表單
-        this.closeReservationModal();
-      } else {
-        alert('請填寫完整的訂位資訊');
-      }
-    },
-    // 重置訂位表單
-    resetReservationData() {
-      this.reservation = {
-        partySize: '',
-        date: '',
-        timeSlot: '',
-        name: '',
-        phone: '',
-        email: ''
-      };
-    },
-    // 驗證表單資料
-    validateReservation() {
-      const { partySize, date, timeSlot, name, phone, email } = this.reservation;
-      return partySize && date && timeSlot && name && phone && email;
-    }
+         // 從後端獲取可用的訂位時間段
+        async fetchAvailableTimes() {
+            try {
+                // 設置日期和用餐時長的參數
+                const reservationDate = this.newReservation.date;
+                const diningDuration = this.diningDuration;
+
+                // 發送請求到後端 API
+                const response = await axios.get('http://localhost:8080/reservation/generateAndFindAvailableTables', {
+                    params: {
+                        reservationDate: reservationDate,
+                        diningDuration: diningDuration,
+                        reservationPeople: this.newReservation.partySize
+                    }
+                });
+
+                // 打印完整的 response 來檢查資料結構
+                console.log('後端返回的資料:', response);
+
+                // 使用正確的字段名稱 availableTimeSlots
+                this.availableTimes = response.data.availableTimeSlots; // 從 availableTimeSlots 提取資料
+                console.log('可用時段:', this.availableTimes);
+            } catch (error) {
+                console.error('無法獲取可用時段:', error);
+            }
+        },
+
+        closeReservationModal () {
+            this.showReservationModal = false
+        }
     },
 };
 </script>
@@ -651,7 +666,7 @@ export default {
 
         <!-- 新增訂位 Modal -->
         <div v-if="showReservationModal" class="reservationModal" @click="closeReservationModal">
-            <div class="modalContent">
+            <div class="modalContent" @click.stop>
                 <!-- 訂位區域 -->
                 <div class="reserveInfoArea">
                     <h3 class="reserveInfoTitle">訂位資訊</h3>
@@ -674,12 +689,14 @@ export default {
                     </div>
 
 
-                <!-- 時段選擇 -->
+                    <!-- 時段選擇 -->
                     <div class="timeSlotsArea">
                         <label for="time">時段</label>
                         <div class="timeButtonArea">
-                            <button  v-for="time in availableTimes" :key="time" :class="{ selected: newReservation.time === time }" @click="newReservation.time = time">
-                                {{ time }}
+                            <button v-for="time in availableTimes" :key="time.startTime" 
+                                    :class="{ selected: newReservation.time === time.startTime }" 
+                                    @click="newReservation.time = time.startTime">
+                                {{ time.startTime }}
                             </button>
                         </div>
                     </div>
@@ -856,16 +873,16 @@ export default {
                         flex-direction: column;
                         cursor: pointer;
 
-                        &.active {
-                            background-color: #878d96; /* 用餐中狀態 */
+                        &.ACTIVE {
+                            background-color: #878d96 !important; /* 用餐中狀態 */
                         }
 
-                        &.reserved {
-                            background-color: #c1c7cd; /* 已訂位狀態 */
+                        &.RESERVED {
+                            background-color: #c1c7cd !important; /* 已訂位狀態 */
                         }
 
-                        &.available {
-                            background-color: #f2f4f8; /* 可使用狀態，預設為淺色 */
+                        &.AVAILABLE {
+                            background-color: #f2f4f8 !important; /* 可使用狀態，預設為淺色 */
                         }
 
                         .tableNumber {
@@ -1568,7 +1585,7 @@ export default {
 
                 .reserveInfoArea {
                     width: 100%;
-                    height: 45%;
+                    height: 40%;
 
                     .reserveInfoTitle {
                         font-size: 20px;
@@ -1638,7 +1655,9 @@ export default {
                     }
 
                     .timeSlotsArea {
-                        height: 50%;
+                        width: 100%;
+                        height: 40%;
+                        overflow-x: scroll;
                         display: flex;
                         flex-direction: column;
                         padding: 10px;
@@ -1646,7 +1665,7 @@ export default {
                         label {
                             font-size: 17px;
                             letter-spacing: 4px;
-                            margin-bottom: 5px;
+                            margin-bottom: 25px;
                         }
 
                         .timeButtonArea {
@@ -1791,6 +1810,7 @@ export default {
                     display: flex;
                     justify-content: space-evenly;
                     align-items: center;
+                    margin-top: 15px;
 
                     .cancelButton {
                         border: none;
