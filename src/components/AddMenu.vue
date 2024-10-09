@@ -1,6 +1,7 @@
 <script>
 import Swal from 'sweetalert2';
 import axios from 'axios';
+import ComboComponent from './combo/ComboComponent.vue';
 export default {
     data() {
         return {
@@ -26,7 +27,12 @@ export default {
             workstationData: [],
             selectedWorkstationId: "", //當前選擇的工作檯ID
             selectedWorkstation: "", //當前選擇的工作檯名稱
+            comboPage:false,
+            // comboPage:false
         }
+    },
+    components:{
+        ComboComponent
     },
     methods: {
         startTouch(event, index) {
@@ -70,6 +76,12 @@ export default {
             this.selectedCategoryId = category.categoryId;
             // console.log(this.selectedCategory);
             // console.log(this.selectedCategoryId);
+            if(category.category == '套餐'){
+                this.comboPage = true
+            }
+            else{
+                this.comboPage = false
+            }
         },
         // 刪除菜單分類
         confirmDelete(cIndex) {
@@ -962,7 +974,7 @@ export default {
             <div class="editCategory" @click="editCategory()">編輯</div>
         </div>
         <div class="menuAndCust">
-            <div class="menuArea">
+            <div class="menuArea" v-if="!comboPage">
                 <div class="menuTop">
                     <div class="mtLeft">
                         <span>{{ selectedCategory || '菜單分類' }}</span>
@@ -1053,6 +1065,7 @@ export default {
                     </div>
                 </div>
             </div>
+            <ComboComponent class="comboArea" v-if="comboPage"></ComboComponent>
             <div class="customerization">
                 <div class="cuTop">
                     <div class="cuLeft">
@@ -1143,7 +1156,7 @@ $editColor: #e6b800;
 .addMenu {
     width: 100%;
     height: 100%;
-
+    position: relative;
     .menuCategory {
         width: 21.7%;
         height: 100%;
@@ -1318,7 +1331,6 @@ $editColor: #e6b800;
             font-family: "Noto Sans TC", sans-serif;
         }
     }
-
     .menuAndCust {
         width: 76.5%;
         height: 100%;
@@ -1332,13 +1344,16 @@ $editColor: #e6b800;
 
         .menuArea {
             width: 100%;
-            min-height: 457px; //71%
+            // Smin-height: 457px; //71%
+            height: 100%; 
             border-radius: 10px;
             display: flex;
             justify-content: start;
             align-items: center;
             flex-direction: column;
             background-color: $divColor;
+            overflow-y: scroll;
+            scrollbar-width: none;
 
             .menuTop {
                 width: 97%;
@@ -1621,6 +1636,10 @@ $editColor: #e6b800;
             }
         }
 
+        .comboArea{
+            z-index: 99;
+        }
+
         .customerization {
             width: 100%;
             min-height: 171px; //31%
@@ -1851,6 +1870,7 @@ $editColor: #e6b800;
 
             }
         }
+
     }
 }
 </style>
