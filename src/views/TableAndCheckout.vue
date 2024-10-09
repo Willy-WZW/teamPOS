@@ -2,6 +2,7 @@
 import LeftBar from "@/components/LeftBar.vue";
 import interact from 'interactjs';
 import axios from 'axios';
+import Swal from 'sweetalert2';
 
 export default {
     data () {
@@ -14,16 +15,11 @@ export default {
             selectedTable: null, // 存儲被選擇的桌位
             memberPhoneNumber: '', // 會員電話號碼
             memberDiscount: null, // 會員折扣
-            orderItems: [  // 假設餐點明細資料
-                { name: '卡拉雞腿堡(少冰,不要蛋,不要蛋)', notes: [], price: 150 },
-                { name: '1號餐', notes: ['麥香雞堡(少冰)', '薯條', '可樂'], price: 200 },
-                { name: '2號餐', notes: ['海洋珍珠堡', '雞塊', '奶茶'], price: 230 },
-                { name: '3號餐', notes: ['麥香雞堡', '雞塊', '奶茶'], price: 210 },
-                { name: '4號餐', notes: ['海洋珍珠堡', '薯條', '可樂'], price: 220 },
-            ],
-            total: 360,
-            discount: 18,  // 假設折扣
-            subtotal: 342,
+            ordersId: "", //訂單編號
+            orderItems: [],
+            total: 0,
+            // discount: 18,  // 假設折扣
+            subtotal: 0,
             paymentMethod: 'creditCard', // 預設付款方式
             creditCardInfo: {
                 cardNumber: '',
@@ -241,12 +237,80 @@ export default {
 
         // 開啟結帳側邊欄
         selectTable(table) {
+
+            // 使用 fetch 發送 GET 請求
+            fetch(`http://localhost:8080/api/checkout/details/${table.id}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    return response.json(); // 解析回應為 JSON 格式
+                })
+                .then(data => {
+
+                    if (data.code == 200) {
+
+                        //訂單編號
+                        this.ordersId = data.data.orderId;
+
+                        //放入單點
+                        data.data.single.forEach(item => {
+                            this.orderItems.push({ name: item.mealName, notes: [], price: item.price });
+                        });
+
+                        //放入套餐
+                        data.data.orderMealId.forEach(item => {
+                            let mealString = item.mealName;
+                            let mealArray = mealString.split(', ').map(meal => meal.trim());
+
+                            this.orderItems.push({ name: item.comboName, notes: mealArray, price: item.price });
+                        });
+
+                        //放入金額
+                        this.total = data.data.totalPrice;
+                        this.subtotal = data.data.totalPrice;
+
+
+                    } else {
+                        Swal.fire({
+                            title: '查詢資料失敗',
+                            text: data.message, // 顯示錯誤訊息
+                            icon: 'error',
+                            confirmButtonText: '確定',
+                        });
+                        this.closePanel();
+                    }
+                })
+                .catch(error => {
+                    console.error("取得桌號資料:", error);
+                });
+
+
             this.selectedTable = table; // 設置選中的桌位
         },
+        confirmPayment(ordersId){
+            console.log(ordersId);
 
+
+
+
+
+
+
+            
+        },
         // 關閉結帳側邊欄
         closePanel() {
             this.selectedTable = null; // 關閉側邊欄
+            this.orderItems = [];
+            this.ordersId = "";
+            this.total = 0;
+            this.subtotal = 0;
         },
 
         calculateChange() {
@@ -472,7 +536,7 @@ export default {
                         <!-- 訂單編號 -->
                         <div class="orderNumber">
                             <p>訂單編號</p> 
-                            #202409251509{{ selectedTable.name }}
+                            {{ ordersId}} {{ selectedTable.name }}
                         </div>
 
                         <!-- 會員電話輸入框 
@@ -555,7 +619,7 @@ export default {
                                 <input type="text" v-model="creditCardInfo.cvv" />
                             </div>
 
-                            <button class="confirmButton">確認付款</button>
+                            <button class="confirmButton" @click="confirmPayment(this.ordersId)">確認付款</button>
                         </div>
 
                         <!-- 現金付款表單 -->
@@ -578,7 +642,7 @@ export default {
                                 </div>
                             </div>
 
-                            <button class="confirmButton">確認付款</button>
+                            <button class="confirmButton" @click="confirmPayment(this.ordersId)">確認付款</button>
                         </div>
                     </div>
                 </div>
