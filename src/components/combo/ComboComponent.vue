@@ -384,26 +384,28 @@ $addDiv: #343a3f;
         align-items: start;
         position: relative;
         .glassMorphism{
-            width: 100%;
-            height: 100dvh;
+            width: 86dvw;
+            height: 90dvh;
+            left:-20dvw;
+            top:0;
             background-color: rgba(0, 0, 0, 0.5); /* 背景颜色 */
             backdrop-filter: blur(5px); /* 磨砂玻璃效果 */
             z-index: 99;
             position: absolute
         }
         .windowArea {
-            width: 25%;
-            height: 80%;
+            width: 30%;
+            height: 100%;
             border-radius: 10px;
             border: 2px solid rgba(0,0,0,1);
             border-radius: 20px;
             background-color: white;
-            margin: 5% 4% 1% 35%;
+            margin: 5% 4% 1% 20%;
             padding: 2% 1%;
             overflow:hidden;
             overflow-y: auto;
             z-index: 99;
-            position: relative;
+            position: absolute;
             .comboName{
                 margin: 0 0 10% 0;
                 h1{

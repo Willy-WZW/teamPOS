@@ -1150,7 +1150,7 @@ $editColor: #e6b800;
 .addMenu {
     width: 100%;
     height: 100%;
-
+    position: relative;
     .menuCategory {
         width: 21.7%;
         height: 100%;
@@ -1325,7 +1325,6 @@ $editColor: #e6b800;
             font-family: "Noto Sans TC", sans-serif;
         }
     }
-
     .menuAndCust {
         width: 76.5%;
         height: 100%;
@@ -1858,6 +1857,7 @@ $editColor: #e6b800;
 
             }
         }
+
     }
 }
 </style>
