@@ -262,43 +262,27 @@ export default {
             }
         },
 
-        // 選擇時段
-    selectTimeSlot(time) {
-      this.reservation.timeSlot = time;
-    },
-    // 關閉訂位模態視窗
-    closeReservationModal() {
-      this.showReservationModal = false;
-      this.resetReservationData();
-    },
-    // 確認訂位
-    confirmReservation() {
-      if (this.validateReservation()) {
-        // 在這裡提交訂位資訊（如調用 API 或是更新資料）
-        console.log('訂位成功', this.reservation);
+    //     async fetchAvailableTimes() {
+    //     try {
+    //         // 設置日期和時長的參數
+    //         const reservationDate = this.newReservation.date;
+    //         const diningDuration = 2; // 假設用餐時間是2個小時
 
-        // 關閉視窗並重置表單
-        this.closeReservationModal();
-      } else {
-        alert('請填寫完整的訂位資訊');
-      }
-    },
-    // 重置訂位表單
-    resetReservationData() {
-      this.reservation = {
-        partySize: '',
-        date: '',
-        timeSlot: '',
-        name: '',
-        phone: '',
-        email: ''
-      };
-    },
-    // 驗證表單資料
-    validateReservation() {
-      const { partySize, date, timeSlot, name, phone, email } = this.reservation;
-      return partySize && date && timeSlot && name && phone && email;
-    }
+    //         // 發送 GET 請求到後端 API
+    //         const response = await axios.get('http://localhost:8080/reservationManagement/generateAndFindAvailableTables', {
+    //             params: {
+    //                 reservationDate: reservationDate,  // 日期
+    //                 diningDuration: diningDuration    // 用餐時長
+    //             }
+    //         });
+
+    //         // 將返回的可用時段賦值給 `availableTimes`
+    //         this.availableTimes = response.data.availableTimes; // 假設返回的格式包含 availableTimes
+    //         console.log('可用時段:', this.availableTimes);
+    //     } catch (error) {
+    //         console.error('無法獲取可用時段:', error);
+    //     }
+    // },
     },
 };
 </script>
@@ -792,16 +776,16 @@ export default {
                         flex-direction: column;
                         cursor: pointer;
 
-                        &.active {
-                            background-color: #878d96; /* 用餐中狀態 */
+                        &.ACTIVE {
+                            background-color: #878d96 !important; /* 用餐中狀態 */
                         }
 
-                        &.reserved {
-                            background-color: #c1c7cd; /* 已訂位狀態 */
+                        &.RESERVED {
+                            background-color: #c1c7cd !important; /* 已訂位狀態 */
                         }
 
-                        &.available {
-                            background-color: #f2f4f8; /* 可使用狀態，預設為淺色 */
+                        &.AVAILABLE {
+                            background-color: #f2f4f8 !important; /* 可使用狀態，預設為淺色 */
                         }
 
                         .tableNumber {
