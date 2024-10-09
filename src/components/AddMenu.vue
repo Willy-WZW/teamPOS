@@ -27,7 +27,7 @@ export default {
             workstationData: [],
             selectedWorkstationId: "", //當前選擇的工作檯ID
             selectedWorkstation: "", //當前選擇的工作檯名稱
-            comboPage:true,
+            comboPage:false,
             // comboPage:false
         }
     },
@@ -76,6 +76,12 @@ export default {
             this.selectedCategoryId = category.categoryId;
             // console.log(this.selectedCategory);
             // console.log(this.selectedCategoryId);
+            if(category.category == '套餐'){
+                this.comboPage = true
+            }
+            else{
+                this.comboPage = false
+            }
         },
         // 刪除菜單分類
         confirmDelete(cIndex) {
@@ -1059,7 +1065,7 @@ export default {
                     </div>
                 </div>
             </div>
-            <ComboComponent v-if="comboPage"></ComboComponent>
+            <ComboComponent class="comboArea" v-if="comboPage"></ComboComponent>
             <div class="customerization">
                 <div class="cuTop">
                     <div class="cuLeft">
@@ -1338,13 +1344,16 @@ $editColor: #e6b800;
 
         .menuArea {
             width: 100%;
-            min-height: 457px; //71%
+            // Smin-height: 457px; //71%
+            height: 100%; 
             border-radius: 10px;
             display: flex;
             justify-content: start;
             align-items: center;
             flex-direction: column;
             background-color: $divColor;
+            overflow-y: scroll;
+            scrollbar-width: none;
 
             .menuTop {
                 width: 97%;
@@ -1625,6 +1634,10 @@ $editColor: #e6b800;
                 }
 
             }
+        }
+
+        .comboArea{
+            z-index: 99;
         }
 
         .customerization {

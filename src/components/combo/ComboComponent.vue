@@ -404,6 +404,7 @@ $addDiv: #343a3f;
             padding: 2% 1%;
             overflow:hidden;
             overflow-y: auto;
+            scrollbar-width: none;
             z-index: 99;
             position: absolute;
             .comboName{
@@ -609,6 +610,7 @@ $addDiv: #343a3f;
                 height: 85%;
                 display: flex;
                 overflow-y: scroll;
+                scrollbar-width: none;
                 flex-wrap: wrap;
                 .createCombo {
                     width: 22%;
@@ -635,6 +637,7 @@ $addDiv: #343a3f;
                     margin: 0 4% 3% 0;
                     padding: 1% 1% 0 1%;
                     overflow-y: auto;
+                    scrollbar-width: none;
                     .comboName{
                         margin: 0 0 10% 0;
                         h1{
@@ -730,7 +733,7 @@ $addDiv: #343a3f;
                         width: 100%;
                         margin: 0 0 10% 0;
                         position: relative;
-                        font-size: 20px;
+                        font-size: 15px;
                         font-weight: 900;
                         .discount{
                             width: 50%;
