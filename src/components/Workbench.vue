@@ -10,7 +10,9 @@ export default {
             cgInput: [{ text: '' }],
             categories: [],
             originalCategories: [],
-            isEditing: false
+            isEditing: false,
+            savedMenuList: [],
+            selectedWorkstationId: null,
         };
     },
     components: {
@@ -19,6 +21,7 @@ export default {
     },
     methods: {
         createWorkstation() {
+            this.cgInput = this.cgInput.filter(input => input.text.trim() !== "");
             if (!Array.isArray(this.categories)) {
                 this.categories = [];
             }
@@ -102,7 +105,7 @@ export default {
                 })
                 .catch(error => {
                     console.error('更新失敗', error);
-                    Swal.fire('錯誤!', '更新失敗', 'error');
+                    Swal.fire('錯誤!', '更新失敗，工作檯不可為空白', 'error');
                 });
         },
 
@@ -111,6 +114,10 @@ export default {
                 .then(response => {
                     console.log('搜索成功', response.data);
                     this.categories = response.data.data;
+
+                    if (this.categories.length > 0) {
+                        this.selectedWorkstationId = this.categories[0].workstationId;
+                    }
                 })
                 .catch(error => {
                     console.log('搜索失敗', error);
@@ -129,6 +136,7 @@ export default {
                         .then(response => {
                             if (response.status === 200) {
                                 this.categories = this.categories.filter(category => category.workstationId !== workstationId);
+                                this.originalCategories = this.originalCategories.filter(category => category.workstationId !== workstationId);
                                 Swal.fire('成功!', '工作檯已刪除', 'success');
                             } else {
                                 Swal.fire('錯誤!', '刪除失敗', 'error');
@@ -153,10 +161,34 @@ export default {
                 this.originalCategories = JSON.parse(JSON.stringify(this.categories));
             }
             this.isEditing = !this.isEditing;
+        },
+        async fetchMenu() {
+            try {
+                const response = await axios.get("http://localhost:8080/menu/all");
+                this.savedMenuList = response.data;
+
+            } catch (error) {
+                console.error('獲取菜單時發生錯誤:', error);
+                Swal.fire({
+                    title: '錯誤',
+                    text: '無法獲取菜單資料，請稍後再試',
+                    icon: 'error',
+                    confirmButtonText: '好的'
+                });
+            }
+        },
+        selectWorkstation(workstationId) {
+            this.selectedWorkstationId = workstationId;
+        }
+    },
+    computed: {
+        filteredMenuList() {
+            return this.savedMenuList.filter(menu => menu.workstationId === this.selectedWorkstationId);
         }
     },
     created() {
         this.fetchWorkstations();
+        this.fetchMenu();
     }
 };
 </script>
@@ -167,7 +199,9 @@ export default {
         <h1>工作檯分類</h1>
         <div class="optionArea">
             <div v-for="(category, index) in categories" :key="index" class="cOption">
-                <span v-if="!isEditing">{{ category.workstationName }}</span>
+                <span v-if="!isEditing" @click="selectWorkstation(category.workstationId)">
+                    {{ category.workstationName }}
+                </span>
                 <input v-if="isEditing" type="text" v-model="category.workstationName" placeholder="請輸入工作檯名稱" />
                 <i class="fa-regular fa-circle-xmark" v-if="isEditing"
                     @click="removeWorkstation(category.workstationId)"></i>
@@ -182,12 +216,21 @@ export default {
         </div>
         <div @click="editCategory" class="editCategory">編輯</div>
     </div>
+    <div class="menuList">
+            <div v-for="(menu, index) in filteredMenuList" :key="index" class="menuItem">
+                {{ menu.mealName }}
+            </div>
+            <div v-if="filteredMenuList.length === 0">此工作檯無菜單項目</div>
+    </div>
 </template>
 
 
 <style scoped lang="scss">
 $divColor: #fff;
 $addDiv: #343a3f;
+*{
+    font-family: "Noto Sans TC", sans-serif;
+}
 
 .menuCategory {
     width: 21%;
@@ -235,7 +278,8 @@ $addDiv: #343a3f;
                 font-family: "Noto Sans TC", sans-serif;
                 margin-left: 2.5%;
             }
-            .fa-circle-xmark{
+
+            .fa-circle-xmark {
                 cursor: pointer;
             }
         }
@@ -294,5 +338,19 @@ input {
     font-size: 18px;
     font-weight: bold;
     font-family: "Noto Sans TC", sans-serif;
+}
+
+.menuList {
+    width: 74%;
+    height: 100%;
+    border-radius: 10px;
+    display: flex;
+    justify-content: start;
+    align-items: center;
+    flex-direction: column;
+    position: absolute;
+    top: 0%;
+    left: 22%;
+    background-color: white;
 }
 </style>
