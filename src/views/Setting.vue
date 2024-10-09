@@ -18,6 +18,7 @@ export default {
         Header,
         AddMenu,
         Workbench,
+        Announce,
         BusiSetting,
         Authorizations
     },

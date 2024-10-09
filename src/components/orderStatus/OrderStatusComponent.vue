@@ -149,9 +149,7 @@ export default{
                 bottom: 0;
                 background-color: rgba(0, 0, 0, 0.466)
             }
-            h1{
-                
-            }
+            
             div{
                 width: 15%;
                 display: flex;

@@ -1,7 +1,11 @@
 <script>
 import Swal from 'sweetalert2';
 import axios from 'axios';
+<<<<<<< HEAD
 import { number } from 'echarts';
+=======
+import ComboComponent from './combo/ComboComponent.vue';
+>>>>>>> 444eb85d105b24ad7a8a6d842edb49c287001cd4
 export default {
     data() {
         return {
@@ -27,8 +31,16 @@ export default {
             workstationData: [], // DB中的工作檯數據
             selectedWorkstationId: this.selectedWorkstation ? this.selectedWorkstation.workstationId : 0, //當前選擇的工作檯ID
             selectedWorkstation: "", //當前選擇的工作檯名稱
+<<<<<<< HEAD
             lastSelectedWorkstationId: 0, // 用於儲存上次的選擇
+=======
+            comboPage:false,
+            // comboPage:false
+>>>>>>> 444eb85d105b24ad7a8a6d842edb49c287001cd4
         }
+    },
+    components:{
+        ComboComponent
     },
     methods: {
         startTouch(event, index) {
@@ -76,6 +88,12 @@ export default {
             this.selectedWorkstation = this.workstationData.find(wsItem => wsItem.workstationId === this.selectedWorkstationId);
             // console.log(this.selectedCategory);
             // console.log(this.selectedCategoryId);
+            if(category.category == '套餐'){
+                this.comboPage = true
+            }
+            else{
+                this.comboPage = false
+            }
         },
         // 刪除菜單分類
         confirmDelete(cIndex) {
@@ -1010,7 +1028,7 @@ export default {
             <div class="editCategory" @click="editCategory()">編輯</div>
         </div>
         <div class="menuAndCust">
-            <div class="menuArea">
+            <div class="menuArea" v-if="!comboPage">
                 <div class="menuTop">
                     {{ "watch last:" + lastSelectedWorkstationId }}
                     {{ "watch wId:" + selectedWorkstationId }}
@@ -1104,6 +1122,7 @@ export default {
                     </div>
                 </div>
             </div>
+            <ComboComponent class="comboArea" v-if="comboPage"></ComboComponent>
             <div class="customerization">
                 <div class="cuTop">
                     <div class="cuLeft">
@@ -1194,7 +1213,7 @@ $editColor: #e6b800;
 .addMenu {
     width: 100%;
     height: 100%;
-
+    position: relative;
     .menuCategory {
         width: 21.7%;
         height: 100%;
@@ -1369,7 +1388,6 @@ $editColor: #e6b800;
             font-family: "Noto Sans TC", sans-serif;
         }
     }
-
     .menuAndCust {
         width: 76.5%;
         height: 100%;
@@ -1383,13 +1401,16 @@ $editColor: #e6b800;
 
         .menuArea {
             width: 100%;
-            min-height: 457px; //71%
+            // Smin-height: 457px; //71%
+            height: 100%; 
             border-radius: 10px;
             display: flex;
             justify-content: start;
             align-items: center;
             flex-direction: column;
             background-color: $divColor;
+            overflow-y: scroll;
+            scrollbar-width: none;
 
             .menuTop {
                 width: 97%;
@@ -1672,6 +1693,10 @@ $editColor: #e6b800;
             }
         }
 
+        .comboArea{
+            z-index: 99;
+        }
+
         .customerization {
             width: 100%;
             min-height: 171px; //31%
@@ -1902,6 +1927,7 @@ $editColor: #e6b800;
 
             }
         }
+
     }
 }
 </style>
