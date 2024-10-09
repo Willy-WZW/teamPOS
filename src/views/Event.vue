@@ -131,8 +131,8 @@ export default {
                 html: `
             ${imageHtml}
             <h3 style="text-align: left;">${announce.announceTitle}</h3>
-            <p style="text-align: left;">活動時間 ${announce.announceStartTime} ~ ${announce.announceEndTime}</p>
-            <p style="text-align: left;">${announce.announceContent}</p>
+            <p style="text-align: left; padding-top: 3%;">活動時間 ${announce.announceStartTime} ~ ${announce.announceEndTime}</p>
+            <pre style="text-align: left; padding-top: 2%;">${announce.announceContent}</pre>
         `,
                 focusConfirm: false,
                 confirmButtonText: '關閉',
@@ -307,5 +307,11 @@ export default {
 .fc .fc-daygrid-day {
     width: 70px;
     height: 85px;
+}
+
+pre {
+    white-space: pre-wrap;
+    word-break: break-word;
+    overflow-y: auto;
 }
 </style>

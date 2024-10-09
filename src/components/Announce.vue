@@ -154,7 +154,12 @@ export default {
                     return new Date(announce.announceEndTime) < new Date(this.today);
                 }
             });
-
+            
+            if (this.filterType === 'upcoming') {
+                filteredAnnouncements.sort((a, b) => new Date(a.announceStartTime) - new Date(b.announceStartTime));
+            } else {
+                filteredAnnouncements.sort((a, b) => new Date(b.announceEndTime) - new Date(a.announceEndTime));
+            }
             this.totalAnnouncements = filteredAnnouncements.length;
             this.displayedAnnouncements = filteredAnnouncements.slice(start, end);
         },
@@ -205,7 +210,7 @@ export default {
             ${imageHtml}
             <h3 style="text-align: left;">${announce.announceTitle}</h3>
             <p style="text-align: left;">活動時間 ${announce.announceStartTime} ~ ${announce.announceEndTime}</p>
-            <p style="text-align: left;">${announce.announceContent}</p>
+            <pre style="text-align: left;">${announce.announceContent}</pre>
         `,
                 focusConfirm: false,
                 confirmButtonText: '關閉',
@@ -559,5 +564,13 @@ $addDiv: #343a3f;
 
 button {
     cursor: pointer;
+}
+</style>
+
+<style>
+pre {
+    white-space: pre-wrap;
+    word-break: break-word;
+    overflow-y: auto;
 }
 </style>
