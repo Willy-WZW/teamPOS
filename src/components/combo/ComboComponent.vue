@@ -18,10 +18,13 @@ export default {
             // "available": true,
             // "pictureName": null
             // },
+            categories:[],
+
             //edit template
             comboItemIndex:null,
             comboName:null,
             selectedMeal:[],  // ['', '']
+            selectedCategory:[],
             comboDetail:[], // [[], []]
             comboContentInnerQuantity:0,
             discountAmount:0,
@@ -50,6 +53,14 @@ export default {
         .then(response=>{
             this.menus = response.data
             console.log(response)
+
+            return  axios.get("http://localhost:8080/category/all",{
+            })
+        })
+        .then(response=>{
+            this.categories = response.data
+            console.log(response)
+           
         })
         .catch(error => {
                 console.error("Error:", error.response ? error.response.data : error.message);
@@ -65,7 +76,8 @@ export default {
             axios.post("http://localhost:8080/pos/createCombo",{
                 "comboName":this.comboName,
                 "comboDetail":JSON.stringify(this.comboDetail),
-                "discountAmount":this.discountAmount
+                "discountAmount":this.discountAmount,
+                "categoryId":9
             })
             .then(response=>{
                 console.log(response)
@@ -107,20 +119,21 @@ export default {
             this.discountAmount = 0
         },
 
-
         editeMeal(comboItem, comboItemIndex){
             this.editeMode = true
             this.comboItemIndex = comboItemIndex
-            this.comboName = JSON.parse(JSON.stringify(comboItem.comboName))
+            this.comboName = comboItem.comboName
             for (let i=0; i<comboItem.comboDetail.length; i++){
                 this.selectedMeal.push('')
+                this.selectedCategory.push('')
             }
             
-            this.comboDetail = JSON.parse(JSON.stringify(comboItem.comboDetail))
-            this.discountAmount = JSON.parse(JSON.stringify(comboItem.discountAmount))
+            this.comboDetail = comboItem.comboDetail
+            this.discountAmount = comboItem.discountAmount
         },
         updateMeal(){
             console.log(this.comboDetail)
+            this.comboDetail = this.comboDetail.filter(combo=>combo.dishes.length!=0)
             axios.post("http://localhost:8080/pos/updateCombo",{
                 "oldComboName":this.comboName,
                 "comboName":this.comboName,
@@ -179,19 +192,12 @@ export default {
             });
         },
 
-
         addComboContentInner(){
-            const existMainMeal = this.comboDetail.some(item=>item.detailName == "主餐")
-            if(existMainMeal){
-                this.comboDetail.push({"detailName":"副餐",
-                "detailList":[]})
-            }
-            else{
-                this.comboDetail.splice(0,0,{"detailName":"主餐",
-                "detailList":[]})
-            }
-          
+            this.comboDetail.push({"categoryId":1,"dishes":[]})
             this.selectedMeal.push('')
+            this.selectedCategory.push('')
+
+
         },
         totalPrice(comboItem) {
             let totalAmount = 0;
@@ -217,14 +223,13 @@ export default {
             return totalAmount;
         },
 
-
         addMeal(comboItemIndex){
-            const meals = this.comboDetail[comboItemIndex]
-            const mealExists = meals.detailList.some(meal => meal == this.selectedMeal[comboItemIndex]);
+            const dishes = this.comboDetail[comboItemIndex].dishes
+            const mealExists = dishes.some(dishes => dishes == this.selectedMeal[comboItemIndex]);
 
             if(!mealExists){
-                const selectedMeal = this.menus.find(menu => menu.name == this.selectedMeal[comboItemIndex]);
-                this.comboDetail[comboItemIndex].detailList.push(selectedMeal.name)
+                const selectedMeal = this.menus.find(menu => menu.mealName == this.selectedMeal[comboItemIndex]);
+                this.comboDetail[comboItemIndex].dishes.push(selectedMeal.mealName)
             }
         },
         deleteMeal(comboItemIndex, meal){
@@ -232,8 +237,11 @@ export default {
                 const subContainer = this.comboDetail[comboItemIndex];
 
                 // 使用filter刪除指定的餐點
-                this.comboDetail[comboItemIndex].detailList = subContainer.detailList.filter(subContainerMeal => subContainerMeal!=meal);
-            },
+                this.comboDetail[comboItemIndex].dishes = subContainer.dishes.filter(subContainerMeal => subContainerMeal!=meal);
+        },
+        deleteSelection(comboItemIndex){
+            this.comboDetail = this.comboDetail.filter((_,index) =>index!=comboItemIndex);
+        },
 
         searchMealPrice(meal){
             const mealItem = this.menus.find(menu=> menu.mealName == meal)
@@ -245,10 +253,10 @@ export default {
             // 遍歷 comboDetail 中的每個容器
             this.comboDetail.forEach(container => {
                 // 確保每個 container 都有 detailList 並且不為空
-                if (container.detailList && container.detailList.length > 0) {
-                        const meal = container.detailList[0]
+                if (container.dishes && container.dishes.length > 0) {
+                        const meal = container.dishes[0]
                         // 獲取對應的價格
-                        const menu = this.menus.find(menu => menu.name === meal);
+                        const menu = this.menus.find(menu => menu.mealName === meal);
                         if (menu) {
                             totalPrice += menu.price; // 累加價格
                         }
@@ -257,7 +265,16 @@ export default {
 
             totalPrice += Number(this.discountAmount); // 加上折扣
             return totalPrice;
-        }
+        },
+        menuWithSelectedCategory(selectedCategory){
+            let categoryItem = this.categories.find(categoryItem=> categoryItem.category == selectedCategory)
+            console.log('selectedCategory'+selectedCategory)
+            console.log('categoryItem'+categoryItem)
+            let menuWithSelectedCategory = this.menus.filter(menu=>menu.categoryId == categoryItem.categoryId)
+
+            return menuWithSelectedCategory
+        },
+
 
         
 
@@ -274,20 +291,33 @@ export default {
                 <div class="comboName">
                     <input type="text" placeholder="套餐名稱" v-model="comboName">
                 </div>
+                <h1>{{ comboName }}</h1>
+                <!-- <h1>{{ comboDetail }}</h1> -->
+                <!-- <h1>{{ selectedCategory }}</h1> -->
                 <!-- <h1>{{ selectedMeal }}</h1> -->
                 <!-- <h1>{{ comboDetail }}</h1> -->
                 <!-- <h1>{{ comboItemsList }}</h1> -->
                 <div class="comboContent">
                     <div class="comboContentInner" v-for="(comboItem, comboItemIndex) in comboDetail">    
-                        <select :name="`select${comboItemIndex}`" v-model="selectedMeal[comboItemIndex]" @change="addMeal(comboItemIndex)">
-                            <option value="" disabled selected >{{comboItem.detailName}}</option>
-                            <option v-for="(menu, index) in menus" :key="index" :value="menu.name" >{{ menu.name }}</option>
-                        </select>
-                        <div class="comboDetail" v-for="(meal, mealIndex) in comboItem.detailList">
+                        
+                        <div class="selectionContainer">
+                            <select :name="`select${comboItemIndex}`" v-model="selectedCategory[comboItemIndex]">
+                                <option value="" disabled selected >選擇餐點分類</option>
+                                <option v-for="(category, index) in categories" :key="index" :value="category.category" >{{ category.category }}</option>
+                            </select>
+                            <select :name="`select${comboItemIndex}`" v-model="selectedMeal[comboItemIndex]" @change="addMeal(comboItemIndex)">
+                                <option value="" disabled selected >選擇餐點</option>
+                                <option v-if="selectedCategory[comboItemIndex]" v-for="(menu, index) in menuWithSelectedCategory(selectedCategory[comboItemIndex])" :key="index" :value="menu.mealName" >{{ menu.mealName }}</option>
+                            </select>
+                            <i class="fa-solid fa-circle-xmark" @click="deleteSelection(comboItemIndex)"></i>
+                        </div>
+
+                        <div class="comboDetail" v-for="(meal, mealIndex) in comboDetail[comboItemIndex].dishes">
                             <p>• {{ meal }}</p>
                             <p>$ {{ searchMealPrice(meal) }}</p>
                             <i class="fa-solid fa-circle-xmark" @click="deleteMeal(comboItemIndex, meal)"></i>
                         </div>
+
                     </div>  
                 </div>
                 <div class="plusIcon" @click="addComboContentInner">
@@ -332,6 +362,8 @@ export default {
                     <!-- <h1>{{ discountAmount }}</h1> -->
                     <!-- <h1 v-if="mealContainer[0].length>0 && mealContainer[1].length>0">{{ totalPrice() }}</h1> -->
                 <div class="comboMain">
+                    <h1>{{ categories[0] }}</h1>
+                    <h1>{{ menus[0] }}</h1>
                     <h1>{{ comboItemsList[0] }}</h1>
                     <div class="createCombo" @click="createMeal">+&nbsp&nbsp新增套餐</div>
                     <div class="comboItem" v-for="(comboItem, comboItemIndex) in comboItemsList">
@@ -359,9 +391,6 @@ export default {
                             </div>  
                         </div>
                         
-                        <!-- <div class="plusIcon" @click="addComboContentInner">
-                            <i class="fa-solid fa-circle-plus"></i>                            
-                        </div> -->
                         <div class="comboTotal">
                             <div class="discount" >
                                 <p>折扣 </p>
@@ -451,6 +480,16 @@ $addDiv: #343a3f;
                         cursor: pointer;
                         padding: 0 5%;
                         margin: 0 0 2% 0;
+                    }
+                    .selectionContainer{
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+
+                        i{
+                            cursor: pointer;
+                        }
+
                     }
                     .comboDetail{
                         display: flex;
@@ -628,7 +667,7 @@ $addDiv: #343a3f;
                 flex-wrap: wrap;
                 .createCombo {
                     width: 22%;
-                    height: 52%;
+                    height: 70%;
                     margin: 0 4% 1% 0;
                     border-radius: 10px;
                     display: flex;
@@ -645,7 +684,7 @@ $addDiv: #343a3f;
                 }
                 .comboItem {
                     width: 22%;
-                    height: 52%;
+                    height: 70%;
                     border-radius: 10px;
                     border: 1px solid black;
                     margin: 0 4% 3% 0;
@@ -707,7 +746,7 @@ $addDiv: #343a3f;
                                 display: flex;
                                 align-items: center;
                                 justify-content: space-between;
-                                font-size: 20px;
+                                font-size: 17px;
                                 font-weight: 700;
                                 padding: 0 2% 0 5%;
                                 p:nth-child(1){

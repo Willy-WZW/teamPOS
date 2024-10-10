@@ -34,14 +34,9 @@ export default {
             viewType: 'reservation', // 預設顯示訂位
             currentDate: new Date(), // 初始化為當前系統日期
             filteredReservations: [], // 根據日期篩選後的訂位資訊（稍後初始化）
-            reservations: [
-                { id: 1, name: '翁千沛', phone: '0911223345', table: 'A01', time: '12:00', date: '2024-10-02', partySize: 4 },
-                { id: 2, name: '王政蔚', phone: '0911223345', table: 'A05', time: '18:30', date: '2024-10-02', partySize: 2 },
-                { id: 3, name: '黃冠霖', phone: '0911223345', table: 'A02', time: '12:00', date: '2024-10-02', partySize: 12 },
-                { id: 4, name: '謝芷倩', phone: '0911223345', table: 'A03', time: '11:30', date: '2024-10-03', partySize: 1 },
-                { id: 5, name: '翁明泰', phone: '0911223345', table: 'A08', time: '20:30', date: '2024-10-03', partySize: 3 },
-                { id: 6, name: '孫秉家', phone: '0911223345', table: 'A06', time: '19:00', date: '2024-10-03', partySize: 6 }
-            ],
+            reservations: [],
+            selectedDate: new Date(), // 當前選擇的日期
+
             // 訂位資訊
             newReservation: {
             partySize: 2,  // 人數
@@ -62,9 +57,6 @@ export default {
                 { id: 2, name: '王政蔚', phone: '0911223345', table: 'A02', registrationTime: '12:30', position: 2, partySize: 2 },
                 { id: 3, name: '黃冠霖', phone: '0911223345', table: 'A03', registrationTime: '13:00', position: 3, partySize: 12 }
             ],
-
-            // 用於處理日期變化
-            selectedDate: new Date(), // 當前選擇的日期
         };
     },
 
@@ -131,7 +123,11 @@ export default {
             ]
         });
 
+        // 頁面加載時獲取當前日期的可預訂時間
         this.fetchAvailableTimes();
+
+        // 頁面加載時獲取當前日期的訂位資訊
+        this.fetchReservationsByDate(this.formatDate(this.selectedDate));
     },
 
     watch: {
@@ -252,7 +248,6 @@ export default {
 
         // 開啟結帳側邊欄
         selectTable(table) {
-
             // 使用 fetch 發送 GET 請求
             fetch(`http://localhost:8080/api/checkout/details/${table.id}`, {
                 method: 'GET',
@@ -304,8 +299,6 @@ export default {
                 .catch(error => {
                     console.error("取得桌號資料:", error);
                 });
-
-
             this.selectedTable = table; // 設置選中的桌位
         },
         confirmPayment(ordersId) {
@@ -403,6 +396,9 @@ export default {
             return `${year}-${month}-${day}`;
         },
 
+        closeReservationModal () {
+            this.showReservationModal = false
+        },
          // 從後端獲取可用的訂位時間段
         async fetchAvailableTimes() {
             try {
@@ -429,10 +425,53 @@ export default {
                 console.error('無法獲取可用時段:', error);
             }
         },
+        // 添加新的訂位
+        async addReservation() {
+            // 找到用戶選擇的時間段
+            const selectedTimeSlot = this.availableTimes.find(time => time.startTime === this.newReservation.time);
 
-        closeReservationModal () {
-            this.showReservationModal = false
-        }
+            // 組裝訂位資料，使用從後端獲得的時間段結束時間
+            const reservationData = {
+                customerName: this.newReservation.name,
+                customerPhoneNumber: this.newReservation.phone,
+                customerEmail: this.newReservation.email,
+                customerGender: this.newReservation.title, // 先生, 小姐, 或 其他
+                reservationPeople: this.newReservation.partySize,
+                reservationDate: this.newReservation.date,
+                reservationStartTime: selectedTimeSlot.startTime, // 選擇的開始時間
+                reservationEndingTime: selectedTimeSlot.endTime // 直接使用後端提供的結束時間
+            };
+
+            try {
+                // 發送 POST 請求到後端 API
+                const response = await axios.post('http://localhost:8080/reservation/saveReservation', reservationData);
+                
+                if (response.data.code === 200) {
+                    Swal.fire({
+                        title: '訂位成功',
+                        text: '您的訂位已確認',
+                        icon: 'success',
+                        confirmButtonText: '確定'
+                    });
+                    this.closeReservationModal();
+                } else {
+                    Swal.fire({
+                        title: '訂位失敗',
+                        text: response.data.message,
+                        icon: 'error',
+                        confirmButtonText: '確定'
+                    });
+                }
+            } catch (error) {
+                console.error('無法保存訂位:', error);
+                Swal.fire({
+                    title: '訂位失敗',
+                    text: '發送訂位時發生錯誤',
+                    icon: 'error',
+                    confirmButtonText: '確定'
+                });
+            }
+        },
     },
 };
 </script>
