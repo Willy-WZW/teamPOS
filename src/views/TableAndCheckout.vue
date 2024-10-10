@@ -306,7 +306,12 @@ export default {
 
 
             const now = new Date();
-            const checkoutTime = now.toISOString();
+            // 將時間轉換為 UTC+8
+            const taiwanTime = new Date(now.getTime() + (8 * 60 * 60 * 1000)); // 加8小時
+            const checkoutTime = taiwanTime.toISOString();
+
+            console.log(checkoutTime);
+            
 
             let  payType = "";
             if (this.paymentMethod == "creditCard" ){
@@ -343,11 +348,22 @@ export default {
                 .then(data => {
                     // 顯示 SweetAlert 成功提示
                     if (data.code == 200) {
+
+                        const newWindow = window.open('', '_blank'); // 打開一個空的窗口
+                        // 寫入 HTML 到新窗口
+                        newWindow.document.write(data.message); // 將 API 返回的 HTML 內容寫入窗口
+                        newWindow.document.close(); // 關閉文件流
+
                         Swal.fire({
-                            title: data.message, // 假設 API 返回的訊息
+                            title: "付款成功", // 假設 API 返回的訊息
                             icon: 'success',
                             confirmButtonText: '確定',
                         });
+                        this.selectedTable = null; // 關閉側邊欄
+                        this.orderItems = [];
+                        this.ordersId = "";
+                        this.total = 0;
+                        this.subtotal = 0;
 
 
                     } else {
@@ -362,7 +378,13 @@ export default {
 
                 })
                 .catch(error => {
-
+                    console.error("結帳失敗：", error);
+                    Swal.fire({
+                        title: '結帳失敗',
+                        text: '無法完成支付，請稍後重試',
+                        icon: 'error',
+                        confirmButtonText: '確定',
+                    });
                 });
 
             
