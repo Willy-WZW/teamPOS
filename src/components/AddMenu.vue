@@ -80,6 +80,7 @@ export default {
             this.selectedWorkstationId = this.lastSelectedWorkstationId;
             this.selectedWorkstation = this.workstationData.find(wsItem => wsItem.workstationId === this.lastSelectedWorkstationId);
             this.editingWorkbench = false;
+            this.fetchCategories()
             // console.log(this.selectedCategory);
             // console.log(this.selectedCategoryId);
             if (category.category == '套餐') {
@@ -376,10 +377,12 @@ export default {
             axios.get("http://localhost:8080/category/all")
                 .then(response => {
                     this.categories = response.data.map(category => ({
-                        ...category,
+                        categoryId: category.categoryId,
+                        category: category.category,
+                        workstationId: category.workstationId,
                         translateX: 0  // 初始化 translateX 為 0
                     }));
-                    // console.log(response.data); // 所有 Categories 資料
+                    console.log(response.data); // 所有 Categories 資料
                 })
                 .catch(error => {
                     console.error('獲取分類時發生錯誤:', error);
@@ -552,7 +555,11 @@ export default {
                         icon: 'success',
                         confirmButtonText: '好的'
                     });
-                    // this.lastSelectedWorkstationId = this.selectedWorkstationId; // 更新 lastSelectedWorkstationId
+                    // 根據 workstationId 更新 selectedWorkstation
+                    this.selectedWorkstation = this.workstationData.find(
+                        ws => ws.workstationId === workstationId
+                    );
+                    this.editingWorkbench = false;
                 } else {
                     Swal.fire({
                         title: '錯誤',
@@ -561,7 +568,6 @@ export default {
                         confirmButtonText: '好的'
                     });
                 }
-                this.editingWorkbench = false;
             }
             catch (error) {
                 console.error('工作檯更新失敗:', error);
@@ -1029,8 +1035,6 @@ export default {
         <div class="menuAndCust">
             <div class="menuArea" v-if="!comboPage">
                 <div class="menuTop">
-                    {{ "watch last:" + selectedCategoryId }}
-                    {{ "watch wId:" + selectedWorkstationId }}
                     <div class="mtLeft">
                         <span>{{ selectedCategory || '菜單分類' }}</span>
                     </div>
