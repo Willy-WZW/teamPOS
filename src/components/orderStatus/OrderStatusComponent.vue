@@ -1,5 +1,6 @@
 ﻿<script>
 import axios from 'axios';
+import Swal from 'sweetalert2';
 
 export default{
     data(){
@@ -39,7 +40,43 @@ export default{
         }
     },
     methods:{
-
+        changeStatus(mealId, mealName){
+            Swal.fire({
+                title: '確定要繼續嗎？',
+                text: "確認是否要將"+`${mealName}`+"更改為已送達",
+                icon: 'warning',
+                showCancelButton: true,  // 顯示取消按鈕
+                confirmButtonText: '是的，繼續',
+                cancelButtonText: '取消',
+            })
+            .then((result)=>{
+                if (result.isConfirmed){
+                    Swal.fire(
+                        '已繼續',
+                        '已成功更新'+`${mealName}`+'餐點狀態為已送達。',
+                        'success'
+                    );
+                    return axios.post("http://localhost:8080/pos/updateOrderStatus", {   
+                            "id": mealId,
+                    })
+                    .then(()=>{
+                        return axios.post("http://localhost:8080/pos/searchOrderStatus", {   
+                            "startDate": "",
+                            "endDate": ""
+                        })
+                    })
+                    .then(response=>{
+                        this.preparing = response.data.preparingOrders
+                        this.undelivered = response.data.undeliveredOrders
+                        this.delivered = response.data.deliveredOrders
+                        console.log(this.delivered)
+                    })
+                    .catch(error => {
+                        console.error("Error fetching analysis:", error);
+                    }); 
+                }
+            })
+        }
     }
 }
 </script>
@@ -78,20 +115,28 @@ export default{
                 </div>
                 <div class="statusContainer">
                     <h1>待送餐點</h1>
+                    <!-- <h1>{{ undelivered }}</h1> -->
                     <div class="tableContainer" v-for="(table, tableIndex) in undelivered">
                         <div class="tableTitle">
                             <p>桌號{{ table.tableNumber }}</p>
                             <p>訂單編號{{ table.orderId }}</p>
                             <i class="fa-solid fa-chevron-up"></i>
                         </div>
-                        <div class="tableContent"  v-for="(meal, mealIndex) in table.mealList">
+                        <div class="tableContent"v-for="(meal, mealIndex) in table.mealList">
                             <p class="comboName" v-if="meal.comboName">•{{ meal.comboName }}</p>
                             <div class="comboDetailList" v-if="meal.comboName">
-                                <p v-for="(comboDetail) in meal.mealDetail">
-                                    •{{ comboDetail.mealName }}
+                                <p v-for="(comboDetail,index) in meal.mealDetail" :key="comboDetail.id">
+                                    <!-- •{{ comboDetail.mealName }} -->
+                                    <!-- <h1 style="color: black;">{{ meal}} </h1> -->
+                                    <input type="checkbox" :id="`${comboDetail.id}`" @change="changeStatus(comboDetail.id, comboDetail.mealName)">
+                                    <label :for="`${comboDetail.id}`">{{ comboDetail.mealName }}</label>
                                 </p>
                             </div>
-                            <p class="singleName" v-if="!meal.comboName">•{{ meal.mealDetail[0].mealName }}</p>
+                            <p class="singleName" v-if="!meal.comboName" :key="meal.mealDetail[0].id">
+                                <!-- •{{ meal.mealDetail[0].mealName }} -->
+                                <input type="checkbox" :id="`${meal.mealDetail[0].id}`" @change="changeStatus(meal.mealDetail[0].id, meal.mealDetail[0].mealName)">
+                                <label :for="`${meal.mealDetail[0].id}`">{{ meal.mealDetail[0].mealName }}</label>
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -231,15 +276,15 @@ export default{
                             padding: 0 8%;
                             margin: 2% 0;
                             position: relative;
-                            &:before{
-                                position: absolute;
-                                content: "";
-                                width: 20%;
-                                height: 1px;
-                                left: 5%;
-                                bottom: -10%;
-                                background-color: rgba(0, 0, 0, 0.3)
-                            }
+                            // &:before{
+                            //     position: absolute;
+                            //     content: "";
+                            //     width: 20%;
+                            //     height: 1px;
+                            //     left: 5%;
+                            //     bottom: -10%;
+                            //     background-color: rgba(0, 0, 0, 0.3)
+                            // }
                         }
                         .comboDetailList{
                             padding: 0 15%;
@@ -249,15 +294,15 @@ export default{
                             font-size: 20px;
                             padding: 2% 8%;
                             position: relative;
-                            &:before{
-                                position: absolute;
-                                content: "";
-                                width: 20%;
-                                height: 1px;
-                                left: 5%;
-                                bottom: 10%;
-                                background-color: rgba(0, 0, 0, 0.4)
-                            }
+                            // &:before{
+                            //     position: absolute;
+                            //     content: "";
+                            //     width: 20%;
+                            //     height: 1px;
+                            //     left: 5%;
+                            //     bottom: 10%;
+                            //     background-color: rgba(0, 0, 0, 0.4)
+                            // }
                         }
 
                     }
