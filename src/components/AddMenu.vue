@@ -3,6 +3,7 @@ import Swal from 'sweetalert2';
 import axios from 'axios';
 import { number } from 'echarts';
 import ComboComponent from './combo/ComboComponent.vue';
+import { ref } from 'vue';
 export default {
     data() {
         return {
@@ -210,7 +211,8 @@ export default {
                 price: "", // 餐點金額
                 workstationId: this.selectedWorkstationId, // 工作檯
                 available: true, // 供應狀態
-                categoryId: this.selectedCategoryId //餐點的菜單分類Id
+                categoryId: this.selectedCategoryId, //餐點的菜單分類Id
+                pictureName: "", // 新增 pictureName 屬性以儲存圖片名稱或 base64
             });
             this.$nextTick(() => {
                 // 獲取最新新增的餐點元素
@@ -382,7 +384,7 @@ export default {
                         workstationId: category.workstationId,
                         translateX: 0  // 初始化 translateX 為 0
                     }));
-                    console.log(response.data); // 所有 Categories 資料
+                    // console.log(response.data); // 所有 Categories 資料
                 })
                 .catch(error => {
                     console.error('獲取分類時發生錯誤:', error);
@@ -579,15 +581,14 @@ export default {
                 });
             }
         },
-
         // 更新菜單
         async fetchMenu() {
             try {
                 const response = await axios.get("http://localhost:8080/menu/all");
                 this.savedMenuList = response.data;
-                // console.log(this.savedMenuList); // 查看獲取的菜單資料
+                console.log(this.savedMenuList); // 查看獲取的菜單資料
             } catch (error) {
-                console.error('獲取菜單時發生錯誤:', error);
+                // console.error('獲取菜單時發生錯誤:', error);
                 Swal.fire({
                     title: '錯誤',
                     text: '無法獲取菜單資料，請稍後再試',
@@ -933,7 +934,7 @@ export default {
             try {
                 const response = await axios.post('http://localhost:8080/workstation/searchworkstation', { workstationId: "" });
                 this.workstationData = response.data.data;
-                console.log(this.workstationData);
+                // console.log(this.workstationData);
             } catch (error) {
                 console.error('獲取工作檯時發生錯誤:', error);
                 Swal.fire({
@@ -943,7 +944,53 @@ export default {
                     confirmButtonText: '好的'
                 });
             }
-        }
+        },
+        // 用於觸發隱藏的 input 框
+        selectFile(index) {
+            const fileInput = this.$refs['fileInput' + index];
+            // 檢查 fileInput 是否為陣列並獲取第一個元素
+            const inputElement = Array.isArray(fileInput) ? fileInput[0] : fileInput;
+            console.log(this.$refs);
+            console.log(fileInput);
+            console.log(inputElement);
+
+            if (inputElement) {
+                inputElement.click(); // 點擊文件輸入框
+            } else {
+                console.error("fileInput is undefined or not a valid input element");
+            }
+        },
+        // 處理文件選擇
+        onFileChange(event, index) {
+            const file = event.target.files[0]; // 獲取選擇的文件
+            if (file) {
+                const reader = new FileReader(); // 創建 FileReader 實例
+
+                reader.onload = (e) => {
+                    // 當文件讀取完成時，將其轉換為 Base64 並打印
+                    const base64String = e.target.result; // 獲取 Base64 字符串
+                    console.log(base64String); // 在控制台打印 Base64 字符串
+
+                    images.value[index] = base64String;
+                };
+
+                reader.readAsDataURL(file); // 讀取文件並轉換為 Base64
+            }
+        },
+        // 處理文件上傳
+        handleFileChange(event, index) {
+            const file = event.target.files[0]; // 獲取上傳的檔案
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    // 將 base64 資料設置到 pictureName
+                    this.menuList[index].pictureName = e.target.result; // 儲存為 base64
+                };
+                reader.readAsDataURL(file); // 讀取檔案為 base64
+                // 如果只想儲存文件名稱，可以使用：
+                // this.menuList[index].pictureName = file.name;
+            }
+        },
     },
     mounted() {
         this.fetchCategories(); // 載入時獲取分類
@@ -951,6 +998,7 @@ export default {
         this.fetchCust(); // 載入時獲取客製化菜單資料
         this.initializeEditStates();
         this.workstationFromDB();// 載入時獲得工作檯資料
+        console.log(this.$refs);
     },
     computed: {
         // 計算各菜單分類的菜單選項
@@ -992,7 +1040,29 @@ export default {
                 return acc;
             }, {});
         }
-    }
+    },
+    setup() {
+        const images = ref([]); // 用於存儲每個圖片的 Base64 字符串
+
+        // 定義 onFileChange 方法
+        const onFileChange = (event, index) => {
+            const file = event.target.files[0]; // 獲取選擇的文件
+            if (file) {
+                const reader = new FileReader(); // 創建 FileReader 實例
+
+                reader.onload = (e) => {
+                    const base64String = e.target.result; // 獲取 Base64 字符串
+                    console.log(base64String); // 在控制台打印 Base64 字符串
+                    images.value[index] = base64String; // 更新對應索引的 Base64 字符串
+                };
+
+                reader.readAsDataURL(file); // 讀取文件並轉換為 Base64
+            }
+        };
+
+        // 將 images 和 onFileChange 返回
+        return { images, onFileChange };
+    },
 }
 </script>
 
@@ -1065,7 +1135,11 @@ export default {
                         v-for="(item, index) in savedMenuList.filter(item => item.categoryId === selectedCategoryId)"
                         :key="item.mealName">
                         <div class="itemPic">
-                            <i class="fa-solid fa-upload"></i>
+                            <div class="prePicture">
+                                <img v-if="item.pictureName" :src="item.pictureName"
+                                    alt="Image Preview" style="width: 100%; height: 100%;" />
+                                <i v-else class="fa-solid fa-upload"></i>
+                            </div>
                         </div>
                         <div class="itemName">
                             <span>{{ item.mealName }}</span>
@@ -1098,7 +1172,15 @@ export default {
                     <!-- 按下新增餐點，動態新增的div -->
                     <div class="menuItem" v-for="(menu, index) in menuList" :key="index">
                         <div class="itemPic">
-                            <i class="fa-solid fa-upload"></i>
+                            <input type="file" :ref="'fileInput' + index"
+                                @change="event => handleFileChange(event, index)" accept="image/*"
+                                style="display: none;" />
+                            <!-- 如果有圖片預覽則顯示圖片，否則顯示上傳圖標 -->
+                            <div class="prePicture" @click="selectFile(index)" style="cursor: pointer;">
+                                <img v-if="menu.pictureName" :src="menu.pictureName" alt="Image Preview"
+                                    style="width: 100%; height: 100%;" />
+                                <i v-else class="fa-solid fa-upload"></i>
+                            </div>
                         </div>
                         <div class="itemName">
                             <input type="text" v-model="menu.mealName" placeholder="輸入餐點名稱">
@@ -1568,6 +1650,19 @@ $editColor: #e6b800;
 
                         .fa-upload {
                             font-size: 30px;
+                        }
+
+                        .prePicture {
+                            width: 100%;
+                            height: auto;
+                            display: flex;
+                            justify-content: center;
+                            align-items: center;
+
+                            img {
+                                object-fit: contain;
+                                overflow: hidden;
+                            }
                         }
                     }
 
