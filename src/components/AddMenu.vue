@@ -1694,6 +1694,8 @@ $editColor: #e6b800;
         }
 
         .comboArea {
+            width: 100%;
+            height: 69%;
             z-index: 99;
         }
 
