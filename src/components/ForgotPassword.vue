@@ -12,6 +12,8 @@ export default {
             newPassword: '',
             confirmNewPassword: '',
             step: 1, // 用來控制顯示的步驟
+            showNewPassword: false,
+            showConfirmPassword: false,
         };
     },
     methods: {
@@ -135,6 +137,13 @@ export default {
                         confirmButtonText: '確定',
                     });
                 });
+        },
+        // 新增顯示/隱藏密碼的切換方法
+        toggleNewPasswordVisibility() {
+            this.showNewPassword = !this.showNewPassword;
+        },
+        toggleConfirmPasswordVisibility() {
+            this.showConfirmPassword = !this.showConfirmPassword;
         }
     }
 };
@@ -150,7 +159,8 @@ export default {
                 <div class="input-group">
                     <label for="staffNumber">帳號</label>
                     <div v-if="step === 1">
-                        <input v-model="staffNumber" type="text" id="staffNumber" placeholder="請輸入帳號" required autocomplete="off" />
+                        <input v-model="staffNumber" type="text" id="staffNumber" placeholder="請輸入帳號" required
+                            autocomplete="off" />
                     </div>
                     <div v-else>
                         <div class="phone-display">{{ staffNumber }}</div> <!-- 只顯示帳號 -->
@@ -170,14 +180,24 @@ export default {
 
                 <div v-if="step === 3" class="input-group">
                     <label for="newPassword">新密碼</label>
-                    <input v-model="newPassword" type="password" id="newPassword" placeholder="請輸入新密碼" required
-                        autocomplete="off" />
+                    <div class="password-input">
+                        <input :type="showNewPassword ? 'text' : 'password'" v-model="newPassword" id="newPassword"
+                            placeholder="請輸入新密碼" required autocomplete="off" />
+                        <span @click="toggleNewPasswordVisibility">
+                            <i :class="showNewPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
+                        </span>
+                    </div>
                 </div>
 
                 <div v-if="step === 3" class="input-group">
                     <label for="confirmNewPassword">確認新密碼</label>
-                    <input v-model="confirmNewPassword" type="password" id="confirmNewPassword" placeholder="請再次輸入新密碼"
-                        required autocomplete="off" />
+                    <div class="password-input">
+                        <input :type="showConfirmPassword ? 'text' : 'password'" v-model="confirmNewPassword"
+                            id="confirmNewPassword" placeholder="請再次輸入新密碼" required autocomplete="off" />
+                        <span @click="toggleConfirmPasswordVisibility">
+                            <i :class="showConfirmPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
+                        </span>
+                    </div>
                 </div>
 
                 <button type="submit" class="submit-btn">
@@ -260,6 +280,26 @@ export default {
                 color: #333;
                 text-decoration: none;
             }
+        }
+    }
+
+    .password-input {
+        position: relative;
+
+        input {
+            width: 100%;
+            padding: 0.625rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        span {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #333;
         }
     }
 }
