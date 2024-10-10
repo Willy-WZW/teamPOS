@@ -14,8 +14,8 @@ export default{
     },
     created(){
         axios.post("http://localhost:8080/pos/searchOrderStatus", {   
-                "startDate": "2024-09-27",
-                "endDate": "2024-09-27"
+                "startDate": "",
+                "endDate": ""
             })
         .then(response=>{
             this.preparing = response.data.preparingOrders
@@ -61,8 +61,8 @@ export default{
                     <h1>準備中</h1>
                     <div class="tableContainer" v-for="(table, tableIndex) in preparing">
                         <div class="tableTitle">
-                            <p>桌號{{ table.tableNumber }}</p>
-                            <p>訂單編號{{ table.orderId }}</p>
+                            <p class="tableNumber">桌號{{ table.tableNumber }}</p>
+                            <p class="orderId">訂單編號{{ table.orderId }}</p>
                             <i class="fa-solid fa-chevron-up"></i>
                         </div>
                         <div class="tableContent"  v-for="(meal, mealIndex) in table.mealList">
@@ -215,8 +215,12 @@ export default{
                             display: flex;
                             align-items: center;
                             justify-content: center;
+                            font-size: 20px;
                             border-radius: 12px;
                             background-color: rgba(0, 0, 0, 0.1);
+                        }
+                        p:nth-child(2){
+                            font-size: 12px;
                         }
                     }
                     .tableContent{
