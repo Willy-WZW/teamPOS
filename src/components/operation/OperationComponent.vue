@@ -742,7 +742,6 @@ export default{
         <OperationSpecificComponent/>
     </div>
 
-
 </div>
 
 </template>
