@@ -180,18 +180,18 @@ $textColor: #697077;
             height: 6.3%;
             border-radius: 10px;
             display: flex;
-            justify-content: center;
-            align-items: center;
             position: absolute;
             top: 2%;
             left: 2%;
             background-color: #fff;
             overflow-x: auto;
             white-space: nowrap;
-            scrollbar-width: none; 
+            scrollbar-width: none;
+            padding-left: 4%;
+            padding-right: 4%;
 
             .headername {
-                width: 10%;
+                min-width: calc(100% / 7);
                 height: 100%;
                 cursor: pointer;
                 display: flex;
@@ -275,7 +275,8 @@ $textColor: #697077;
         }
     }
 }
-.fa-check{
+
+.fa-check {
     cursor: pointer;
 }
 </style>
