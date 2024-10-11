@@ -48,6 +48,7 @@ export default {
             // 始終顯示新增行
             this.showAddRow = !this.showAddRow;
             this.isAddingOrEditing = this.showAddRow; // 設置狀態
+            this.newEmployee.password = this.nextEmployeeId;
         },
         addEmployee() {
             if (this.showAddRow) {
@@ -294,6 +295,69 @@ export default {
                 Swal.fire('錯誤', '無法獲取權限資料', 'error');
             }
         },
+        resetPassword(id) {
+
+            const employee = this.employees.find(emp => emp.id === id);
+            // this.editingId = id;
+            this.newEmployee = {
+                ...employee,
+                authorization: this.authorizations.find(auth => auth.label === employee.authorization)?.code || '' // 這裡新增授權代碼的載入
+            }; // 將選中的員工資料填入新增員工表單
+
+            const updatedData = {
+                staffNumber: id,
+                name: this.newEmployee.name,
+                phone: this.newEmployee.phone,
+                password: id,
+                email: this.newEmployee.email,
+                authorization: this.newEmployee.authorization,
+            };
+
+            // 發送 API 請求更新員工資料
+            fetch("http://localhost:8080/api/staff/updateInfo", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(updatedData)
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    return response.json(); // 解析回應的 JSON
+                })
+                .then(data => {
+                    // 顯示 SweetAlert 成功提示
+                    if (data.code === 200) {
+                        Swal.fire({
+                            title: "重置密碼成功", // 假設 API 返回的訊息
+                            icon: 'success',
+                            confirmButtonText: '確定',
+                        });
+
+                        this.allStaffInfo();
+                        this.cancelEditing(); // 重置狀態
+                    } else {
+                        Swal.fire({
+                            title: '重置密碼失敗',
+                            text: data.message, // 顯示錯誤訊息
+                            icon: 'error',
+                            confirmButtonText: '確定',
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error("更新員工失敗:", error);
+                    // 顯示 SweetAlert 錯誤提示
+                    Swal.fire({
+                        title: '重置密碼失敗',
+                        text: error.message, // 顯示錯誤訊息
+                        icon: 'error',
+                        confirmButtonText: '確定',
+                    });
+                });
+        }
     },
     mounted() {
         this.fetchPermissions().then(() => {
@@ -343,9 +407,9 @@ export default {
                                 </div>
                             </td>
                             <td>
-                                <div class="cell-content">
-                                    <span>************</span>
-                                </div>
+                                <button @click="resetPassword(employee.id)" class="action-btn reset-btn">
+                                    重置密碼
+                                </button>
                             </td>
                             <td>
                                 <div class="cell-content">
@@ -392,8 +456,11 @@ export default {
                             <td><input v-model="newEmployee.name" placeholder="輸入姓名" class="edit-input"
                                     maxlength="16px"></td>
                             <td><input v-model="newEmployee.phone" placeholder="輸入電話" class="edit-input"></td>
-                            <td><input v-model="newEmployee.password" placeholder="輸入密碼" type="password"
-                                    class="edit-input"></td>
+                            <td>
+                                <div class="cell-content">
+                                    <span>************</span>
+                                </div>
+                            </td>
                             <td><input v-model="newEmployee.email" placeholder="輸入email" class="edit-input"></td>
                             <td>
                                 <select v-model="newEmployee.authorization" class="edit-input">

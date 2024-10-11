@@ -433,7 +433,7 @@ export default {
                 });
             this.selectedTable = table; // 設置選中的桌位
         },
-        confirmPayment(ordersId) {
+        confirmPayment(ordersId)  {
             console.log(ordersId);
 
             const now = new Date();
@@ -494,6 +494,91 @@ export default {
                 })
                 .catch(error => {
 
+                });
+
+            
+
+
+            const now = new Date();
+            // 將時間轉換為 UTC+8
+            const taiwanTime = new Date(now.getTime() + (8 * 60 * 60 * 1000)); // 加8小時
+            const checkoutTime = taiwanTime.toISOString();
+
+            console.log(checkoutTime);
+            
+
+            let  payType = "";
+            if (this.paymentMethod == "creditCard" ){
+                payType = "信用卡";
+            }else if( this.paymentMethod == "cash" ){
+                payType = "現金";
+            }
+
+            
+
+            const confirmPaymentData = {
+                orderId: ordersId,
+                tableNumber: this.selectedTable.id,
+                totalPrice: this.subtotal,
+                payType: payType,
+                checkout: 1,
+                checkoutTime: checkoutTime
+            };
+
+
+            fetch("http://localhost:8080/api/checkout/confirmPayment", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(confirmPaymentData)
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    return response.json(); // 解析回應的 JSON
+                })
+                .then(data => {
+                    // 顯示 SweetAlert 成功提示
+                    if (data.code == 200) {
+
+                        const newWindow = window.open('', '_blank'); // 打開一個空的窗口
+                        // 寫入 HTML 到新窗口
+                        newWindow.document.write(data.message); // 將 API 返回的 HTML 內容寫入窗口
+                        newWindow.document.close(); // 關閉文件流
+
+                        Swal.fire({
+                            title: "付款成功", // 假設 API 返回的訊息
+                            icon: 'success',
+                            confirmButtonText: '確定',
+                        });
+                        this.selectedTable = null; // 關閉側邊欄
+                        this.orderItems = [];
+                        this.ordersId = "";
+                        this.total = 0;
+                        this.subtotal = 0;
+
+
+                    } else {
+                        Swal.fire({
+                            title: '結帳失敗',
+                            text: data.message, // 顯示錯誤訊息
+                            icon: 'error',
+                            confirmButtonText: '確定',
+                        });
+
+                    }
+
+                })
+                .catch(error => {
+                    console.error("結帳失敗：", error);
+                    Swal.fire({
+                        title: '結帳失敗',
+                        text: '無法完成支付，請稍後重試',
+                        icon: 'error',
+                        confirmButtonText: '確定',
+                    });
                 });
 
             
