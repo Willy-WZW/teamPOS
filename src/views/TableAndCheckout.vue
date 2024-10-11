@@ -36,6 +36,8 @@ export default {
             filteredReservations: [], // 根據日期篩選後的訂位資訊
             reservations: [], // 初始化為空陣列
             selectedDate: new Date(), // 當前選擇的日期
+            isSearching: false, // 控制搜尋框的顯示
+            searchNumber: '',    // 儲存輸入的查詢
 
             // 訂位資訊
             newReservation: {
@@ -161,7 +163,17 @@ export default {
         },
 
         filteredReservations() {
-            return this.filterReservationsByDate(this.currentDate);
+            // 先根據當前日期過濾出所有預約
+            let reservationsByDate = this.filterReservationsByDate(this.currentDate);
+
+            // 如果有搜尋號碼，則再進行第二次過濾
+            if (this.searchNumber) {
+                reservationsByDate = reservationsByDate.filter(reservation =>
+                    reservation.phone.endsWith(this.searchNumber) // 檢查電話號碼是否以搜尋號碼結尾
+                );
+            }
+
+            return reservationsByDate; // 返回最終的過濾結果
         }
     },
 
@@ -296,6 +308,63 @@ export default {
             return `${formattedHours}:${formattedMinutes}`; // 返回 HH:mm 格式
         },
 
+        // 開啟電話搜尋欄
+        toggleSearch() {
+            this.isSearching = !this.isSearching;
+            if (!this.isSearching) {
+                this.searchNumber = ''; // 如果關閉搜尋，清空輸入框
+                this.filteredReservations = []; // 清空結果
+            }
+        },
+
+        // 自動關閉電話搜尋欄
+        handleBlur() {
+            // 當輸入框失去焦點時，檢查輸入框的值
+            if (this.searchNumber.trim() === '') {
+                // 如果輸入框為空，則呼叫日期篩選 API
+                this.fetchReservationsByDate(this.currentDate);
+                this.isSearching = false; // 隱藏輸入框
+            }
+        },
+
+        async searchReservations() {
+            if (this.searchNumber.trim() === '') {
+                // 當搜尋欄位為空時，呼叫日期篩選的 API 方法
+                await this.fetchReservationsByDate(this.currentDate);
+            } else {
+                // 如果有輸入，則使用手機號碼搜尋
+                try {
+                    const response = await axios.get(`http://localhost:8080/reservation/findReservationsByPhoneNumber`, {
+                        params: { phoneNumber: this.searchNumber }
+                    });
+
+                    let reservations = response.data.reservations;
+
+                    // 確保 reservations 是陣列
+                    if (!Array.isArray(reservations)) {
+                        reservations = reservations ? [reservations] : [];
+                    }
+
+                    // 更新 reservations
+                    this.reservations = reservations.map(reservation => ({
+                        id: reservation.reservationId,
+                        name: reservation.customerName,
+                        phone: reservation.customerPhoneNumber,
+                        partySize: reservation.reservationPeople,
+                        tables: reservation.tableNumbers || [], // 這裡要確保有 tableNumbers
+                        date: reservation.reservationDate, // 確保有日期字段
+                        time: this.formatTime(reservation.reservationStartTime) // 格式化時間
+                    }));
+
+                    console.log('已成功加載搜尋結果:', this.reservations);
+                } catch (error) {
+                    console.error('無法獲取搜尋結果:', error);
+                    Swal.fire('查詢失敗', error.response.data.message || '請稍後再試', 'error');
+                    this.reservations = [];
+                }
+            }
+        },
+
         // 根據日期獲取訂位資訊
         async fetchReservationsByDate(date) {
             try {
@@ -327,6 +396,54 @@ export default {
             } catch (error) {
                 console.error('無法獲取訂位資料:', error);
                 this.reservations = [];
+            }
+        },
+
+         // 確認報到視窗
+        confirmCheckIn(tableNumber) {
+            Swal.fire({
+                title: '請確認客人是否報到！',
+                text: `桌號 ${tableNumber} 的報到操作將不可撤銷`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: '是的，我要報到！',
+                cancelButtonText: '取消'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // 如果用戶確認了報到，調用報到 API
+                    this.manualCheckIn(tableNumber);
+                }
+            });
+        },
+
+        // 執行報到API
+        async manualCheckIn(tableNumber) {
+            try {
+                const response = await axios.post(`http://localhost:8080/reservation/manualCheckIn`, null, {
+                    params: { tableNumber }
+                });
+
+                // 成功提示
+                Swal.fire(
+                    '報到成功！',
+                    `桌號 ${tableNumber} 已成功報到。`,
+                    'success'
+                );
+
+                // 刷新訂位列表或更新狀態
+                this.fetchReservationsByDate(this.currentDate);
+            } catch (error) {
+                // 處理錯誤情況
+                console.error('報到失敗', error);
+
+                // 顯示錯誤提示
+                Swal.fire(
+                    '報到失敗',
+                    '報到時發生錯誤，請稍後重試。',
+                    'error'
+                );
             }
         },
 
@@ -686,7 +803,15 @@ export default {
 
             <!-- 訂位顯示區域 -->
             <div v-if="viewType === 'reservation'" class="reservations">
-                <p class="reminderText">時間為訂位時間</p>
+                <div class="reminderAndSearchArea">
+                    <p class="reminderText">時間為訂位時間</p>
+                    <button class="phoneSearch" @click="toggleSearch" v-if="!isSearching">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </button>
+                    <input v-if="isSearching" type="search" v-model="searchNumber" placeholder="請輸入電話號碼 (末三碼)" 
+                        @input="searchReservations" @blur="handleBlur" class="searchInput" ref="searchInput"/>
+                </div>
+                
                 <div v-for="reservation in filteredReservations" :key="reservation.id" class="reservationItem">
                     <!-- 顧客名字 -->
                     <div class="customerName">{{ reservation.name }}</div>
@@ -712,7 +837,7 @@ export default {
                     <!-- 報到與取消 -->
                     <div class="reservationActions">
                         <div class="checkinArea">
-                            <input type="checkbox" id="checkin_{{ reservation.id }}" name="checkin" />
+                            <input type="checkbox" id="checkin_{{ reservation.id }}" name="checkin" @click="confirmCheckIn(reservation.tables[0])" />
                             <label for="checkin_{{ reservation.id }}">報到</label>
                         </div>
                         <div class="cancelArea">
@@ -916,7 +1041,7 @@ export default {
                             <label for="partySize">人數</label>
                             <select v-model="newReservation.partySize">
                                 <option disabled value="">選擇人數</option>
-                                <option v-for="n in 10" :key="n" :value="n">{{ n }}</option>
+                                <option v-for="n in 20" :key="n" :value="n">{{ n }}</option>
                             </select>
                         </div>
 
@@ -1192,18 +1317,47 @@ export default {
             }
 
             .reservations {
-                width: 95%;
+                width: 100%;
                 max-height: 720px;
                 overflow: auto;
                 border-top: 2.5px solid #DDE1E6;
                 display: flex;
                 flex-direction: column;
-                padding: 15px 0;
+                padding: 10px 0;
 
-                .reminderText {
-                    margin-bottom: 10px;
-                    color: black;
-                    opacity: 0.6;
+                .reminderAndSearchArea {
+                    width: 100%;
+                    padding: 13px 10px;
+                    margin-bottom: 5px;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center; /* 垂直居中對齊 */
+
+                    .reminderText {
+                        font-size: 17px;
+                        color: black;
+                        opacity: 0.6;
+                    }
+
+                    .phoneSearch {
+                        background: transparent;
+                        border: none;
+                        font-size: 20px;
+                        color: #697077;
+                        cursor: pointer;
+                        margin-right: 10px;
+                    }
+
+                    .searchInput {
+                        width: 250px;
+                        border: 1px solid #ccc;
+                        border-radius: 10px;
+                        border-radius: 4px;
+                        font-size: 17px;
+                        text-indent: 10px;
+                        outline: none;
+                        padding: 5px;
+                    }
                 }
 
                 .reservationItem {
@@ -1213,7 +1367,7 @@ export default {
                     display: flex;
                     justify-content: space-around;
                     align-items: center;
-                    padding: 13px 10px;
+                    padding: 13px 5px;
                     margin-bottom: 20px;
 
                     .customerName {
@@ -1232,7 +1386,7 @@ export default {
                             font-size: 18px;
                             color: #697077;
                             letter-spacing: 2px;
-                            margin-bottom: 10px;
+                            margin-bottom: 15px;
 
                             i {
                                 color: #697077;
@@ -1255,16 +1409,17 @@ export default {
                     }
 
                     .tableNumberAndTime {
+                        width: 25%;
                         border-radius: 10px;
                         background-color: #DDE1E6;
                         color: #4D5358;
                         display: flex;
                         flex-direction: column;
                         align-items: center;
-                        padding: 10px 20px;
+                        padding: 10px;
 
-                        .tableNumber {
-                            font-size: 20px;
+                        .tableNumbers {
+                            font-size: 18px;
                             font-weight: bold;
                             letter-spacing: 2px;
                             margin-bottom: 10px;
@@ -1284,7 +1439,7 @@ export default {
                         .checkinArea {
                             color: #697077;
                             font-size: 20px;
-                            margin-bottom: 10px;
+                            margin-bottom: 15px;
 
                             input[type="checkbox"] {
                                 margin-right: 5px;
