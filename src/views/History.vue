@@ -149,7 +149,7 @@ export default {
                             order.single = [];
                             return order;
                         });
-                    }else{
+                    } else {
                         Swal.fire({
                             title: data.message,
                             icon: 'error',
@@ -165,7 +165,7 @@ export default {
                     // alert("查詢失敗，請檢查日期格式或伺服器狀態。");
                 });
 
-                this.drawerVisible = false;
+            this.drawerVisible = false;
 
         },
         // 顯示訂單詳細資料
@@ -200,6 +200,11 @@ export default {
         },
     },
     mounted() {
+
+        const today = new Date().toISOString().split('T')[0];
+        document.querySelector('.dateInput').setAttribute('max', today);
+        
+
         //預設加載當日訂單資料
         this.fetchOrders();
         // this.orderList = this.mockData.data;
