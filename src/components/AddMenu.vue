@@ -947,17 +947,12 @@ export default {
         },
         // 用於觸發隱藏的 input 框
         selectFile(index) {
-            const fileInput = this.$refs['fileInput' + index];
-            // 檢查 fileInput 是否為陣列並獲取第一個元素
+            const fileInput = this.$refs[`fileInput_new_${index}`];
             const inputElement = Array.isArray(fileInput) ? fileInput[0] : fileInput;
-            console.log(this.$refs);
-            console.log(fileInput);
-            console.log(inputElement);
-
             if (inputElement) {
-                inputElement.click(); // 點擊文件輸入框
+                inputElement.click();
             } else {
-                console.error("fileInput is undefined or not a valid input element");
+                console.error("new file input is undefined or not a valid input element");
             }
         },
         // 處理文件選擇
@@ -991,19 +986,15 @@ export default {
                 // this.menuList[index].pictureName = file.name;
             }
         },
-        handleFileChange(event, index) {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    this.menuList[index].pictureName = e.target.result;
-                };
-                reader.readAsDataURL(file);
-            }
-        },
         // 點擊圖片打開input[type='file']，編輯圖片
         selectFileFromDB(index) {
-            this.$refs[`fileInput${index}`][0].click();
+            const fileInput = this.$refs[`fileInput_db_${index}`];
+            const inputElement = Array.isArray(fileInput) ? fileInput[0] : fileInput;
+            if (inputElement) {
+                inputElement.click();
+            } else {
+                console.error("db file input is undefined or not a valid input element");
+            }
         },
         // 選擇圖片後觸發預覽
         handleFileChangeFromDB(event, index) {
@@ -1030,7 +1021,6 @@ export default {
         this.fetchCust(); // 載入時獲取客製化菜單資料
         this.initializeEditStates();
         this.workstationFromDB();// 載入時獲得工作檯資料
-        console.log(this.$refs);
     },
     computed: {
         // 計算各菜單分類的菜單選項
@@ -1165,19 +1155,18 @@ export default {
                     <!-- 存在於資料庫的部分 -->
                     <div class="menuItem"
                         v-for="(item, index) in savedMenuList.filter(item => item.categoryId === selectedCategoryId)"
-                        :key="item.mealName">
+                        :key="'db' + item.mealName">
                         <div class="itemPic">
-                            <input v-if="editIndexList.includes(item.mealName)" type="file" :ref="'fileInput' + index"
-                                @change="event => handleFileChangeFromDB(event, index)" accept="image/*"
-                                style="display: none;" />
+                            <input v-if="editIndexList.includes(item.mealName)" type="file"
+                                :ref="'fileInput_db_' + index" @change="event => handleFileChangeFromDB(event, index)"
+                                accept="image/*" style="display: none;" />
                             <div class="prePicture"
                                 @click="editIndexList.includes(item.mealName) ? selectFileFromDB(index) : null"
                                 :style="{ cursor: editIndexList.includes(item.mealName) ? 'pointer' : 'default' }">
                                 <img v-if="item.pictureName" :src="item.pictureName" alt="Image Preview"
-                                    style="width: 100%; height: 100%;"
-                                    :style="{ cursor: editIndexList.includes(item.mealName) ? 'pointer' : 'default' }" />
+                                    style="width: 100%; height: 100%;" />
                                 <i v-else class="fa-solid fa-upload"></i>
-                                {{ "看一下:" + item.pictureName }}
+                                <!-- {{ "看一下:" + item.pictureName }} -->
                             </div>
                         </div>
                         <div class="itemName">
@@ -1211,7 +1200,7 @@ export default {
                     <!-- 按下新增餐點，動態新增的div -->
                     <div class="menuItem" v-for="(menu, index) in menuList" :key="index">
                         <div class="itemPic">
-                            <input type="file" :ref="'fileInput' + index"
+                            <input type="file" :ref="'fileInput_new_' + index" :key="'new' + index"
                                 @change="event => handleFileChange(event, index)" accept="image/*"
                                 style="display: none;" />
                             <!-- 如果有圖片預覽則顯示圖片，否則顯示上傳圖標 -->
@@ -1686,6 +1675,7 @@ $editColor: #e6b800;
                         border: dotted;
                         margin: 4% 4% 0 4%;
                         min-height: 111.7px;
+                        overflow: hidden;
 
                         .fa-upload {
                             font-size: 30px;
