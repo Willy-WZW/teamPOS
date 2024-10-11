@@ -991,6 +991,38 @@ export default {
                 // this.menuList[index].pictureName = file.name;
             }
         },
+        handleFileChange(event, index) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    this.menuList[index].pictureName = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        },
+        // 點擊圖片打開input[type='file']，編輯圖片
+        selectFileFromDB(index) {
+            this.$refs[`fileInput${index}`][0].click();
+        },
+        // 選擇圖片後觸發預覽
+        handleFileChangeFromDB(event, index) {
+            const file = event.target.files[0];
+            if (file) {
+                console.log("選擇的檔案:", file);  // 檢查是否選擇了文件
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    console.log("讀取的檔案:", e.target.result);  // 檢查圖片的 base64 字串
+                    this.savedMenuList[index].pictureName = e.target.result;
+                    // 確保 editedMenuItems 中也更新對應的 pictureName
+                    const editedItem = this.editedMenuItems.find(item => item.mealName === this.savedMenuList[index].mealName);
+                    if (editedItem) {
+                        editedItem.pictureName = e.target.result;
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        },
     },
     mounted() {
         this.fetchCategories(); // 載入時獲取分類
@@ -1135,10 +1167,17 @@ export default {
                         v-for="(item, index) in savedMenuList.filter(item => item.categoryId === selectedCategoryId)"
                         :key="item.mealName">
                         <div class="itemPic">
-                            <div class="prePicture">
-                                <img v-if="item.pictureName" :src="item.pictureName"
-                                    alt="Image Preview" style="width: 100%; height: 100%;" />
+                            <input v-if="editIndexList.includes(item.mealName)" type="file" :ref="'fileInput' + index"
+                                @change="event => handleFileChangeFromDB(event, index)" accept="image/*"
+                                style="display: none;" />
+                            <div class="prePicture"
+                                @click="editIndexList.includes(item.mealName) ? selectFileFromDB(index) : null"
+                                :style="{ cursor: editIndexList.includes(item.mealName) ? 'pointer' : 'default' }">
+                                <img v-if="item.pictureName" :src="item.pictureName" alt="Image Preview"
+                                    style="width: 100%; height: 100%;"
+                                    :style="{ cursor: editIndexList.includes(item.mealName) ? 'pointer' : 'default' }" />
                                 <i v-else class="fa-solid fa-upload"></i>
+                                {{ "看一下:" + item.pictureName }}
                             </div>
                         </div>
                         <div class="itemName">
