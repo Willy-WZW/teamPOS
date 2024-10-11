@@ -1,104 +1,105 @@
 <script>
 import LeftBar from "@/components/LeftBar.vue";
 import axios from "axios";
+import Swal from 'sweetalert2';
 
 export default {
     data() {
         return {
             // 模擬資料
-            mockData: {
-                code: 200,
-                message: "成功",
-                data: [
-                    {
-                        orderId: "202409251509A01",
-                        orderMealId: [
-                            {
-                                comboName: "2號餐",
-                                mealName: "火鍋(麻辣), 奶茶(1分糖)",
-                                price: 199,
-                            },
-                            {
-                                comboName: "1號餐",
-                                mealName: "勁辣雞腿堡(不要辣), 可樂(去冰)",
-                                price: 130,
-                            },
-                        ],
-                        single: [
-                            {
-                                mealName: "薯條(去鹽)",
-                                price: 50,
-                            },
-                            {
-                                mealName: "冰炫風",
-                                price: 69,
-                            },
-                        ],
-                        checkoutTime: "2024-10-10 11:22:52",
-                        payType: "信用卡",
-                        totalPrice: 438,
-                        tableNumber: "A02",
-                    },
-                    {
-                        orderId: "202409251510B03",
-                        orderMealId: [
-                            {
-                                comboName: "3號餐",
-                                mealName: "拉麵(醬油湯底), 綠茶",
-                                price: 250,
-                            },
-                            {
-                                comboName: "4號餐",
-                                mealName: "牛肉麵(清燉), 豆漿",
-                                price: 180,
-                            },
-                        ],
-                        single: [
-                            {
-                                mealName: "炸雞塊",
-                                price: 75,
-                            },
-                            {
-                                mealName: "果汁",
-                                price: 45,
-                            },
-                        ],
-                        checkoutTime: "2024-10-10 12:15:30",
-                        payType: "現金",
-                        totalPrice: 550,
-                        tableNumber: "A03",
-                    },
-                    {
-                        orderId: "202409251511C05",
-                        orderMealId: [
-                            {
-                                comboName: "5號餐",
-                                mealName: "海鮮炒飯, 汽水(少冰)",
-                                price: 220,
-                            },
-                            {
-                                comboName: "6號餐",
-                                mealName: "雞肉咖哩飯, 冰水",
-                                price: 160,
-                            },
-                        ],
-                        single: [
-                            {
-                                mealName: "薯條(加鹽)",
-                                price: 55,
-                            },
-                            {
-                                mealName: "奶昔(微糖)",
-                                price: 80,
-                            },
-                        ],
-                        checkoutTime: "2024-10-10 13:45:15",
-                        payType: "行動支付",
-                        totalPrice: 515,
-                        tableNumber: "A05",
-                    },
-                ],
-            },
+            // mockData: {
+            //     code: 200,
+            //     message: "成功",
+            //     data: [
+            //         {
+            //             orderId: "202409251509A01",
+            //             orderMealId: [
+            //                 {
+            //                     comboName: "2號餐",
+            //                     mealName: "火鍋(麻辣), 奶茶(1分糖)",
+            //                     price: 199,
+            //                 },
+            //                 {
+            //                     comboName: "1號餐",
+            //                     mealName: "勁辣雞腿堡(不要辣), 可樂(去冰)",
+            //                     price: 130,
+            //                 },
+            //             ],
+            //             single: [
+            //                 {
+            //                     mealName: "薯條(去鹽)",
+            //                     price: 50,
+            //                 },
+            //                 {
+            //                     mealName: "冰炫風",
+            //                     price: 69,
+            //                 },
+            //             ],
+            //             checkoutTime: "2024-10-10 11:22:52",
+            //             payType: "信用卡",
+            //             totalPrice: 438,
+            //             tableNumber: "A02",
+            //         },
+            //         {
+            //             orderId: "202409251510B03",
+            //             orderMealId: [
+            //                 {
+            //                     comboName: "3號餐",
+            //                     mealName: "拉麵(醬油湯底), 綠茶",
+            //                     price: 250,
+            //                 },
+            //                 {
+            //                     comboName: "4號餐",
+            //                     mealName: "牛肉麵(清燉), 豆漿",
+            //                     price: 180,
+            //                 },
+            //             ],
+            //             single: [
+            //                 {
+            //                     mealName: "炸雞塊",
+            //                     price: 75,
+            //                 },
+            //                 {
+            //                     mealName: "果汁",
+            //                     price: 45,
+            //                 },
+            //             ],
+            //             checkoutTime: "2024-10-10 12:15:30",
+            //             payType: "現金",
+            //             totalPrice: 550,
+            //             tableNumber: "A03",
+            //         },
+            //         {
+            //             orderId: "202409251511C05",
+            //             orderMealId: [
+            //                 {
+            //                     comboName: "5號餐",
+            //                     mealName: "海鮮炒飯, 汽水(少冰)",
+            //                     price: 220,
+            //                 },
+            //                 {
+            //                     comboName: "6號餐",
+            //                     mealName: "雞肉咖哩飯, 冰水",
+            //                     price: 160,
+            //                 },
+            //             ],
+            //             single: [
+            //                 {
+            //                     mealName: "薯條(加鹽)",
+            //                     price: 55,
+            //                 },
+            //                 {
+            //                     mealName: "奶昔(微糖)",
+            //                     price: 80,
+            //                 },
+            //             ],
+            //             checkoutTime: "2024-10-10 13:45:15",
+            //             payType: "行動支付",
+            //             totalPrice: 515,
+            //             tableNumber: "A05",
+            //         },
+            //     ],
+            // },
             selectedDate: new Date().toISOString().substring(0, 10), // 預設為當日日期（格式 yyyy-MM-dd）
             orderList: [], // 存放訂單列表資料
             drawerVisible: false, // Drawer 顯示控制
@@ -109,25 +110,99 @@ export default {
         LeftBar,
     },
     methods: {
-        /*發送 POST 請求取得指定日期的訂單資料
+        //發送 POST 請求取得指定日期的訂單資料
         fetchOrders() {
-            const requestData = {
-                date: this.selectedDate,
-            };
-            axios.post("http://localhost:8080/getOrderHistory", requestData).then((response) => {
-                this.orderList = response.data.data;
-            });
-        },*/
+
+            if (this.selectedDate == "") {
+                Swal.fire({
+                    title: '請輸入日期',
+                    icon: 'error',
+                    confirmButtonText: '確定',
+                });
+                return;
+            }
+
+            const requestUrl = `http://localhost:8080/api/checkout/list/${this.selectedDate}`;
+
+            // 發送 GET 請求
+            fetch(requestUrl)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+
+                    if (data.code == 200) {
+
+                        Swal.fire({
+                            title: data.message,
+                            icon: 'success',
+                            confirmButtonText: '確定',
+                        });
+
+                        // 處理 checkoutTime 去掉 "T"
+                        this.orderList = data.checkoutList.map(order => {
+                            order.checkoutTime = order.checkoutTime.replace("T", " ");
+                            order.orderMealId = [];
+                            order.single = [];
+                            return order;
+                        });
+                    }else{
+                        Swal.fire({
+                            title: data.message,
+                            icon: 'error',
+                            confirmButtonText: '確定',
+                        });
+
+                        this.orderList = [];
+                    }
+                })
+                .catch(error => {
+                    // 處理錯誤響應
+                    console.error("Error fetching orders:", error);
+                    // alert("查詢失敗，請檢查日期格式或伺服器狀態。");
+                });
+
+                this.drawerVisible = false;
+
+        },
         // 顯示訂單詳細資料
         showOrderDetail(order) {
+
+            const requestUrl = `http://localhost:8080/api/checkout/detailsOrderId/${order.orderId}`;
+
+            // 發送 GET 請求
+            fetch(requestUrl)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+
+                    if (data.code == 200) {
+
+                        order.orderMealId = data.data.orderMealId;
+                        order.single = data.data.single;
+
+                    }
+                })
+                .catch(error => {
+                    // 處理錯誤響應
+                    console.error("Error fetching orders:", error);
+                });
+
             this.selectedOrder = order;
             this.drawerVisible = true;
         },
     },
     mounted() {
         //預設加載當日訂單資料
-        //this.fetchOrders();
-        this.orderList = this.mockData.data;
+        this.fetchOrders();
+        // this.orderList = this.mockData.data;
     },
 };
 </script>
@@ -276,7 +351,8 @@ export default {
             padding: 10px 0;
 
             .orderTableContainer {
-                transition: width 0.3s ease; /* 增加寬度變化的過渡效果 */
+                transition: width 0.3s ease;
+                /* 增加寬度變化的過渡效果 */
                 overflow-y: scroll;
             }
 
