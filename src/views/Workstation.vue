@@ -8,7 +8,8 @@ export default {
         return {
             orders: [],
             categories: [],
-            selectedWorkstationId: null
+            selectedWorkstationId: null,
+            refreshInterval: null,
         }
     },
     components: {
@@ -72,20 +73,20 @@ export default {
             this.selectedWorkstationId = workstationId;
         },
         async updateInPreparation(orderId) {
-            const data = { id: orderId }; 
+            const data = { id: orderId };
             const result = await Swal.fire({
                 title: '確定要送出嗎?',
                 showCancelButton: true,
                 confirmButtonText: '送出',
                 cancelButtonText: '取消'
             });
-            if(result.isConfirmed){
+            if (result.isConfirmed) {
                 axios.post('http://localhost:8080/pos/updateInPreparation', data)
                     .then(response => {
                         if (response.data.code === 200) {
                             this.fetchAllOrders();
                         } else {
-                            
+
                         }
                     })
                     .catch(error => {
@@ -93,13 +94,19 @@ export default {
                     });
             }
         }
-
-
     },
     mounted() {
         this.fetchWorkstations();
         this.fetchAllOrders();
-    }
+        this.refreshInterval = setInterval(() => {
+            this.fetchAllOrders();
+        }, 10000);
+    },
+    beforeDestroy() {
+        if (this.refreshInterval) {
+            clearInterval(this.refreshInterval);
+        }
+    },
 }
 </script>
 <template>
@@ -120,7 +127,7 @@ export default {
                     <div class="table">
                         {{ tableNumber }}桌
                     </div>
-                    <div style="width: 90%;">
+                    <div class="orderbox">
                         <div v-for="(order, index) in orders" :key="index" class="ordermenu">
                             {{ order.mealName }}
                             <i class="fa-solid fa-check" @click="updateInPreparation(order.id)"></i>
@@ -173,15 +180,18 @@ $textColor: #697077;
             height: 6.3%;
             border-radius: 10px;
             display: flex;
-            justify-content: center;
-            align-items: center;
             position: absolute;
             top: 2%;
             left: 2%;
             background-color: #fff;
+            overflow-x: auto;
+            white-space: nowrap;
+            scrollbar-width: none;
+            padding-left: 4%;
+            padding-right: 4%;
 
             .headername {
-                width: 10%;
+                min-width: calc(100% / 7);
                 height: 100%;
                 cursor: pointer;
                 display: flex;
@@ -226,9 +236,18 @@ $textColor: #697077;
             display: flex;
             overflow-x: auto;
             scrollbar-width: none;
+
             .orders {
                 padding-left: 5%;
                 min-width: 33.3%;
+
+                .orderbox {
+                    width: 90%;
+                    overflow-y: scroll;
+                    max-height: 85%;
+                    scrollbar-width: none;
+
+                }
 
                 .table {
                     width: 90%;
@@ -239,6 +258,7 @@ $textColor: #697077;
                     justify-content: center;
                     align-items: center;
                     margin-top: 3%;
+                    position: relative;
                 }
 
                 .ordermenu {
@@ -249,9 +269,14 @@ $textColor: #697077;
                     background-color: #F2F4F8;
                     margin-top: 3%;
                     border-radius: 10px;
+
                 }
             }
         }
     }
+}
+
+.fa-check {
+    cursor: pointer;
 }
 </style>
