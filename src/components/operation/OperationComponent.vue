@@ -5,7 +5,7 @@ import OperationSpecificComponent from './OperationSpecificComponent.vue';
 export default{
     data(){
         return{
-            currentHead:'日',
+            currentHead:'月',
             currentTopSelect: '日常統計',
             firstOperationDate:null,
             allDateList:[],
