@@ -31,10 +31,10 @@ export default {
             change: 0, // 找零
 
             // 訂位資訊 reservationArea 數據
-            viewType: 'reservation', // 預設顯示訂位
+            viewType: 'reservation',
             currentDate: new Date(), // 初始化為當前系統日期
-            filteredReservations: [], // 根據日期篩選後的訂位資訊（稍後初始化）
-            reservations: [],
+            filteredReservations: [], // 根據日期篩選後的訂位資訊
+            reservations: [], // 初始化為空陣列
             selectedDate: new Date(), // 當前選擇的日期
 
             // 訂位資訊
@@ -123,49 +123,50 @@ export default {
             ]
         });
 
-        // 頁面加載時獲取當前日期的可預訂時間
+        // 加載當前日期的可預訂時間和訂位資訊
+        this.currentDate = new Date(); // 初始化為當前系統日期
         this.fetchAvailableTimes();
-
-        // 頁面加載時獲取當前日期的訂位資訊
-        this.fetchReservationsByDate(this.formatDate(this.selectedDate));
+        this.fetchReservationsByDate(this.currentDate);
     },
 
     watch: {
         'newReservation.date': 'fetchAvailableTimes',  // 監聽日期變化，當變化時調用 fetchAvailableTimes
         'diningDuration': 'fetchAvailableTimes',      // 當用餐時長變化時，也可以自動調用
-        'newReservation.partySize': 'fetchAvailableTimes' 
+        'newReservation.partySize': 'fetchAvailableTimes',
+        reservations(newReservations) {
+            this.filteredReservations = this.filterReservationsByDate(this.currentDate);
+        }
     },
 
     computed: {
         formattedDate() {
-            // 檢查 currentDate 是否是有效的 Date 物件
             if (this.currentDate instanceof Date && !isNaN(this.currentDate)) {
-            // 格式化日期顯示為 YYYY.MM.DD
-            return this.currentDate.toISOString().split('T')[0].replace(/-/g, '.');
+                // 確保格式化為 YYYY.MM.DD
+                const year = this.currentDate.getFullYear();
+                const month = String(this.currentDate.getMonth() + 1).padStart(2, '0'); // 月份從0開始
+                const day = String(this.currentDate.getDate()).padStart(2, '0');
+                return `${year}.${month}.${day}`; // 返回格式為 YYYY.MM.DD
             } else {
-            return '日期錯誤'; // 或者提供一個預設日期
+                return '日期錯誤';
             }
         },
 
         dayOfWeek() {
-            // 確保 currentDate 為 Date 物件後計算星期幾
             if (this.currentDate instanceof Date && !isNaN(this.currentDate)) {
                 const days = ['日', '一', '二', '三', '四', '五', '六'];
-                return days[this.currentDate.getDay()];
+                return days[this.currentDate.getDay()]; // 獲取星期幾
             } else {
-                return ''; // 預設值
+                return '';
             }
         },
 
         filteredReservations() {
-            const formatted = this.currentDate.toISOString().split('T')[0];
-            console.log('當前篩選的日期:', formatted);
-            console.log('所有訂位資料:', this.reservations);
-            return this.reservations.filter(reservation => reservation.date === formatted);
-        },
+            return this.filterReservationsByDate(this.currentDate);
+        }
     },
 
     methods: {
+        // tableArea 功能：
         // 加載桌位
         async fetchTables() {
             try {
@@ -238,12 +239,143 @@ export default {
             }
         },
 
-        // 訂位資訊日期切換
+        // ReservationArea 功能：
+        // 日期變化時更新訂位資訊
         changeDate(dayChange) {
-            // 改變日期，保持為 Date 物件
             const newDate = new Date(this.currentDate);
             newDate.setDate(newDate.getDate() + dayChange);
-            this.currentDate = newDate;
+            this.currentDate = newDate; // 更新當前日期
+
+            // 確保在更新日期後重新加載訂位資料
+            this.fetchReservationsByDate(newDate); // 傳入更新後的 Date 物件
+        },
+
+        filterReservationsByDate(date) {
+            const formatted = this.formatDate(date); // 格式化當前日期
+            console.log('篩選的日期:', formatted);
+
+            const filtered = this.reservations.filter(reservation => {
+                const reservationDate = new Date(reservation.date).toISOString().split('T')[0]; // 格式化訂位日期
+                console.log('檢查訂位日期:', reservationDate, ' vs 篩選日期:', formatted);
+                return reservationDate === formatted; // 比較格式化後的日期
+            });
+
+            console.log('篩選後的訂位資料:', filtered);
+            return filtered;
+        },
+
+        formatDate(date) {
+            if (!(date instanceof Date)) {
+                date = new Date(date);
+            }
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`; // 格式化為 YYYY-MM-DD
+        },
+
+        formatTime(time) {
+            if (!time) {
+                console.error('無效的時間:', time);
+                return '00:00'; // 返回預設值以避免顯示 NaN
+            }
+
+            // 將時間轉換為完整的日期格式
+            const currentDate = new Date(); // 獲取當前日期
+            const [hours, minutes, seconds] = time.split(':'); // 分割時間字符串
+            const formattedDateTime = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate(), hours, minutes, seconds); // 使用當前日期組合完整的日期時間
+
+            // 檢查 date 是否有效
+            if (isNaN(formattedDateTime.getTime())) {
+                console.error('無效的時間:', time);
+                return '00:00'; // 返回預設值以避免顯示 NaN
+            }
+
+            const formattedHours = String(formattedDateTime.getHours()).padStart(2, '0'); // 小時
+            const formattedMinutes = String(formattedDateTime.getMinutes()).padStart(2, '0'); // 分鐘
+            return `${formattedHours}:${formattedMinutes}`; // 返回 HH:mm 格式
+        },
+
+        // 根據日期獲取訂位資訊
+        async fetchReservationsByDate(date) {
+            try {
+                const formattedDate = this.formatDate(date);
+                const response = await axios.get(`http://localhost:8080/reservation/findReservationsByDate`, {
+                    params: { date: formattedDate }
+                });
+
+                let reservations = response.data.reservations;
+
+                // 確保 reservations 是陣列
+                if (!Array.isArray(reservations)) {
+                    reservations = reservations ? [reservations] : [];
+                }
+
+                // 更新 reservations
+                this.reservations = reservations.map(reservation => ({
+                    id: reservation.reservationId,
+                    name: reservation.customerName,
+                    phone: reservation.customerPhoneNumber,
+                    partySize: reservation.reservationPeople,
+                    tables: reservation.tableNumbers || [], // 這裡要確保有 tableNumbers
+                    date: reservation.reservationDate, // 確保有 date 字段
+                    time: this.formatTime(reservation.reservationStartTime) // 格式化時間
+                }));
+
+                console.log('已成功加載訂位資料:', this.reservations);
+                
+            } catch (error) {
+                console.error('無法獲取訂位資料:', error);
+                this.reservations = [];
+            }
+        },
+
+        // 確認取消訂位視窗
+        confirmCancellation(reservationId) {
+            Swal.fire({
+                title: '你確定要取消這個訂位嗎？',
+                text: '這個操作無法撤銷',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: '是的，我要取消！',
+                cancelButtonText: '取消'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                // 如果用戶確認了取消，調用刪除 API
+                this.deleteReservation(reservationId);
+                }
+            });
+        },
+
+        // 取消訂位API
+        async deleteReservation(reservationId) {
+            try {
+                const response = await axios.delete(`http://localhost:8080/reservation/cancelReservation`, {
+                params: { reservationId }
+                });
+
+                // 成功提示
+                Swal.fire(
+                '取消成功！',
+                '該訂位已被成功取消。',
+                'success'
+                );
+
+                // 刷新訂位列表
+                this.fetchReservationsByDate(this.currentDate);
+            } catch (error) {
+                // 處理錯誤情況
+                console.error('取消訂位失敗', error);
+
+                // 顯示錯誤提示
+                Swal.fire(
+                '取消失敗',
+                '取消訂位時發生錯誤，請稍後重試。',
+                'error'
+                );
+            }
         },
 
         // 開啟結帳側邊欄
@@ -326,13 +458,6 @@ export default {
             }
         },
 
-        formatDate(date) {
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0'); // 月份從0開始，需要+1
-            const day = String(date.getDate()).padStart(2, '0');
-            return `${year}-${month}-${day}`;
-        },
-
         closeReservationModal () {
             this.showReservationModal = false
         },
@@ -352,9 +477,6 @@ export default {
                     }
                 });
 
-                // 打印完整的 response 來檢查資料結構
-                console.log('後端返回的資料:', response);
-
                 // 使用正確的字段名稱 availableTimeSlots
                 this.availableTimes = response.data.availableTimeSlots; // 從 availableTimeSlots 提取資料
                 console.log('可用時段:', this.availableTimes);
@@ -362,7 +484,7 @@ export default {
                 console.error('無法獲取可用時段:', error);
             }
         },
-        // 添加新的訂位
+        // 儲存訂位API
         async addReservation() {
             // 找到用戶選擇的時間段
             const selectedTimeSlot = this.availableTimes.find(time => time.startTime === this.newReservation.time);
@@ -391,6 +513,7 @@ export default {
                         confirmButtonText: '確定'
                     });
                     this.closeReservationModal();
+                    this.fetchReservationsByDate(this.currentDate);
                 } else {
                     Swal.fire({
                         title: '訂位失敗',
@@ -498,7 +621,7 @@ export default {
 
                     <!-- 桌號與訂位時間 -->
                     <div class="tableNumberAndTime">
-                        <div class="tableNumber">{{ reservation.table }}</div>
+                        <div class="tableNumbers">{{ reservation.tables.join(', ') }}</div> <!-- 顯示所有桌號 -->
                         <div class="reservationTime">{{ reservation.time }}</div>
                     </div>
     
@@ -509,7 +632,8 @@ export default {
                             <label for="checkin_{{ reservation.id }}">報到</label>
                         </div>
                         <div class="cancelArea">
-                            <input type="checkbox" id="cancel_{{ reservation.id }}" name="cancel" />
+                            <!-- 當取消勾選時調用 confirmCancellation 方法 -->
+                            <input type="checkbox" id="cancel_{{ reservation.id }}" name="cancel" @click="confirmCancellation(reservation.id)" />
                             <label for="cancel_{{ reservation.id }}">取消</label>
                         </div>
                     </div>
