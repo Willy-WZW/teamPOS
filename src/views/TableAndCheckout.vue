@@ -480,10 +480,12 @@ export default {
                     // 顯示 SweetAlert 成功提示
                     if (data.code == 200) {
 
-                        const newWindow = window.open('', '_blank'); // 打開一個空的窗口
-                        // 寫入 HTML 到新窗口
-                        newWindow.document.write(data.message); // 將 API 返回的 HTML 內容寫入窗口
-                        newWindow.document.close(); // 關閉文件流
+                        if (this.paymentMethod == "creditCard") {
+                            const newWindow = window.open('', '_blank'); // 打開一個空的窗口
+                            // 寫入 HTML 到新窗口
+                            newWindow.document.write(data.message); // 將 API 返回的 HTML 內容寫入窗口
+                            newWindow.document.close(); // 關閉文件流
+                        }
 
                         Swal.fire({
                             title: "付款成功", // 假設 API 返回的訊息
