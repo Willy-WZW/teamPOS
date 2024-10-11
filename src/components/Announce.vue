@@ -317,15 +317,9 @@ export default {
 
                 </div>
                 <div class="pagination">
-                    <button :disabled="currentPage === 1" @click="setCurrentPage(currentPage - 1)">上一頁</button>
-
-                    <button v-for="page in Math.ceil(totalAnnouncements / itemsPerPage)" :key="page"
-                        :disabled="currentPage === page" @click="setCurrentPage(page)">
-                        {{ page }}
-                    </button>
-
-                    <button :disabled="currentPage === Math.ceil(totalAnnouncements / itemsPerPage)"
-                        @click="setCurrentPage(currentPage + 1)">下一頁</button>
+                    <button :disabled="currentPage === 1" @click="setCurrentPage(currentPage - 1)"><</button>
+                    <button :disabled="currentPage === Math.ceil(totalAnnouncements / itemsPerPage) || totalAnnouncements === 0"
+                        @click="setCurrentPage(currentPage + 1)">></button>
                 </div>
             </div>
             <div v-if="currentView === 'announceUpdate'">
@@ -493,6 +487,7 @@ $addDiv: #343a3f;
 
     .listArea {
         width: 100%;
+        height: 500px;
         min-height: 500px;
         display: flex;
         margin-top: 2%;
@@ -542,6 +537,19 @@ $addDiv: #343a3f;
     .pagination {
         display: flex;
         justify-content: center;
+        align-items: center;
+        height: 70px;
+        button{
+            width: 5%;
+            font-size: 100%;
+            border-radius: 10px;
+            background-color: #C1C7CD;
+            margin-left: 10px;
+            margin-right: 10px;
+            &:disabled {
+                cursor: not-allowed;
+            }
+        }
     }
 
     .buttons {
