@@ -1182,7 +1182,7 @@ export default {
                         </div>
                     </div>
                     <!-- 按下新增餐點，動態新增的div -->
-                    <div class="menuItem" v-for="(menu, index) in menuList" :key="menu.mealName">
+                    <div class="menuItem" v-for="(menu, index) in menuList" :key="index">
                         <div class="itemPic">
                             <input type="file" :ref="'fileInput_new_' + menu.mealName" :key="'new' + mealName"
                                 @change="event => handleFileChange(event, menu.mealName)" accept="image/*"
