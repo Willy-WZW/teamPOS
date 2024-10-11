@@ -946,8 +946,8 @@ export default {
             }
         },
         // 用於觸發隱藏的 input 框
-        selectFile(index) {
-            const fileInput = this.$refs[`fileInput_new_${index}`];
+        selectFile(mealName) {
+            const fileInput = this.$refs[`fileInput_new_${mealName}`];
             const inputElement = Array.isArray(fileInput) ? fileInput[0] : fileInput;
             if (inputElement) {
                 inputElement.click();
@@ -955,40 +955,24 @@ export default {
                 console.error("new file input is undefined or not a valid input element");
             }
         },
-        // 處理文件選擇
-        onFileChange(event, index) {
-            const file = event.target.files[0]; // 獲取選擇的文件
-            if (file) {
-                const reader = new FileReader(); // 創建 FileReader 實例
-
-                reader.onload = (e) => {
-                    // 當文件讀取完成時，將其轉換為 Base64 並打印
-                    const base64String = e.target.result; // 獲取 Base64 字符串
-                    console.log(base64String); // 在控制台打印 Base64 字符串
-
-                    images.value[index] = base64String;
-                };
-
-                reader.readAsDataURL(file); // 讀取文件並轉換為 Base64
-            }
-        },
         // 處理文件上傳
-        handleFileChange(event, index) {
-            const file = event.target.files[0]; // 獲取上傳的檔案
+        handleFileChange(event, mealName) {
+            const file = event.target.files[0];
             if (file) {
                 const reader = new FileReader();
                 reader.onload = (e) => {
                     // 將 base64 資料設置到 pictureName
-                    this.menuList[index].pictureName = e.target.result; // 儲存為 base64
+                    const menuItem = this.menuList.find(menu => menu.mealName === mealName);
+                    if (menuItem) {
+                        menuItem.pictureName = e.target.result;
+                    }
                 };
-                reader.readAsDataURL(file); // 讀取檔案為 base64
-                // 如果只想儲存文件名稱，可以使用：
-                // this.menuList[index].pictureName = file.name;
+                reader.readAsDataURL(file);
             }
         },
         // 點擊圖片打開input[type='file']，編輯圖片
-        selectFileFromDB(index) {
-            const fileInput = this.$refs[`fileInput_db_${index}`];
+        selectFileFromDB(mealName) {
+            const fileInput = this.$refs[`fileInput_db_${mealName}`];
             const inputElement = Array.isArray(fileInput) ? fileInput[0] : fileInput;
             if (inputElement) {
                 inputElement.click();
@@ -997,16 +981,17 @@ export default {
             }
         },
         // 選擇圖片後觸發預覽
-        handleFileChangeFromDB(event, index) {
+        handleFileChangeFromDB(event, mealName) {
             const file = event.target.files[0];
             if (file) {
-                console.log("選擇的檔案:", file);  // 檢查是否選擇了文件
                 const reader = new FileReader();
                 reader.onload = (e) => {
-                    console.log("讀取的檔案:", e.target.result);  // 檢查圖片的 base64 字串
-                    this.savedMenuList[index].pictureName = e.target.result;
-                    // 確保 editedMenuItems 中也更新對應的 pictureName
-                    const editedItem = this.editedMenuItems.find(item => item.mealName === this.savedMenuList[index].mealName);
+                    const menuItem = this.savedMenuList.find(item => item.mealName === mealName);
+                    if (menuItem) {
+                        menuItem.pictureName = e.target.result;
+                    }
+
+                    const editedItem = this.editedMenuItems.find(item => item.mealName === mealName);
                     if (editedItem) {
                         editedItem.pictureName = e.target.result;
                     }
@@ -1064,27 +1049,25 @@ export default {
         }
     },
     setup() {
-        const images = ref([]); // 用於存儲每個圖片的 Base64 字符串
+        const images = ref({}); // 使用物件來儲存圖片 Base64 字符串
 
-        // 定義 onFileChange 方法
-        const onFileChange = (event, index) => {
-            const file = event.target.files[0]; // 獲取選擇的文件
+        const onFileChange = (event, mealName) => {
+            const file = event.target.files[0];
             if (file) {
-                const reader = new FileReader(); // 創建 FileReader 實例
+                const reader = new FileReader();
 
                 reader.onload = (e) => {
-                    const base64String = e.target.result; // 獲取 Base64 字符串
-                    console.log(base64String); // 在控制台打印 Base64 字符串
-                    images.value[index] = base64String; // 更新對應索引的 Base64 字符串
+                    const base64String = e.target.result;
+                    console.log(base64String);
+                    images.value[mealName] = base64String; // 使用 mealName 作為鍵
                 };
 
-                reader.readAsDataURL(file); // 讀取文件並轉換為 Base64
+                reader.readAsDataURL(file);
             }
         };
 
-        // 將 images 和 onFileChange 返回
         return { images, onFileChange };
-    },
+    }
 }
 </script>
 
@@ -1158,10 +1141,11 @@ export default {
                         :key="'db' + item.mealName">
                         <div class="itemPic">
                             <input v-if="editIndexList.includes(item.mealName)" type="file"
-                                :ref="'fileInput_db_' + index" @change="event => handleFileChangeFromDB(event, index)"
-                                accept="image/*" style="display: none;" />
+                                :ref="'fileInput_db_' + item.mealName"
+                                @change="event => handleFileChangeFromDB(event, item.mealName)" accept="image/*"
+                                style="display: none;" />
                             <div class="prePicture"
-                                @click="editIndexList.includes(item.mealName) ? selectFileFromDB(index) : null"
+                                @click="editIndexList.includes(item.mealName) ? selectFileFromDB(item.mealName) : null"
                                 :style="{ cursor: editIndexList.includes(item.mealName) ? 'pointer' : 'default' }">
                                 <img v-if="item.pictureName" :src="item.pictureName" alt="Image Preview"
                                     style="width: 100%; height: 100%;" />
@@ -1198,13 +1182,13 @@ export default {
                         </div>
                     </div>
                     <!-- 按下新增餐點，動態新增的div -->
-                    <div class="menuItem" v-for="(menu, index) in menuList" :key="index">
+                    <div class="menuItem" v-for="(menu, index) in menuList" :key="menu.mealName">
                         <div class="itemPic">
-                            <input type="file" :ref="'fileInput_new_' + index" :key="'new' + index"
-                                @change="event => handleFileChange(event, index)" accept="image/*"
+                            <input type="file" :ref="'fileInput_new_' + menu.mealName" :key="'new' + mealName"
+                                @change="event => handleFileChange(event, menu.mealName)" accept="image/*"
                                 style="display: none;" />
                             <!-- 如果有圖片預覽則顯示圖片，否則顯示上傳圖標 -->
-                            <div class="prePicture" @click="selectFile(index)" style="cursor: pointer;">
+                            <div class="prePicture" @click="selectFile(menu.mealName)" style="cursor: pointer;">
                                 <img v-if="menu.pictureName" :src="menu.pictureName" alt="Image Preview"
                                     style="width: 100%; height: 100%;" />
                                 <i v-else class="fa-solid fa-upload"></i>
