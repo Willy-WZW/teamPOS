@@ -136,11 +136,11 @@ export default {
 
                     if (data.code == 200) {
 
-                        Swal.fire({
-                            title: data.message,
-                            icon: 'success',
-                            confirmButtonText: '確定',
-                        });
+                        // Swal.fire({
+                        //     title: data.message,
+                        //     icon: 'success',
+                        //     confirmButtonText: '確定',
+                        // });
 
                         // 處理 checkoutTime 去掉 "T"
                         this.orderList = data.checkoutList.map(order => {
