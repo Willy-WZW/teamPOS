@@ -434,12 +434,14 @@ export default {
             this.selectedTable = table; // 設置選中的桌位
         },
         confirmPayment(ordersId)  {
+            console.log(ordersId);
+
             const now = new Date();
             // 將時間轉換為 UTC+8
             const taiwanTime = new Date(now.getTime() + (8 * 60 * 60 * 1000)); // 加8小時
-            const checkoutTime1 = taiwanTime.toISOString();
+            const checkoutTime = taiwanTime.toISOString();
 
-            console.log(checkoutTime1);
+            console.log(checkoutTime);
             
 
             let  payType = "";
