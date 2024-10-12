@@ -199,72 +199,76 @@ export default {
             <div class="timeStyle">{{ timeCode }}</div>
             <div class="timeStyle">{{ dateCode }}</div>
         </div>
-        <div class="control">
-            <div class="setting" @click="goSetting()" :class="{ 'selected': this.$route.path == '/setting' }"
-                v-if="managedAreas.includes('設定')">
-                <i class="fa-solid fa-gear"></i>
-                <h3>設定</h3>
-            </div>
-            <div class="operation" @click="goOperation()" :class="{ 'selected': this.$route.path == '/operation' }"
-                v-if="managedAreas.includes('營運')">
-                <i class="fa-solid fa-chart-simple"></i>
-                <h3>營運</h3>
-            </div>
-            <div class="order" @click="goOrder()" :class="{ 'selected': this.$route.path == '/order' }"
-                v-if="managedAreas.includes('點餐')">
-                <i class="fa-solid fa-utensils"></i>
-                <h3>點餐</h3>
-            </div>
-            <div class="orderStatus" @click="goStatus()" :class="{ 'selected': this.$route.path == '/orderStatus' }"
-                v-if="managedAreas.includes('點餐狀態')">
-                <i class="fa-solid fa-list-check"></i>
-                <h3>餐點狀態</h3>
-            </div>
-            <div class="tableChechout" @click="goTCheckout()"
-                :class="{ 'selected': this.$route.path == '/tableAndCheckout' }" v-if="managedAreas.includes('桌位結帳')">
-                <div>
-                    <span class="material-symbols-outlined">
-                        table_restaurant
-                    </span>
-                    <span class="material-symbols-outlined">
-                        request_quote
-                    </span>
+        <div class="controlArea">
+            <div class="control">
+                <div class="setting" @click="goSetting()" :class="{ 'selected': this.$route.path == '/setting' }"
+                    v-if="managedAreas.includes('設定')">
+                    <i class="fa-solid fa-gear"></i>
+                    <h3>設定</h3>
                 </div>
-                <h3>桌位結帳</h3>
-            </div>
-            <div class="event" @click="goEvent()" :class="{ 'selected': this.$route.path == '/event' }"
-                v-if="managedAreas.includes('活動')">
-                <i class="fa-regular fa-calendar-check"></i>
-                <h3>活動</h3>
-            </div>
-            <div class="workstation" @click="goWorkstation()"
-                :class="{ 'selected': this.$route.path == '/workstation' }" v-if="managedAreas.includes('工作檯')">
-                <i class="fa-solid fa-fire-burner"></i>
-                <h3>工作檯</h3>
-            </div>
-            <div class="history" @click="goHistory()" :class="{ 'selected': this.$route.path == '/history' }"
-                v-if="managedAreas.includes('歷史紀錄')">
-                <i class="fa-solid fa-clock-rotate-left"></i>
-                <h3>歷史紀錄</h3>
-            </div>
-            <div class="history" @click="goStaffInfo()" :class="{ 'selected': this.$route.path == '/staffInfo' }"
-                v-if="managedAreas.includes('員工管理')">
-                <i class="fa-solid fa-user"></i>
-                <h3>員工管理</h3>
-            </div>
-            <div class="history" @click="goUserInfo()" :class="{ 'selected': this.$route.path == '/userInfo' }">
-                <i class="fa-solid fa-user-injured"></i>
-                <h3>{{ this.userName }}</h3>
-                <p>{{ this.role }}</p>
+                <div class="operation" @click="goOperation()" :class="{ 'selected': this.$route.path == '/operation' }"
+                    v-if="managedAreas.includes('營運')">
+                    <i class="fa-solid fa-chart-simple"></i>
+                    <h3>營運</h3>
+                </div>
+                <div class="order" @click="goOrder()" :class="{ 'selected': this.$route.path == '/order' }"
+                    v-if="managedAreas.includes('點餐')">
+                    <i class="fa-solid fa-utensils"></i>
+                    <h3>點餐</h3>
+                </div>
+                <div class="orderStatus" @click="goStatus()" :class="{ 'selected': this.$route.path == '/orderStatus' }"
+                    v-if="managedAreas.includes('點餐狀態')">
+                    <i class="fa-solid fa-list-check"></i>
+                    <h3>餐點狀態</h3>
+                </div>
+                <div class="tableChechout" @click="goTCheckout()"
+                    :class="{ 'selected': this.$route.path == '/tableAndCheckout' }"
+                    v-if="managedAreas.includes('桌位結帳')">
+                    <div>
+                        <span class="material-symbols-outlined">
+                            table_restaurant
+                        </span>
+                        <span class="material-symbols-outlined">
+                            request_quote
+                        </span>
+                    </div>
+                    <h3>桌位結帳</h3>
+                </div>
+                <div class="event" @click="goEvent()" :class="{ 'selected': this.$route.path == '/event' }"
+                    v-if="managedAreas.includes('活動')">
+                    <i class="fa-regular fa-calendar-check"></i>
+                    <h3>活動</h3>
+                </div>
+                <div class="workstation" @click="goWorkstation()"
+                    :class="{ 'selected': this.$route.path == '/workstation' }" v-if="managedAreas.includes('工作檯')">
+                    <i class="fa-solid fa-fire-burner"></i>
+                    <h3>工作檯</h3>
+                </div>
+                <div class="history" @click="goHistory()" :class="{ 'selected': this.$route.path == '/history' }"
+                    v-if="managedAreas.includes('歷史紀錄')">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    <h3>歷史紀錄</h3>
+                </div>
+                <div class="staffInfo" @click="goStaffInfo()" :class="{ 'selected': this.$route.path == '/staffInfo' }"
+                    v-if="managedAreas.includes('員工管理')">
+                    <i class="fa-solid fa-user"></i>
+                    <h3>員工管理</h3>
+                </div>
+                <div class="userInfo" @click="goUserInfo()" :class="{ 'selected': this.$route.path == '/userInfo' }">
+                    <i class="fa-solid fa-user-injured"></i>
+                    <h3>{{ this.userName }}</h3>
+                    <p>{{ this.role }}</p>
 
+                </div>
+                <RouterLink to="/" class="logout-button" @click="logout">登出</RouterLink>
             </div>
-            <RouterLink to="/" class="logout-button" @click="logout">登出</RouterLink>
         </div>
     </div>
 </template>
 
 <style scoped lang="scss">
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Exo+2:ital,wght@0,100..900;1,100..900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&family=Rowdies:wght@300;400;700&family=Rubik:ital,wght@0,300..900;1,300..900&display=swap');
 $selectedColor: #1563ffe1;
 $fontAndIconColor: rgba(0, 0, 0, 0.7);
 $bgColor: aliceblue;
@@ -282,6 +286,7 @@ $boxShadow: rgba(0, 0, 0, 0.4);
     position: relative;
 
     .timeCode {
+        font-family: "Rubik", serif;
         width: 80%;
         min-height: 7.3%;
         display: flex;
@@ -298,83 +303,98 @@ $boxShadow: rgba(0, 0, 0, 0.4);
         }
     }
 
-    .control {
-        width: 70%;
-        height: 700px;
+    .controlArea {
+        width: 100%;
+        height: 89%;
         display: flex;
         justify-content: space-between;
         align-items: center;
         flex-direction: column;
-        color: $fontAndIconColor;
+        position: absolute;
+        top: 10%;
+        overflow-y: scroll;
+        scrollbar-width: none;
 
-        // 新增通用按鈕樣式
-        .button-common {
-            width: 100%;
-            height: 80px; // 固定高度
-            cursor: pointer;
-            border-radius: 5px;
+        .control {
+            width: 70%;
             display: flex;
-            justify-content: center;
-            align-items: center;
             flex-direction: column;
-            font-family: "Noto Sans TC", sans-serif;
-            box-shadow: -2px 1px 5px $boxShadow;
-            transition: all 0.3s ease;
-            margin-bottom: 10px; // 增加按鈕之間的間距
+            color: $fontAndIconColor;
 
-            &:active {
-                background-color: rgba(169, 217, 253, 0.563);
+            // 新增通用按鈕樣式
+            .button-common {
+                width: 100%;
+                height: 80px; // 固定高度
+                cursor: pointer;
+                border-radius: 5px;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                flex-direction: column;
+                font-family: "Noto Sans TC", sans-serif;
+                box-shadow: -2px 1px 5px $boxShadow;
+                transition: all 0.3s ease;
+                margin-bottom: 10px; // 增加按鈕之間的間距
+
+                &:active {
+                    background-color: rgba(169, 217, 253, 0.563);
+                }
+
+                i,
+                .material-symbols-outlined {
+                    font-size: 24px; // 統一圖標大小
+                    margin-bottom: 5px;
+                }
+
+                h3 {
+                    font-size: 16px; // 統一文字大小
+                    margin: 0;
+                    padding: 0;
+                    letter-spacing: 2px;
+                }
             }
 
-            i,
-            .material-symbols-outlined {
-                font-size: 24px; // 統一圖標大小
-                margin-bottom: 5px;
+            // 為每個按鈕應用通用樣式
+            .setting,
+            .operation,
+            .order,
+            .orderStatus,
+            .tableChechout,
+            .event,
+            .workstation,
+            .history,
+            .staffInfo,
+            .userInfo {
+                @extend .button-common;
             }
 
-            h3 {
-                font-size: 16px; // 統一文字大小
-                margin: 0;
-                padding: 0;
+            .selected {
+                background-color: rgb(182, 223, 255);
+                box-shadow: 5px 0.1px 1px $selectedColor;
+                transform: translateX(20px);
+                color: $selectedColor;
+            }
+
+            .logout-button {
+                padding: 10px 20px;
+                background-color: #ff4d4d;
+                color: white;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+                text-align: center;
                 letter-spacing: 2px;
+                text-decoration: none;
+                font-weight: bold;
+                font-family: "Noto Sans TC", sans-serif;
+                transition: background-color 0.3s ease;
+
+                &:hover {
+                    background-color: #ff1a1a;
+                }
             }
         }
-
-        // 為每個按鈕應用通用樣式
-        .setting,
-        .operation,
-        .order,
-        .orderStatus,
-        .tableChechout,
-        .event,
-        .workstation,
-        .history {
-            @extend .button-common;
-        }
-
-        .selected {
-            background-color: rgb(182, 223, 255);
-            box-shadow: 5px 0.1px 1px $selectedColor;
-            transform: translateX(20px);
-            color: $selectedColor;
-        }
     }
 
-    .logout-button {
-        margin-top: 15px;
-        padding: 10px 20px;
-        background-color: #ff4d4d;
-        color: white;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        text-align: center;
-        font-weight: bold;
-        transition: background-color 0.3s ease;
-
-        &:hover {
-            background-color: #ff1a1a;
-        }
-    }
 }
 </style>

@@ -35,10 +35,10 @@ export default {
 
     .leftBar {
         width: 10%;
-        height: 100vh;
+        height: 97.2%;
         position: fixed;
-        top: 0;
-        left: 0;
+        top: 1.9%;
+        left: 0.87%;
         display: flex;
         align-items: center;
     }
@@ -47,6 +47,7 @@ export default {
         width: 100%;
         height: 100%;
         overflow-y: scroll;
+        scrollbar-width: none;
         display: flex;
         justify-content: start;
         align-items: center;

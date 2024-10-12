@@ -64,9 +64,8 @@ export default {
     .leftBar {
         width: 10%;
         height: 97.2%;
-        border: 1px solid black;
         position: fixed;
-        top: 2.2%;
+        top: 1.9%;
         left: 0.87%;
         display: flex;
         align-items: center;
