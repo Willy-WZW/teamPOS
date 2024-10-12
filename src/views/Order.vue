@@ -6,210 +6,210 @@ export default {
         return {
             // Res格式
             orderMenuData: {
-                code: 200,
-                message: "Success!",
+                // code: 200,
+                // message: "Success!",
                 categoriesList: [
-                    { categoryId: 2, category: "漢堡" },
-                    { categoryId: 3, category: "吐司" },
-                    { categoryId: 4, category: "蛋餅" },
-                    { categoryId: 5, category: "沙拉" },
-                    { categoryId: 6, category: "炒泡麵" },
-                    { categoryId: 7, category: "炸物" },
-                    { categoryId: 8, category: "飲料" },
-                    { categoryId: 9, category: "套餐" },
+                    // { categoryId: 2, category: "漢堡" },
+                    // { categoryId: 3, category: "吐司" },
+                    // { categoryId: 4, category: "蛋餅" },
+                    // { categoryId: 5, category: "沙拉" },
+                    // { categoryId: 6, category: "炒泡麵" },
+                    // { categoryId: 7, category: "炸物" },
+                    // { categoryId: 8, category: "飲料" },
+                    // { categoryId: 9, category: "套餐" },
                 ],
                 menuItemList: [
-                    { categoryId: 2, mealName: "歐姆蛋堡", price: 55, workstationId: 1, available: 1, picture: "base64" },
-                    { categoryId: 2, mealName: "燻雞堡", price: 65, workstationId: 1, available: 1, picture: "base64" },
-                    { categoryId: 2, mealName: "牛肉堡", price: 75, workstationId: 1, available: 1, picture: "base64" },
-                    { categoryId: 2, mealName: "田園蔬菜堡", price: 40, workstationId: 1, available: 1, picture: "base64" },
-                    { categoryId: 2, mealName: "豬肉堡", price: 70, workstationId: 1, available: 1, picture: "base64" },
-                    { categoryId: 3, mealName: "培根蛋吐司", price: 40, workstationId: 2, available: 1, picture: "base64" },
-                    { categoryId: 3, mealName: "火腿蛋吐司", price: 40, workstationId: 2, available: 1, picture: "base64" },
-                    { categoryId: 3, mealName: "煎蛋吐司", price: 30, workstationId: 2, available: 1, picture: "base64" },
-                    { categoryId: 3, mealName: "薯餅蛋吐司", price: 45, workstationId: 2, available: 1, picture: "base64" },
-                    { categoryId: 3, mealName: "鮪魚蛋吐司", price: 40, workstationId: 2, available: 1, picture: "base64" },
-                    { categoryId: 4, mealName: "九層塔蛋餅", price: 45, workstationId: 3, available: 1, picture: "base64" },
-                    { categoryId: 4, mealName: "原味蛋餅", price: 30, workstationId: 3, available: 1, picture: "base64" },
-                    { categoryId: 4, mealName: "火腿蛋餅", price: 45, workstationId: 3, available: 1, picture: "base64" },
-                    { categoryId: 4, mealName: "蔬菜蛋餅", price: 40, workstationId: 3, available: 1, picture: "base64" },
-                    { categoryId: 4, mealName: "起司蛋餅", price: 40, workstationId: 3, available: 1, picture: "base64" },
-                    { categoryId: 5, mealName: "凱薩沙拉", price: 70, workstationId: 4, available: 1, picture: "base64" },
-                    { categoryId: 5, mealName: "煙燻鮭魚沙拉", price: 130, workstationId: 4, available: 1, picture: "base64" },
-                    { categoryId: 5, mealName: "鮮蝦沙拉", price: 80, workstationId: 4, available: 1, picture: "base64" },
-                    { categoryId: 6, mealName: "原味炒泡麵", price: 45, workstationId: 5, available: 1, picture: "base64" },
-                    { categoryId: 6, mealName: "泰式炒泡麵", price: 50, workstationId: 5, available: 1, picture: "base64" },
-                    { categoryId: 6, mealName: "牛肉炒泡麵", price: 60, workstationId: 5, available: 1, picture: "base64" },
-                    { categoryId: 6, mealName: "豬肉炒泡麵", price: 55, workstationId: 5, available: 1, picture: "base64" },
-                    { categoryId: 7, mealName: "洋蔥圈", price: 35, workstationId: 6, available: 1, picture: "base64" },
-                    { categoryId: 7, mealName: "薯條", price: 40, workstationId: 6, available: 1, picture: "base64" },
-                    { categoryId: 7, mealName: "薯餅", price: 30, workstationId: 6, available: 1, picture: "base64" },
-                    { categoryId: 7, mealName: "雞塊", price: 40, workstationId: 6, available: 1, picture: "base64" },
-                    { categoryId: 8, mealName: "紅茶", price: 25, workstationId: 7, available: 1, picture: "base64" },
-                    { categoryId: 8, mealName: "綠茶", price: 25, workstationId: 7, available: 1, picture: "base64" },
-                    { categoryId: 8, mealName: "美式咖啡", price: 50, workstationId: 7, available: 1, picture: "base64" },
-                    { categoryId: 8, mealName: "鮮奶紅茶", price: 35, workstationId: 7, available: 1, picture: "base64" },
-                    { categoryId: 8, mealName: "鮮奶綠茶", price: 35, workstationId: 7, available: 1, picture: "base64" },
+                    // { categoryId: 2, mealName: "歐姆蛋堡", price: 55, workstationId: 1, available: 1, picture: "base64" },
+                    // { categoryId: 2, mealName: "燻雞堡", price: 65, workstationId: 1, available: 1, picture: "base64" },
+                    // { categoryId: 2, mealName: "牛肉堡", price: 75, workstationId: 1, available: 1, picture: "base64" },
+                    // { categoryId: 2, mealName: "田園蔬菜堡", price: 40, workstationId: 1, available: 1, picture: "base64" },
+                    // { categoryId: 2, mealName: "豬肉堡", price: 70, workstationId: 1, available: 1, picture: "base64" },
+                    // { categoryId: 3, mealName: "培根蛋吐司", price: 40, workstationId: 2, available: 1, picture: "base64" },
+                    // { categoryId: 3, mealName: "火腿蛋吐司", price: 40, workstationId: 2, available: 1, picture: "base64" },
+                    // { categoryId: 3, mealName: "煎蛋吐司", price: 30, workstationId: 2, available: 1, picture: "base64" },
+                    // { categoryId: 3, mealName: "薯餅蛋吐司", price: 45, workstationId: 2, available: 1, picture: "base64" },
+                    // { categoryId: 3, mealName: "鮪魚蛋吐司", price: 40, workstationId: 2, available: 1, picture: "base64" },
+                    // { categoryId: 4, mealName: "九層塔蛋餅", price: 45, workstationId: 3, available: 1, picture: "base64" },
+                    // { categoryId: 4, mealName: "原味蛋餅", price: 30, workstationId: 3, available: 1, picture: "base64" },
+                    // { categoryId: 4, mealName: "火腿蛋餅", price: 45, workstationId: 3, available: 1, picture: "base64" },
+                    // { categoryId: 4, mealName: "蔬菜蛋餅", price: 40, workstationId: 3, available: 1, picture: "base64" },
+                    // { categoryId: 4, mealName: "起司蛋餅", price: 40, workstationId: 3, available: 1, picture: "base64" },
+                    // { categoryId: 5, mealName: "凱薩沙拉", price: 70, workstationId: 4, available: 1, picture: "base64" },
+                    // { categoryId: 5, mealName: "煙燻鮭魚沙拉", price: 130, workstationId: 4, available: 1, picture: "base64" },
+                    // { categoryId: 5, mealName: "鮮蝦沙拉", price: 80, workstationId: 4, available: 1, picture: "base64" },
+                    // { categoryId: 6, mealName: "原味炒泡麵", price: 45, workstationId: 5, available: 1, picture: "base64" },
+                    // { categoryId: 6, mealName: "泰式炒泡麵", price: 50, workstationId: 5, available: 1, picture: "base64" },
+                    // { categoryId: 6, mealName: "牛肉炒泡麵", price: 60, workstationId: 5, available: 1, picture: "base64" },
+                    // { categoryId: 6, mealName: "豬肉炒泡麵", price: 55, workstationId: 5, available: 1, picture: "base64" },
+                    // { categoryId: 7, mealName: "洋蔥圈", price: 35, workstationId: 6, available: 1, picture: "base64" },
+                    // { categoryId: 7, mealName: "薯條", price: 40, workstationId: 6, available: 1, picture: "base64" },
+                    // { categoryId: 7, mealName: "薯餅", price: 30, workstationId: 6, available: 1, picture: "base64" },
+                    // { categoryId: 7, mealName: "雞塊", price: 40, workstationId: 6, available: 1, picture: "base64" },
+                    // { categoryId: 8, mealName: "紅茶", price: 25, workstationId: 7, available: 1, picture: "base64" },
+                    // { categoryId: 8, mealName: "綠茶", price: 25, workstationId: 7, available: 1, picture: "base64" },
+                    // { categoryId: 8, mealName: "美式咖啡", price: 50, workstationId: 7, available: 1, picture: "base64" },
+                    // { categoryId: 8, mealName: "鮮奶紅茶", price: 35, workstationId: 7, available: 1, picture: "base64" },
+                    // { categoryId: 8, mealName: "鮮奶綠茶", price: 35, workstationId: 7, available: 1, picture: "base64" },
                 ],
                 optionList: [
-                    {
-                        categoryId: 2,
-                        optionTitle: "加料",
-                        optionType: "checkbox",
-                        optionItems: [
-                            { optionContent: "培根", extraPrice: 20 },
-                            { optionContent: "蔬菜", extraPrice: 20 },
-                            { optionContent: "雙層", extraPrice: 40 },
-                        ],
-                    },
-                    {
-                        categoryId: 2,
-                        optionTitle: "加蛋",
-                        optionType: "radio",
-                        optionItems: [
-                            { optionContent: "全熟蛋", extraPrice: 15 },
-                            { optionContent: "半熟蛋", extraPrice: 15 },
-                            { optionContent: "歐姆蛋", extraPrice: 25 },
-                        ],
-                    },
-                    {
-                        categoryId: 3,
-                        optionTitle: "加蛋",
-                        optionType: "radio",
-                        optionItems: [
-                            { optionContent: "全熟蛋", extraPrice: 15 },
-                            { optionContent: "半熟蛋", extraPrice: 15 },
-                            { optionContent: "歐姆蛋", extraPrice: 25 },
-                        ],
-                    },
-                    {
-                        categoryId: 3,
-                        optionTitle: "加起司",
-                        optionType: "radio",
-                        optionItems: [
-                            { optionContent: "不炙燒", extraPrice: 10 },
-                            { optionContent: "炙燒", extraPrice: 10 },
-                        ],
-                    },
-                    {
-                        categoryId: 4,
-                        optionTitle: "加料",
-                        optionType: "checkbox",
-                        optionItems: [
-                            { optionContent: "九層塔", extraPrice: 10 },
-                            { optionContent: "火腿", extraPrice: 10 },
-                            { optionContent: "起司", extraPrice: 10 },
-                        ],
-                    },
-                    {
-                        categoryId: 4,
-                        optionTitle: "辣",
-                        optionType: "radio",
-                        optionItems: [
-                            { optionContent: "不辣", extraPrice: 0 },
-                            { optionContent: "加特製辣醬", extraPrice: 0 },
-                        ],
-                    },
-                    {
-                        categoryId: 5,
-                        optionTitle: "加料",
-                        optionType: "checkbox",
-                        optionItems: [
-                            { optionContent: "水煮蛋", extraPrice: 10 },
-                            { optionContent: "酪梨", extraPrice: 20 },
-                            { optionContent: "雞胸肉", extraPrice: 30 },
-                        ],
-                    },
-                    {
-                        categoryId: 5,
-                        optionTitle: "醬料",
-                        optionType: "radio",
-                        optionItems: [
-                            { optionContent: "不醬", extraPrice: 0 },
-                            { optionContent: "低脂醬", extraPrice: 0 },
-                        ],
-                    },
-                    {
-                        categoryId: 6,
-                        optionTitle: "加料",
-                        optionType: "checkbox",
-                        optionItems: [
-                            { optionContent: "肉多多", extraPrice: 20 },
-                            { optionContent: "菜多多", extraPrice: 15 },
-                        ],
-                    },
-                    {
-                        categoryId: 6,
-                        optionTitle: "加蛋",
-                        optionType: "radio",
-                        optionItems: [
-                            { optionContent: "全熟蛋", extraPrice: 15 },
-                            { optionContent: "半熟蛋", extraPrice: 15 },
-                            { optionContent: "炒蛋", extraPrice: 20 },
-                        ],
-                    },
-                    {
-                        categoryId: 6,
-                        optionTitle: "辣度",
-                        optionType: "radio",
-                        optionItems: [
-                            { optionContent: "不辣", extraPrice: 0 },
-                            { optionContent: "中辣", extraPrice: 0 },
-                            { optionContent: "大辣", extraPrice: 0 },
-                            { optionContent: "小辣", extraPrice: 0 },
-                        ],
-                    },
-                    {
-                        categoryId: 7,
-                        optionTitle: "胡椒",
-                        optionType: "radio",
-                        optionItems: [
-                            { optionContent: "不胡椒", extraPrice: 0 },
-                            { optionContent: "多胡椒", extraPrice: 0 },
-                        ],
-                    },
-                    {
-                        categoryId: 7,
-                        optionTitle: "醬料",
-                        optionType: "radio",
-                        optionItems: [
-                            { optionContent: "不醬", extraPrice: 0 },
-                            { optionContent: "番茄醬", extraPrice: 0 },
-                            { optionContent: "糖醋醬", extraPrice: 0 },
-                        ],
-                    },
-                    {
-                        categoryId: 8,
-                        optionTitle: "冰塊",
-                        optionType: "radio",
-                        optionItems: [
-                            { optionContent: "去冰", extraPrice: 0 },
-                            { optionContent: "少冰", extraPrice: 0 },
-                            { optionContent: "微冰", extraPrice: 0 },
-                            { optionContent: "正常冰", extraPrice: 0 },
-                        ],
-                    },
-                    {
-                        categoryId: 8,
-                        optionTitle: "加料",
-                        optionType: "checkbox",
-                        optionItems: [
-                            { optionContent: "椰果", extraPrice: 10 },
-                            { optionContent: "珍珠", extraPrice: 10 },
-                            { optionContent: "粉粿", extraPrice: 10 },
-                        ],
-                    },
-                    {
-                        categoryId: 8,
-                        optionTitle: "甜度",
-                        optionType: "radio",
-                        optionItems: [
-                            { optionContent: "半糖", extraPrice: 0 },
-                            { optionContent: "微糖", extraPrice: 0 },
-                            { optionContent: "正常甜", extraPrice: 0 },
-                            { optionContent: "無糖", extraPrice: 0 },
-                        ],
-                    },
+                    // {
+                    //     categoryId: 2,
+                    //     optionTitle: "加料",
+                    //     optionType: "checkbox",
+                    //     optionItems: [
+                    //         { optionContent: "培根", extraPrice: 20 },
+                    //         { optionContent: "蔬菜", extraPrice: 20 },
+                    //         { optionContent: "雙層", extraPrice: 40 },
+                    //     ],
+                    // },
+                    // {
+                    //     categoryId: 2,
+                    //     optionTitle: "加蛋",
+                    //     optionType: "radio",
+                    //     optionItems: [
+                    //         { optionContent: "全熟蛋", extraPrice: 15 },
+                    //         { optionContent: "半熟蛋", extraPrice: 15 },
+                    //         { optionContent: "歐姆蛋", extraPrice: 25 },
+                    //     ],
+                    // },
+                    // {
+                    //     categoryId: 3,
+                    //     optionTitle: "加蛋",
+                    //     optionType: "radio",
+                    //     optionItems: [
+                    //         { optionContent: "全熟蛋", extraPrice: 15 },
+                    //         { optionContent: "半熟蛋", extraPrice: 15 },
+                    //         { optionContent: "歐姆蛋", extraPrice: 25 },
+                    //     ],
+                    // },
+                    // {
+                    //     categoryId: 3,
+                    //     optionTitle: "加起司",
+                    //     optionType: "radio",
+                    //     optionItems: [
+                    //         { optionContent: "不炙燒", extraPrice: 10 },
+                    //         { optionContent: "炙燒", extraPrice: 10 },
+                    //     ],
+                    // },
+                    // {
+                    //     categoryId: 4,
+                    //     optionTitle: "加料",
+                    //     optionType: "checkbox",
+                    //     optionItems: [
+                    //         { optionContent: "九層塔", extraPrice: 10 },
+                    //         { optionContent: "火腿", extraPrice: 10 },
+                    //         { optionContent: "起司", extraPrice: 10 },
+                    //     ],
+                    // },
+                    // {
+                    //     categoryId: 4,
+                    //     optionTitle: "辣",
+                    //     optionType: "radio",
+                    //     optionItems: [
+                    //         { optionContent: "不辣", extraPrice: 0 },
+                    //         { optionContent: "加特製辣醬", extraPrice: 0 },
+                    //     ],
+                    // },
+                    // {
+                    //     categoryId: 5,
+                    //     optionTitle: "加料",
+                    //     optionType: "checkbox",
+                    //     optionItems: [
+                    //         { optionContent: "水煮蛋", extraPrice: 10 },
+                    //         { optionContent: "酪梨", extraPrice: 20 },
+                    //         { optionContent: "雞胸肉", extraPrice: 30 },
+                    //     ],
+                    // },
+                    // {
+                    //     categoryId: 5,
+                    //     optionTitle: "醬料",
+                    //     optionType: "radio",
+                    //     optionItems: [
+                    //         { optionContent: "不醬", extraPrice: 0 },
+                    //         { optionContent: "低脂醬", extraPrice: 0 },
+                    //     ],
+                    // },
+                    // {
+                    //     categoryId: 6,
+                    //     optionTitle: "加料",
+                    //     optionType: "checkbox",
+                    //     optionItems: [
+                    //         { optionContent: "肉多多", extraPrice: 20 },
+                    //         { optionContent: "菜多多", extraPrice: 15 },
+                    //     ],
+                    // },
+                    // {
+                    //     categoryId: 6,
+                    //     optionTitle: "加蛋",
+                    //     optionType: "radio",
+                    //     optionItems: [
+                    //         { optionContent: "全熟蛋", extraPrice: 15 },
+                    //         { optionContent: "半熟蛋", extraPrice: 15 },
+                    //         { optionContent: "炒蛋", extraPrice: 20 },
+                    //     ],
+                    // },
+                    // {
+                    //     categoryId: 6,
+                    //     optionTitle: "辣度",
+                    //     optionType: "radio",
+                    //     optionItems: [
+                    //         { optionContent: "不辣", extraPrice: 0 },
+                    //         { optionContent: "中辣", extraPrice: 0 },
+                    //         { optionContent: "大辣", extraPrice: 0 },
+                    //         { optionContent: "小辣", extraPrice: 0 },
+                    //     ],
+                    // },
+                    // {
+                    //     categoryId: 7,
+                    //     optionTitle: "胡椒",
+                    //     optionType: "radio",
+                    //     optionItems: [
+                    //         { optionContent: "不胡椒", extraPrice: 0 },
+                    //         { optionContent: "多胡椒", extraPrice: 0 },
+                    //     ],
+                    // },
+                    // {
+                    //     categoryId: 7,
+                    //     optionTitle: "醬料",
+                    //     optionType: "radio",
+                    //     optionItems: [
+                    //         { optionContent: "不醬", extraPrice: 0 },
+                    //         { optionContent: "番茄醬", extraPrice: 0 },
+                    //         { optionContent: "糖醋醬", extraPrice: 0 },
+                    //     ],
+                    // },
+                    // {
+                    //     categoryId: 8,
+                    //     optionTitle: "冰塊",
+                    //     optionType: "radio",
+                    //     optionItems: [
+                    //         { optionContent: "去冰", extraPrice: 0 },
+                    //         { optionContent: "少冰", extraPrice: 0 },
+                    //         { optionContent: "微冰", extraPrice: 0 },
+                    //         { optionContent: "正常冰", extraPrice: 0 },
+                    //     ],
+                    // },
+                    // {
+                    //     categoryId: 8,
+                    //     optionTitle: "加料",
+                    //     optionType: "checkbox",
+                    //     optionItems: [
+                    //         { optionContent: "椰果", extraPrice: 10 },
+                    //         { optionContent: "珍珠", extraPrice: 10 },
+                    //         { optionContent: "粉粿", extraPrice: 10 },
+                    //     ],
+                    // },
+                    // {
+                    //     categoryId: 8,
+                    //     optionTitle: "甜度",
+                    //     optionType: "radio",
+                    //     optionItems: [
+                    //         { optionContent: "半糖", extraPrice: 0 },
+                    //         { optionContent: "微糖", extraPrice: 0 },
+                    //         { optionContent: "正常甜", extraPrice: 0 },
+                    //         { optionContent: "無糖", extraPrice: 0 },
+                    //     ],
+                    // },
                 ],
                 comboList: [
                     {
@@ -312,7 +312,9 @@ export default {
                         discountAmount: -10,
                     },
                 ],
-                tableNumberList: ["A01", "A02", "A03", "A04", "A05"],
+                tableNumberList: [
+                    // "A01", "A02", "A03", "A04", "A05"
+                ],
             },
             // 各項資料分類
             categories: [],
@@ -340,13 +342,16 @@ export default {
     computed: {},
     mounted() {
         //this.fetchOrderMenuData();
-
+        this.fetchOrderData();
         // 初始化 orderMenuData 並進行資料分配
-        this.categories = this.orderMenuData.categoriesList;
-        this.menuItems = this.orderMenuData.menuItemList;
-        this.options = this.orderMenuData.optionList;
+        // console.log("看一下" + this.categories);
+        // console.log(this.orderMenuData.categoriesList);
+        
+        // this.categories = this.orderMenuData.categoriesList;
+        // this.menuItems = this.orderMenuData.menuItemList;
+        // this.options = this.orderMenuData.optionList;
         this.combos = this.orderMenuData.comboList;
-        this.tables = this.orderMenuData.tableNumberList;
+        // this.tables = this.orderMenuData.tableNumberList;
         // 預設載入第一個分類的餐點
         if (this.categories.length > 0) {
             this.selectedCategory = this.categories[0].categoryId;
@@ -354,16 +359,46 @@ export default {
         }
     },
     methods: {
-        // fetchOrderData() {
-        //     axios
-        //         .get("/api/getOrderData")
-        //         .then((response) => {
-        //             this.orderMenuData = response.data; // 用後端資料替換初始化的假資料
-        //         })
-        //         .catch((error) => {
-        //             console.error("Error fetching data: ", error);
-        //         });
-        // },
+        fetchOrderData() {
+
+
+            fetch("http://localhost:8080/pos/getOrderMenu", {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }).then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                return response.json(); // 解析回應為 JSON 格式
+            })
+                .then(data => {
+                    this.orderMenuData = data;
+                    this.categories = this.orderMenuData.categoriesList;
+                    this.menuItems = this.orderMenuData.menuItemList;
+                    this.options = this.orderMenuData.optionList;
+                    // this.combos = this.orderMenuData.comboList;
+                    this.tables = this.orderMenuData.tableNumberList;
+
+                })
+                .catch(error => {
+                    console.error("取得菜單資料失敗:", error);
+                });
+
+
+
+            // axios
+            //     .get("/pos/getOrderMenu")
+            //     .then((response) => {
+            //         this.orderMenuData = response.data; // 用後端資料替換初始化的假資料
+                    
+                    
+            //     })
+            //     .catch((error) => {
+            //         console.error("Error fetching data: ", error);
+            //     });
+        },
         // 根據所選分類篩選餐點
         filterMenuByCategory(categoryId) {
             this.selectedCategory = categoryId;
