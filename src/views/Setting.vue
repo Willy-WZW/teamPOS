@@ -92,7 +92,7 @@ export default {
 
         .mainView {
             width: 96%;
-            height: 87%;
+            height: 89.8%;
             position: absolute;
             left: 2%;
             top: 9.5%;
