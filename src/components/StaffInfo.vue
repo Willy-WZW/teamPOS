@@ -304,32 +304,23 @@ export default {
                 authorization: this.authorizations.find(auth => auth.label === employee.authorization)?.code || '' // 這裡新增授權代碼的載入
             }; // 將選中的員工資料填入新增員工表單
 
-            const updatedData = {
+            const requestData = {
                 staffNumber: id,
-                name: this.newEmployee.name,
-                phone: this.newEmployee.phone,
-                password: id,
-                email: this.newEmployee.email,
-                authorization: this.newEmployee.authorization,
+                pwd: id,
+
             };
 
-            // 發送 API 請求更新員工資料
-            fetch("http://localhost:8080/api/staff/updateInfo", {
+
+            fetch('http://localhost:8080/api/staff/resetPassword', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(updatedData)
+                body: JSON.stringify(requestData),
             })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! Status: ${response.status}`);
-                    }
-                    return response.json(); // 解析回應的 JSON
-                })
+                .then(response => response.json())
                 .then(data => {
-                    // 顯示 SweetAlert 成功提示
-                    if (data.code === 200) {
+                    if (data.code == "200") {
                         Swal.fire({
                             title: "重置密碼成功", // 假設 API 返回的訊息
                             icon: 'success',
@@ -340,23 +331,21 @@ export default {
                         this.cancelEditing(); // 重置狀態
                     } else {
                         Swal.fire({
-                            title: '重置密碼失敗',
-                            text: data.message, // 顯示錯誤訊息
+                            title: data.message,
                             icon: 'error',
                             confirmButtonText: '確定',
                         });
                     }
                 })
-                .catch(error => {
-                    console.error("更新員工失敗:", error);
-                    // 顯示 SweetAlert 錯誤提示
+                .catch((error) => {
+                    console.error('錯誤:', error);
                     Swal.fire({
-                        title: '重置密碼失敗',
-                        text: error.message, // 顯示錯誤訊息
+                        title: '網絡錯誤，請重試！',
                         icon: 'error',
                         confirmButtonText: '確定',
                     });
                 });
+
         }
     },
     mounted() {
