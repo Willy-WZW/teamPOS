@@ -252,11 +252,13 @@ export default {
                 <i class="fa-solid fa-user"></i>
                 <h3>員工管理</h3>
             </div>
-            <div class="history" @click="goUserInfo()" :class="{ 'selected': this.$route.path == '/userInfo' }">
-                <i class="fa-solid fa-user-injured"></i>
+            
+        </div>
+        <div class="userAndlogoutArea">
+            <div class="Permissions" @click="goUserInfo()" :class="{ 'selected': this.$route.path == '/userInfo' }">
+                <i class="fa-regular fa-circle-user"></i>
                 <h3>{{ this.userName }}</h3>
                 <p>{{ this.role }}</p>
-
             </div>
             <RouterLink to="/" class="logout-button" @click="logout">登出</RouterLink>
         </div>
@@ -265,73 +267,68 @@ export default {
 
 <style scoped lang="scss">
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@100..900&display=swap');
-$selectedColor: #1563ffe1;
-$fontAndIconColor: rgba(0, 0, 0, 0.7);
-$bgColor: aliceblue;
-$boxShadow: rgba(0, 0, 0, 0.4);
+$active-color: #DDE1E6;
+$boxShadow: #F2F4F8;
+$background-color: #FFFFFF;
+$black-color: #1E1E1E;
+$gray-color: #c1c7cd;
+
 
 .lefter {
     width: 100%;
     height: 100%;
+    background-color: $background-color;
     display: flex;
-    justify-content: space-evenly;
-    align-items: center;
     flex-direction: column;
-    background-color: $bgColor;
+    align-items: center;
+    padding: 10px;
 
     .timeCode {
-        width: 80%;
-        height: 100px;
+        width: 100%;
+        height: 10%;
+        border-bottom: 1px solid $gray-color;
         display: flex;
         justify-content: center;
         align-items: center;
         flex-direction: column;
-        border-bottom: 1px solid rgba(0, 0, 0, 0.5);
 
         .timeStyle {
-            margin: 5px auto;
+            margin: 10px auto;
             font-size: 18px;
         }
     }
 
     .control {
-        width: 70%;
-        height: 700px;
+        width: 80%;
+        height: 690px;
         display: flex;
         justify-content: space-between;
         align-items: center;
         flex-direction: column;
-        color: $fontAndIconColor;
+        color: $black-color;
+        margin: 15% 0;
 
         // 新增通用按鈕樣式
         .button-common {
-            width: 100%;
-            height: 80px; // 固定高度
-            cursor: pointer;
-            border-radius: 5px;
+            width: 97%;
+            height: 75px; // 固定高度
+            border-radius: 10px;
+            box-shadow: -6px 5px 1px $boxShadow;
             display: flex;
-            justify-content: center;
-            align-items: center;
             flex-direction: column;
+            justify-content: space-evenly;
+            align-items: center;
             font-family: "Noto Sans TC", sans-serif;
-            box-shadow: -2px 1px 5px $boxShadow;
-            transition: all 0.3s ease;
-            margin-bottom: 10px; // 增加按鈕之間的間距
-
-            &:active {
-                background-color: rgba(169, 217, 253, 0.563);
-            }
+            cursor: pointer;
+            padding: 5px;
 
             i,
             .material-symbols-outlined {
                 font-size: 24px; // 統一圖標大小
-                margin-bottom: 5px;
             }
 
             h3 {
                 font-size: 16px; // 統一文字大小
-                margin: 0;
-                padding: 0;
                 letter-spacing: 2px;
             }
         }
@@ -349,27 +346,52 @@ $boxShadow: rgba(0, 0, 0, 0.4);
         }
 
         .selected {
-            background-color: rgb(182, 223, 255);
-            box-shadow: 5px 0.1px 1px $selectedColor;
-            transform: translateX(20px);
-            color: $selectedColor;
+            background-color: $active-color;
+            box-shadow: none;
         }
     }
 
-    .logout-button {
-        margin-top: 15px;
-        padding: 10px 20px;
-        background-color: #ff4d4d;
-        color: white;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        text-align: center;
-        font-weight: bold;
-        transition: background-color 0.3s ease;
+    .userAndlogoutArea {
+        width: 100%;
+        height: 120px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-direction: column;
+        color: $black-color;
 
-        &:hover {
-            background-color: #ff1a1a;
+        .Permissions {
+            width: 97%;
+            height: 85px; // 固定高度
+            border-bottom: 1px solid $gray-color;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-evenly;
+            align-items: center;
+            font-family: "Noto Sans TC", sans-serif;
+            cursor: pointer;
+            padding: 5px;
+
+            i,
+            .material-symbols-outlined {
+                font-size: 24px; // 統一圖標大小
+            }
+
+            h3 {
+                font-size: 16px; // 統一文字大小
+                letter-spacing: 2px;
+            }
+        }
+
+        .logout-button {
+            border: none;
+            background-color: none;
+            color: $black-color;
+            font-weight: bold;
+            letter-spacing: 4px;
+            font-size: 20px;
+            padding: 10px;
+            cursor: pointer;
         }
     }
 }
