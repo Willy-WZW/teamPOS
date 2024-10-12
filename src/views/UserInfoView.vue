@@ -47,10 +47,11 @@ export default {
 
     .mainArea {
         width: 100%;
-        height: 90%;
+        height: 100%;
         overflow-y: scroll;
+        scrollbar-width: none;
         display: flex;
-        justify-content: start;
+        justify-content: center;
         align-items: center;
         flex-direction: column;
     }

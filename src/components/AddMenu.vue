@@ -112,6 +112,9 @@ export default {
                             // 從前端 categories 列表中移除該分類
                             this.categories = this.categories.filter(category => category.categoryId !== categoryId);
                             Swal.fire('已刪除!', '該分類已被刪除。', 'success');
+                            this.selectedCategoryId = null
+                            this.selectedCategory = null
+                            this.fetchCategories()
                         } else {
                             Swal.fire('錯誤!', '刪除分類失敗。', 'error');
                         }
@@ -129,11 +132,13 @@ export default {
             )
             this.$nextTick(() => {
                 // 獲取最新新增的輸入框元素
-                const lastCgInput = this.$el.querySelector('.fa-circle-plus:last-child');
+                const lastCgInput = document.querySelector('.fa-circle-plus:last-child');
                 if (lastCgInput) {
                     lastCgInput.scrollIntoView({ behavior: 'smooth' }); // 平滑滾動到新增的輸入框
                 }
             });
+            this.selectedCategory = null
+            this.selectedCategoryId = null
         },
         editCategory() {
             this.showEditPen = !this.showEditPen;
@@ -216,7 +221,7 @@ export default {
             });
             this.$nextTick(() => {
                 // 獲取最新新增的餐點元素
-                const lastMenuItem = this.$el.querySelector('.menuItem:last-child');
+                const lastMenuItem = document.querySelector('.menuItem:last-child');
                 if (lastMenuItem) {
                     lastMenuItem.scrollIntoView({ behavior: 'smooth' }); // 平滑滾動到新增的餐點
                 }
@@ -245,7 +250,7 @@ export default {
             })
             this.$nextTick(() => {
                 // 獲取最新新增的餐點元素
-                const lastCustItem = this.$el.querySelector('.custInput:last-child');
+                const lastCustItem = document.querySelector('.custInput:last-child');
                 if (lastCustItem) {
                     lastCustItem.scrollIntoView({ behavior: 'smooth' }); // 平滑滾動到新增的餐點
                 }
@@ -267,13 +272,12 @@ export default {
             }
         },
         addOption(custIndex) {
-            // 獲取 custList 的最後一個索引
-            const lastCustIndex = this.custList.length - 1;
-            const lastCustItem = this.custList[lastCustIndex];
+            // 獲取指定索引的 custList 項目
+            const targetCustItem = this.custList[custIndex];
 
-            // 檢查最後一個項目是否存在，然後新增選項
-            if (lastCustItem) {
-                lastCustItem.options.push({
+            // 檢查是否存在該項目並新增選項
+            if (targetCustItem) {
+                targetCustItem.options.push({
                     optionContent: "", // 選項內容
                     extraPrice: "" // 選項金額
                 });
@@ -281,8 +285,8 @@ export default {
                 // 平滑滾動到新增的選項
                 this.$nextTick(() => {
                     const groupedOptionsLength = Object.keys(this.groupedOptions).length;
-                    const custInputs = this.$el.querySelectorAll('.custInput');
-                    const targetCustInput = custInputs[lastCustIndex + groupedOptionsLength]; // 動態計算目標索引
+                    const custInputs = document.querySelectorAll('.custInput');
+                    const targetCustInput = custInputs[custIndex + groupedOptionsLength]; // 根據 custIndex 動態定位
                     if (targetCustInput) {
                         const lastOption = targetCustInput.querySelector('.oneOption:last-child');
                         if (lastOption) {
@@ -322,6 +326,8 @@ export default {
                     }
                 }
                 this.cgInput = []
+                this.selectedCategory = null;
+                this.selectedCategoryId = null;
                 if (this.modifiedCategories.length > 0) {
                     for (const modifiedCategory of this.modifiedCategories) {
                         // 檢查是否有重複的分類名稱，且忽略相同的 categoryId
@@ -1111,7 +1117,7 @@ export default {
             <div class="menuArea" v-if="!comboPage">
                 <div class="menuTop">
                     <div class="mtLeft">
-                        <span>{{ selectedCategory || '菜單分類' }}</span>
+                        <span>{{ selectedCategoryId == null ? '菜單分類' : selectedCategory}}</span>
                     </div>
                     <div class="mtMid">
                         <i class="fa-solid fa-square-pen" :class="{ 'disIcon': selectedCategory == null }"
@@ -1150,7 +1156,6 @@ export default {
                                 <img v-if="item.pictureName" :src="item.pictureName" alt="Image Preview"
                                     style="width: 100%; height: 100%;" />
                                 <i v-else class="fa-solid fa-upload"></i>
-                                <!-- {{ "看一下:" + item.pictureName }} -->
                             </div>
                         </div>
                         <div class="itemName">
@@ -1226,7 +1231,7 @@ export default {
                     </div>
                     <div class="cuRight">
                         <div class="selCate">
-                            <span>{{ selectedCategory || '菜單分類' }}</span>
+                            <span>{{ selectedCategoryId == null ? '菜單分類' : selectedCategory }}</span>
                             <div class="countOp">{{ categoryMenuCount[selectedCategoryId] || 0 }}</div>
                         </div>
                         <div class="saveBtn" @click="saveCust()">儲存</div>
@@ -1832,7 +1837,7 @@ $editColor: #e6b800;
                 align-items: center;
 
                 .cuLeft {
-                    width: 20%;
+                    width: 40%;
                     font-size: 30px;
                     font-weight: bold;
                     letter-spacing: 3px;
