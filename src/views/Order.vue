@@ -314,21 +314,24 @@ export default {
                 ],
                 tableNumberList: ["A01", "A02", "A03", "A04", "A05"],
             },
-            // Res資料分類
+            // 各項資料分類
             categories: [],
             menuItems: [],
             options: [],
             combos: [],
             tables: [],
-            // 人數選單
-            peopleOptions: Array.from({ length: 20 }, (_, i) => i + 1),
+            // 邏輯狀態
+            peopleOptions: Array.from({ length: 20 }, (_, i) => i + 1), //人數選單
             selectedCategory: null, // 追蹤目前選中的菜單分類
             filteredMenuItems: [], // 篩選後的菜單項目列表
             showPopup: false, // 控制彈出視窗顯示
             currentItem: null, // 目前選中的餐點項目
             showBackdrop: false, // 是否顯示背景遮罩
             selectedOptions: {}, // 儲存已選客製化選項
+            selectedDishes: {}, // 儲存選取的套餐品項
             totalAmount: 0, // 總金額
+            comboPrice: 0, //套餐價格
+            orderDetails: [], // 存放所有加入的餐點訂單資料
         };
     },
     components: {
@@ -337,13 +340,14 @@ export default {
     computed: {},
     mounted() {
         //this.fetchOrderMenuData();
-        // orderMenuData 的資料分別存取
+
+        // 初始化 orderMenuData 並進行資料分配
         this.categories = this.orderMenuData.categoriesList;
         this.menuItems = this.orderMenuData.menuItemList;
         this.options = this.orderMenuData.optionList;
         this.combos = this.orderMenuData.comboList;
         this.tables = this.orderMenuData.tableNumberList;
-        // 預設載入第一個分類的餐點品項
+        // 預設載入第一個分類的餐點
         if (this.categories.length > 0) {
             this.selectedCategory = this.categories[0].categoryId;
             this.filterMenuByCategory(this.selectedCategory);
@@ -367,20 +371,44 @@ export default {
                 // 顯示套餐
                 this.filteredMenuItems = this.combos;
             } else {
-                // 顯示對應分類的餐點
+                // 顯示對應分類的單點餐點
                 this.filteredMenuItems = this.menuItems.filter((item) => item.categoryId === categoryId);
             }
         },
-        // 彈出視窗
+
+        // 套餐基本價格
+        getComboPrice(combo) {
+            let total = 0;
+            combo.comboDetail.forEach((detail) => {
+                if (detail.dishesList.length > 0) {
+                    // 加上每個 dishesList 中的第一個菜品的價格
+                    total += detail.dishesList[0].price;
+                }
+            });
+            total += combo.discountAmount;
+            return total;
+        },
+
+        // 彈出視窗，顯示餐點詳細資料
         showItemPopup(item) {
             this.currentItem = item;
             this.showPopup = true;
             this.showBackdrop = true;
 
-            // 設置totalAmount初始值為所選餐點價格
-            this.totalAmount = item.price;
+            if (this.selectedCategory === 9) {
+                // 套餐邏輯處理
+                this.initializeComboOptions(item);
+                this.comboPrice = this.calculateComboTotal();
+                this.totalAmount = this.comboPrice;
+            } else {
+                // 單點邏輯處理
+                this.initializeSingleOptions(item);
+                this.totalAmount = item.price;
+            }
+        },
 
-            // 初始化selectedOptions，根據optionType決定結構
+        // 初始化單點客製化選項
+        initializeSingleOptions(item) {
             this.selectedOptions = {};
             const optionsForCategory = this.options.filter((opt) => opt.categoryId === this.selectedCategory);
             optionsForCategory.forEach((option) => {
@@ -391,40 +419,81 @@ export default {
                 }
             });
         },
-        closePopup() {
-            this.showPopup = false;
-            this.showBackdrop = false;
-        },
-        //套餐總價
-        getComboPrice(combo) {
-            let total = 0;
-            combo.comboDetail.forEach((detail) => {
+
+        // 初始化套餐選項
+        initializeComboOptions(item) {
+            this.selectedDishes = {};
+            item.comboDetail.forEach((detail) => {
                 if (detail.dishesList.length > 0) {
-                    total += detail.dishesList[0].price;
+                    // 預設選取每個 category 的第一項 dish
+                    this.selectedDishes[detail.categoryId] = detail.dishesList[0];
                 }
             });
-            return total + combo.discountAmount;
         },
-        // 更新總金額
+
+        // 計算套餐總金額
+        calculateComboTotal() {
+            let total = 0;
+            for (const [categoryId, dish] of Object.entries(this.selectedDishes)) {
+                total += dish.price;
+            }
+            total += this.currentItem.discountAmount;
+            return total;
+        },
+
+        // 更新套餐總金額
+        updateComboTotal() {
+            this.totalAmount = this.calculateComboTotal();
+        },
+
+        // 更新單點總金額
         updateTotalAmount() {
             let basePrice = this.currentItem.price;
             let additionalPrice = 0;
 
-            // 根據所選選項增加額外價格
+            // 遍歷選中的選項，根據其類型進行額外價格的加總
             for (const [key, value] of Object.entries(this.selectedOptions)) {
                 if (Array.isArray(value)) {
-                    // 若為checkbox類型，value為陣列
+                    // 若為checkbox類型，處理多選項
                     value.forEach((item) => {
-                        additionalPrice += parseInt(item);
+                        additionalPrice += item.extraPrice;
                     });
-                } else {
-                    // 若為radio類型，value為單一值
-                    additionalPrice += parseInt(value);
+                } else if (value) {
+                    // 若為radio類型，處理單一選項
+                    additionalPrice += value.extraPrice;
                 }
             }
 
-            // 更新總金額
             this.totalAmount = basePrice + additionalPrice;
+        },
+
+        // 關閉彈跳視窗
+        closePopup() {
+            this.showPopup = false;
+            this.showBackdrop = false;
+        },
+
+        // 加入訂單
+        addToOrder() {
+            const newOrder = {
+                item: this.currentItem, // 存放單點或套餐資料
+                customization: { ...this.selectedOptions }, // 已選客製化選項
+                selectedDishes: { ...this.selectedDishes }, // 套餐選擇的品項
+                totalPrice: this.totalAmount, // 訂單合計金額
+            };
+            this.orderDetails.push(newOrder); // 新增訂單到 orderDetails
+            this.closePopup(); // 關閉彈跳視窗
+        },
+
+        // 刪除訂單
+        deleteOrder(index) {
+            this.orderDetails.splice(index, 1);
+        },
+
+        // 編輯訂單 (可自定義方法)
+        editOrder(index) {
+            const order = this.orderDetails[index];
+            this.showItemPopup(order.item); // 打開彈跳視窗，顯示已選資料
         },
     },
 };
@@ -484,38 +553,46 @@ export default {
                 <!-- 2. 餐點詳細內容 -->
                 <div class="itemDetail">
                     <div class="itemImage">{{ currentItem.picture }}</div>
-                    <div class="itemName">{{ currentItem.mealName || currentItem.comboName }}</div>
-                    <div class="itemPrice">$ {{ currentItem.price }}</div>
+                    <div class="itemName">{{ currentItem.comboName || currentItem.mealName }}</div>
+
+                    <div v-if="selectedCategory === 9" class="comboDishesList">
+                        <h4>套餐內容：</h4>
+                        <ul>
+                            <li v-for="detail in currentItem.comboDetail" :key="detail.categoryId">
+                                {{ categories.find((cat) => cat.categoryId === detail.categoryId).category }}：
+                                {{ detail.dishesList[0].dishName }}
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="itemPrice">$ {{ selectedCategory === 9 ? comboPrice : currentItem.price }}</div>
                 </div>
 
-                <!-- 3. 客製化選項 -->
-                <div class="options" v-if="selectedCategory !== 9">
+                <!-- 3. 單點客製化選項 -->
+                <div v-if="selectedCategory !== 9">
                     <div v-for="option in options.filter((opt) => opt.categoryId === selectedCategory)" :key="option.optionTitle" class="optionGroup">
                         <h4>{{ option.optionTitle }}</h4>
                         <div v-for="item in option.optionItems" :key="item.optionContent" class="optionItem">
-                            <!-- 根據optionType設置不同的v-model -->
-                            <input
-                                :type="option.optionType"
-                                :id="item.optionContent"
-                                :value="item.extraPrice"
-                                v-model="selectedOptions[option.optionTitle]"
-                                @change="updateTotalAmount"
-                                :name="option.optionType === 'radio' ? option.optionTitle : ''" />
+                            <input :type="option.optionType" :id="item.optionContent" :value="item" v-model="selectedOptions[option.optionTitle]" @change="updateTotalAmount" />
                             <label :for="item.optionContent">
-                                <span class="optionContent">{{ item.optionContent }}</span>
+                                <span>{{ item.optionContent }}</span>
                                 <span class="optionPrice">+ ${{ item.extraPrice }}</span>
                             </label>
                         </div>
                     </div>
                 </div>
 
-                <!-- 4. 若為套餐，顯示套餐選項 -->
+                <!-- 套餐客製化選項 -->
                 <div class="comboOptions" v-if="selectedCategory === 9">
                     <div v-for="detail in currentItem.comboDetail" :key="detail.categoryId" class="optionGroup">
                         <h4>{{ categories.find((cat) => cat.categoryId === detail.categoryId).category }}</h4>
+
                         <div v-for="dish in detail.dishesList" :key="dish.dishName" class="optionItem">
-                            <span>{{ dish.dishName }}</span>
-                            <span class="dishPrice">+ ${{ dish.price }}</span>
+                            <input type="radio" :id="dish.dishName" :value="dish" v-model="selectedDishes[detail.categoryId]" @change="updateComboTotal" :name="detail.categoryId" />
+                            <label :for="dish.dishName">
+                                <span>{{ dish.dishName }}</span>
+                                <span class="dishPrice">+ ${{ dish.price }}</span>
+                            </label>
                         </div>
                     </div>
                 </div>
@@ -526,6 +603,9 @@ export default {
                 <!-- 6. 加入訂單按鈕 -->
                 <button class="addOrderButton" @click="addToOrder">加入訂單</button>
             </div>
+
+            <!-- 背景遮罩 -->
+            <div v-if="showBackdrop" class="backdrop"></div>
 
             <!-- 背景遮罩 -->
             <div v-if="showBackdrop" class="backdrop"></div>
@@ -553,17 +633,38 @@ export default {
                 <div class="orderList">
                     <h2>餐點明細</h2>
                     <div v-for="(order, index) in orderDetails" :key="index" class="orderItem">
-                        <div class="itemName">{{ order.item.mealName || order.item.comboName }}</div>
-                        <div class="itemPrice">${{ order.totalPrice }}</div>
-                        <div class="customization">
-                            <span v-for="(option, key) in order.customization" :key="key"> {{ key }}: {{ option }} </span>
+                        <div class="itemName">
+                            {{ order.item.mealName || order.item.comboName }}
+                            <span v-if="order.item.mealName">${{ order.item.price }}</span>
                         </div>
 
+                        <!-- 客製化選項 -->
+                        <div class="customization" v-if="Object.keys(order.customization).length">
+                            <ul>
+                                <li v-for="(option, key) in order.customization" :key="key">
+                                    {{ key }}:
+                                    <span v-if="Array.isArray(option)">
+                                        <span v-for="item in option" :key="item.optionContent"> {{ item.optionContent }} +${{ item.extraPrice }} </span>
+                                    </span>
+                                    <span v-else> {{ option.optionContent }} +${{ option.extraPrice }} </span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <!-- 套餐選擇的品項 -->
+                        <div class="selectedDishes" v-if="Object.keys(order.selectedDishes).length">
+                            <ul>
+                                <li v-for="(dish, categoryId) in order.selectedDishes" :key="categoryId">
+                                    {{ categories.find((cat) => cat.categoryId === parseInt(categoryId)).category }}:
+                                    {{ dish.dishName }}
+                                </li>
+                            </ul>
+                        </div>
+
+                        <!-- 編輯及刪除按鈕 -->
                         <div class="orderFooter">
-                            <div class="btns">
-                                <button @click="editOrder(index)"><i class="bi bi-pencil-square"></i></button>
-                                <button @click="deleteOrder(index)"><i class="bi bi-trash-fill"></i></button>
-                            </div>
+                            <button @click="editOrder(index)"><i class="bi bi-pencil-square"></i></button>
+                            <button @click="deleteOrder(index)"><i class="bi bi-trash-fill"></i></button>
                             <div class="totalPrice">合計 ${{ order.totalPrice }}</div>
                         </div>
                     </div>
@@ -571,7 +672,7 @@ export default {
 
                 <!-- 總價和訂單按鈕 -->
                 <div class="submitButton">
-                    <div class="totalPrice">合計&nbsp;&nbsp;&nbsp; $ {{ totalOrderPrice }}</div>
+                    <div class="totalPrice">合計&nbsp;&nbsp;&nbsp; $ {{ orderDetails.reduce((sum, order) => sum + order.totalPrice, 0) }}</div>
                     <button @click="submitOrder">送出訂單</button>
                 </div>
             </div>
@@ -651,10 +752,10 @@ export default {
             .menu {
                 display: flex;
                 flex-wrap: wrap;
-                // justify-content: space-around;
+                justify-content: flex-start;
                 padding: 2% 0;
-                gap: 5%;
-                height: 85%;
+                gap: 2%;
+                height: auto;
                 border-top: 1px dashed rgba(grey, 0.5);
 
                 .menuItem {
@@ -1006,7 +1107,7 @@ export default {
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.7);
+            background: rgba(0, 0, 0, 0.5);
         }
     }
 }
