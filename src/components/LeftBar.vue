@@ -273,20 +273,24 @@ $boxShadow: rgba(0, 0, 0, 0.4);
 .lefter {
     width: 100%;
     height: 100%;
+    border-radius: 10px;
     display: flex;
     justify-content: space-evenly;
     align-items: center;
     flex-direction: column;
     background-color: $bgColor;
+    position: relative;
 
     .timeCode {
         width: 80%;
-        height: 100px;
+        min-height: 7.3%;
         display: flex;
         justify-content: center;
         align-items: center;
         flex-direction: column;
         border-bottom: 1px solid rgba(0, 0, 0, 0.5);
+        position: absolute;
+        top: 0;
 
         .timeStyle {
             margin: 5px auto;
