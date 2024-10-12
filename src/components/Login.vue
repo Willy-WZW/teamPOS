@@ -171,9 +171,9 @@ export default {
 
 <style scoped lang="scss">
 $bg-color: #f0f2f5;
-$box-color: #fff;
-$primary-color: #333;
-$border-color: #ddd;
+$black-color: #1E1E1E;
+$white-color: #FFFFFF;
+$gray-color: #F2F4F8;
 $hover-color: #555;
 $font-size-base: 16px;
 $radius: 5px;
@@ -188,12 +188,12 @@ $radius: 5px;
     background-size: cover;
 
     .login-box {
-        background-color: $box-color;
+        background-color: $white-color;
         padding: 2.5rem;
         border-radius: 10px;
         box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         text-align: center;
-        width: 25rem;
+        width: 28rem;
 
         .logo {
             width: 10.25rem;
@@ -203,7 +203,8 @@ $radius: 5px;
         h2 {
             margin-bottom: 1.25rem;
             font-size: 1.5rem;
-            color: $primary-color;
+            letter-spacing: 5px;
+            color: $black-color;
         }
 
         .input-group {
@@ -213,17 +214,20 @@ $radius: 5px;
             label {
                 display: block;
                 margin-bottom: 0.3125rem;
-                color: $primary-color;
+                color: $black-color;
                 font-size: $font-size-base;
+                letter-spacing: 2px;
             }
 
             input {
                 width: 100%;
+                background-color: $gray-color;
+                border: none;
+                border-radius: $radius;
                 padding: 0.625rem;
                 font-size: $font-size-base;
-                border: 1px solid $border-color;
-                border-radius: $radius;
-                box-sizing: border-box;
+                text-indent: 5px;
+                letter-spacing: 2px;
             }
 
             .password-container {
@@ -233,9 +237,8 @@ $radius: 5px;
                     width: 100%;
                     padding: 0.625rem;
                     font-size: $font-size-base;
-                    border: 1px solid $border-color;
+                    border: none;
                     border-radius: $radius;
-                    box-sizing: border-box;
                 }
 
                 .eye-icon {
@@ -244,7 +247,7 @@ $radius: 5px;
                     top: 50%;
                     transform: translateY(-50%);
                     cursor: pointer;
-                    color: $primary-color; // 圖示顏色
+                    color: $black-color; // 圖示顏色
                 }
             }
         }
@@ -252,10 +255,13 @@ $radius: 5px;
         .forgot-password {
             text-align: right;
             margin-bottom: 1.25rem;
+            border-bottom: 2px solid #DDE1E6;
+            padding-bottom: 10px;
 
             a {
-                color: $primary-color;
+                color: $black-color;
                 text-decoration: none;
+                letter-spacing: 2px;
             }
         }
 
@@ -263,8 +269,9 @@ $radius: 5px;
             width: 100%;
             padding: 0.625rem;
             font-size: $font-size-base;
-            background-color: $primary-color;
-            color: $box-color;
+            background-color: $black-color;
+            letter-spacing: 2px;
+            color: $white-color;
             border: none;
             border-radius: $radius;
             cursor: pointer;
@@ -280,7 +287,7 @@ $radius: 5px;
             padding: 0.625rem;
             font-size: $font-size-base;
             background-color: $hover-color;
-            color: $box-color;
+            color: $white-color;
             border-radius: $radius;
             text-decoration: none;
 

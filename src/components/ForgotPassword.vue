@@ -213,24 +213,34 @@ export default {
 
 
 <style scoped lang="scss">
+$bg-color: #f0f2f5;
+$black-color: #1E1E1E;
+$white-color: #FFFFFF;
+$gray-color: #F2F4F8;
+$hover-color: #555;
+$font-size-base: 16px;
+$radius: 5px;
+
 .forgot-password-container {
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
-    background-color: #f0f2f5;
+    background-color: $bg-color;
 
     .forgot-password-box {
-        background-color: #fff;
+        background-color: $white-color;
         padding: 2.5rem;
         border-radius: 10px;
         box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         text-align: center;
-        width: 25rem;
+        width: 28rem;
 
         h2 {
             margin-bottom: 1.25rem;
-            color: #333;
+            color: $black-color;
+            letter-spacing: 5px;
+            font-size: 1.5rem;
         }
 
         .input-group {
@@ -240,13 +250,15 @@ export default {
             label {
                 display: block;
                 margin-bottom: 0.3125rem;
-                color: #333;
+                color: $black-color;
+                font-size: $font-size-base;
+                letter-spacing: 2px;
             }
 
             .phone-display {
                 padding: 0.625rem;
                 border: 1px solid #ddd;
-                border-radius: 5px;
+                border-radius: $radius;
                 background-color: #f9f9f9;
                 /* 可以使用不同顏色區分顯示區 */
             }
@@ -254,31 +266,40 @@ export default {
             input {
                 width: 100%;
                 padding: 0.625rem;
-                border: 1px solid #ddd;
-                border-radius: 5px;
+                background-color: $gray-color;
+                border: none;
+                outline: none;
+                border-radius: $radius;
+                font-size: $font-size-base;
+                text-indent: 5px;
+                letter-spacing: 2px;
             }
         }
 
         .submit-btn {
             width: 100%;
-            padding: 0.625rem;
-            background-color: #333;
-            color: #fff;
             border: none;
-            border-radius: 5px;
+            border-radius: $radius;
+            background-color: $black-color;
+            color: $white-color;
+            font-size: $font-size-base;
+            letter-spacing: 2px;
+            padding: 0.625rem;
             cursor: pointer;
+            margin-top: 20px;
 
             &:hover {
-                background-color: #555;
+                background-color: $hover-color;
             }
         }
 
         .back-to-login {
-            margin-top: 1rem;
+            margin-top: 1.5rem;
 
             a {
-                color: #333;
+                color: $black-color;
                 text-decoration: none;
+                letter-spacing: 2px;
             }
         }
     }
@@ -290,7 +311,7 @@ export default {
             width: 100%;
             padding: 0.625rem;
             border: 1px solid #ddd;
-            border-radius: 5px;
+            border-radius: $radius;
         }
 
         span {
