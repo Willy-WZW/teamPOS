@@ -150,8 +150,11 @@ export default {
             <LeftBar />
         </div>
         <div class="mainArea">
-            <div class="calendar-container">
-                <FullCalendar :options="calendarOptions" />
+            <div class="mainbox">
+
+                <div class="calendar-container">
+                    <FullCalendar :options="calendarOptions" />
+                </div>
             </div>
             <div>
                 <div class="announcebox">
@@ -202,9 +205,15 @@ export default {
         justify-content: start;
         overflow: hidden;
 
+        .mainbox {
+            width: 65%;
+            background-color: #fff;
+            border-radius: 10px;
+            margin-left: 1%;
+        }
 
         .calendar-container {
-            width: 60%;
+            width: 90%;
             height: auto;
             margin-left: 5%;
         }
@@ -218,7 +227,8 @@ export default {
     border-radius: 10px;
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: center;    
+    background-color: #fff;
 }
 
 .announcetitle {
@@ -277,8 +287,8 @@ export default {
     border-radius: 100%;
 }
 
-.fc-col-header-cell {
-    background-color: white;
+.fc-col-header {
+    background-color: #DDE1E6;
     border-radius: 10px;
 }
 
@@ -313,7 +323,18 @@ pre {
     word-break: break-word;
     overflow-y: auto;
 }
-th{
+
+th {
     border-radius: 10px;
+    background-color: #DDE1E6;
 }
+
+.fc .fc-button-group>.fc-button {
+    margin-top: 10%;
+}
+
+.fc .fc-scrollgrid{
+    border: none; 
+}
+
 </style>
