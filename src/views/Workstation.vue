@@ -123,6 +123,11 @@ export default {
                 </div>
             </div>
             <div class="mainView">
+                <div v-if="Object.keys(filterOrdersByWorkstation()).length === 0" class="noOrders">
+                    <h1>
+                        該工作檯目前沒有餐點
+                    </h1>
+                </div>
                 <div v-for="(orders, tableNumber) in filterOrdersByWorkstation()" :key="tableNumber" class="orders">
                     <div class="table">
                         {{ tableNumber }}桌
@@ -236,7 +241,14 @@ $textColor: #697077;
             display: flex;
             overflow-x: auto;
             scrollbar-width: none;
-
+            
+            .noOrders{
+                width: 100%;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                flex-direction: column;
+            }
             .orders {
                 padding-left: 5%;
                 min-width: 33.3%;

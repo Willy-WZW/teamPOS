@@ -304,14 +304,16 @@ export default {
 
 }
 
-.fc .fc-daygrid-day {
-    width: 70px;
-    height: 85px;
-}
+/* .fc .fc-daygrid-day {
+    表格每格
+} */
 
 pre {
     white-space: pre-wrap;
     word-break: break-word;
     overflow-y: auto;
+}
+th{
+    border-radius: 10px;
 }
 </style>
