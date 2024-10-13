@@ -198,8 +198,8 @@ export default {
     <div class="menuCategory">
         <h1>工作檯分類</h1>
         <div class="optionArea">
-            <div v-for="(category, index) in categories" :key="index" class="cOption">
-                <span v-if="!isEditing" @click="selectWorkstation(category.workstationId)">
+            <div v-for="(category, index) in categories" :key="index" class="cOption" @click="selectWorkstation(category.workstationId)">
+                <span v-if="!isEditing">
                     {{ category.workstationName }}
                 </span>
                 <input v-if="isEditing" type="text" v-model="category.workstationName" placeholder="請輸入工作檯名稱" />
@@ -220,7 +220,7 @@ export default {
             <div v-for="(menu, index) in filteredMenuList" :key="index" class="menuItem">
                 {{ menu.mealName }}
             </div>
-            <div v-if="filteredMenuList.length === 0">此工作檯無菜單項目</div>
+            <div v-if="filteredMenuList.length === 0">此工作檯目前無菜單</div>
     </div>
 </template>
 
@@ -272,7 +272,7 @@ $addDiv: #343a3f;
             border-radius: 5px;
             margin-bottom: 5%;
             background-color: #f2f4f8;
-
+            cursor: pointer;
             span {
                 font-weight: bold;
                 font-family: "Noto Sans TC", sans-serif;
@@ -346,11 +346,18 @@ input {
     border-radius: 10px;
     display: flex;
     justify-content: start;
-    align-items: center;
+    align-items: start;
     flex-direction: column;
     position: absolute;
     top: 0%;
     left: 22%;
     background-color: white;
+    padding-left: 2%;
+    
+    .menuItem{
+        margin-top: 2%;
+        border-left: 5px solid #C1C7CD;
+        padding-left: 0.5%;
+    }
 }
 </style>
