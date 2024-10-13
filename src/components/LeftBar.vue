@@ -300,7 +300,7 @@ $gray-color: #c1c7cd;
 
     .control {
         width: 80%;
-        height: 690px;
+        height: 90%;
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -324,7 +324,8 @@ $gray-color: #c1c7cd;
 
             i,
             .material-symbols-outlined {
-                font-size: 24px; // 統一圖標大小
+                max-height: 50%; // 設定最大高度為 50%
+                height: auto; // 讓高度自動
             }
 
             h3 {
@@ -342,6 +343,7 @@ $gray-color: #c1c7cd;
         .event,
         .workstation,
         .history {
+            height: 10%;
             @extend .button-common;
         }
 
@@ -374,7 +376,8 @@ $gray-color: #c1c7cd;
 
             i,
             .material-symbols-outlined {
-                font-size: 24px; // 統一圖標大小
+                max-height: 50%; // 設定最大高度為 50%
+                height: auto; // 讓高度自動
             }
 
             h3 {
