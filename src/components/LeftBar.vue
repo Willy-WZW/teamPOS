@@ -1,5 +1,7 @@
 <script>
 import { RouterLink } from 'vue-router';
+import { computed } from 'vue';
+import { useFontStore } from '@/stores/fontStores';
 export default {
     data() {
         return {
@@ -184,20 +186,31 @@ export default {
 
         this.timeInterval = setInterval(() => {
             this.updateTime()
-        }, 1000)
+        }, 60000)
     },
     beforeDestroy() {
         // 清除計時器
         clearInterval(this.timeInterval);
-    }
+    },
+    setup() {
+        const fontStore = useFontStore();
+        const currentFont = computed(() => fontStore.fonts[fontStore.currentFontIndex]);
+        const changeFont = () => {
+            fontStore.nextFont();
+        };
+        return {
+            currentFont,
+            changeFont
+        };
+    },
 }
 </script>
 
 <template>
     <div class="lefter">
-        <div class="timeCode">
-            <div class="timeStyle">{{ timeCode }}</div>
-            <div class="timeStyle">{{ dateCode }}</div>
+        <div class="timeCode" @click="changeFont">
+            <div class="timeStyle" :style="{ fontFamily: currentFont }">{{ timeCode }}</div>
+            <div class="timeStyle" :style="{ fontFamily: currentFont }">{{ dateCode }}</div>
         </div>
         <div class="controlArea">
             <div class="control">
@@ -287,8 +300,11 @@ $boxShadow: rgba(0, 0, 0, 0.4);
 
     .timeCode {
         font-family: "Rubik", serif;
+        flex-wrap: nowrap;
+        cursor: pointer;
         width: 80%;
-        min-height: 7.3%;
+        min-height: 9.3%;
+        max-height: 9.3%;
         display: flex;
         justify-content: center;
         align-items: center;
