@@ -72,13 +72,15 @@ export default {
         createMeal(){
             this.editeMode = true
             this.createMode = true
+            this.selectedMeal=[]
+            this.selectedCategory=[]
         },
         saveMeal(){
             axios.post("http://localhost:8080/pos/createCombo",{
                 "comboName":this.comboName,
                 "comboDetail":JSON.stringify(this.comboDetail),
                 "discountAmount":this.discountAmount,
-                "categoryId":9
+                "categoryId":8
             })
             .then(response=>{
                 console.log(response)
@@ -125,6 +127,9 @@ export default {
             this.comboItemIndex = comboItemIndex
             this.comboName = comboItem.comboName
             this.oldComboName = comboItem.comboName
+
+            this.selectedMeal=[]
+            this.selectedCategory=[]
             for (let i=0; i<comboItem.comboDetail.length; i++){
                 this.selectedMeal.push('')
                 this.selectedCategory.push('')
@@ -197,7 +202,7 @@ export default {
         },
 
         addComboContentInner(){
-            this.comboDetail.push({"categoryId":1,"dishes":[]})
+            this.comboDetail.push({"catgoryId":1,"dishes":[]})
             this.selectedMeal.push('')
             this.selectedCategory.push('')
 
@@ -226,6 +231,9 @@ export default {
 
             return totalAmount;
         },
+        // addCategory(categorName){
+        //     const categoryId = this.categories.find(category=>category.category == categorName)
+        // },
 
         addMeal(comboItemIndex){
             const dishes = this.comboDetail[comboItemIndex].dishes
@@ -234,6 +242,8 @@ export default {
             if(!mealExists){
                 const selectedMeal = this.menus.find(menu => menu.mealName == this.selectedMeal[comboItemIndex]);
                 this.comboDetail[comboItemIndex].dishes.push(selectedMeal.mealName)
+                const category = this.categories.find(category=>category.categoryId == selectedMeal.categoryId)
+                this.comboDetail[comboItemIndex].catgoryId = category.categoryId
             }
         },
         deleteMeal(comboItemIndex, meal){
@@ -297,9 +307,9 @@ export default {
                 </div>
                 <!-- <h1>{{ comboName }}</h1> -->
                 <!-- <h1>{{ comboDetail }}</h1> -->
-                <!-- <h1>{{ selectedCategory }}</h1> -->
-                <!-- <h1>{{ selectedMeal }}</h1> -->
-                <!-- <h1>{{ comboDetail }}</h1> -->
+                <h1>{{ selectedCategory }}</h1>
+                <h1>{{ selectedMeal }}</h1>
+                <h1>{{ comboDetail }}</h1>
                 <!-- <h1>{{ comboItemsList }}</h1> -->
                 <div class="comboContent">
                     <div class="comboContentInner" v-for="(comboItem, comboItemIndex) in comboDetail">    
