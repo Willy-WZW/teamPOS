@@ -1381,6 +1381,5 @@ $down-font: #388e3c;
         height: 100%;
     }
 
-
 }
 </style>
