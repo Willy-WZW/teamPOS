@@ -5,7 +5,7 @@ import OperationSpecificComponent from './OperationSpecificComponent.vue';
 export default{
     data(){
         return{
-            currentHead:'日',
+            currentHead:'月',
             currentTopSelect: '日常統計',
             firstOperationDate:null,
             allDateList:[],
@@ -26,9 +26,13 @@ export default{
             preStartDate: null,
             preEndDate: null,
             preAnalysis:null,
-            
-            joinOrderList:[],
 
+            analysis12Month:[],
+            preAnalysis12Month:[],
+            lastYearAnalysis12Month:[],
+
+
+            joinOrderList:[],
 
             optionLine:{
                 tooltip: {
@@ -88,15 +92,16 @@ export default{
             },
 
             option:{
-                title: {
-                    text: 'Rainfall vs Evaporation',
-                    subtext: 'Fake Data'
-                },
+                // title: {
+                //     text: '上月本月比教圖',
+                //     subtext: 'Fake Data'
+                // },
                 tooltip: {
                     trigger: 'axis'
                 },
                 legend: {
-                    data: ['Rainfall', 'Evaporation']
+                    data: ['去年', '今年'],
+                    left: 'left' // 圖例顯示在左側
                 },
                 toolbox: {
                     show: true,
@@ -122,11 +127,9 @@ export default{
                 ],
                 series: [
                     {
-                    name: 'Rainfall',
+                    name: '去年',
                     type: 'bar',
-                    data: [
-                        2.0, 4.9, 7.0, 23.2, 25.6, 76.7, 135.6, 162.2, 32.6, 20.0, 6.4, 3.3
-                    ],
+                    data: [],
                     markPoint: {
                         data: [
                         { type: 'max', name: 'Max' },
@@ -138,15 +141,13 @@ export default{
                     }
                     },
                     {
-                    name: 'Evaporation',
+                    name: '今年',
                     type: 'bar',
-                    data: [
-                        2.6, 5.9, 9.0, 26.4, 28.7, 70.7, 175.6, 182.2, 48.7, 18.8, 6.0, 2.3
-                    ],
+                    data: [],
                     markPoint: {
                         data: [
-                        { name: 'Max', value: 182.2, xAxis: 7, yAxis: 183 },
-                        { name: 'Min', value: 2.3, xAxis: 11, yAxis: 3 }
+                        { type: 'max', name: 'Max' },
+                        { type: 'min', name: 'Min' }
                         ]
                     },
                     markLine: {
@@ -164,6 +165,10 @@ export default{
         
     },
     mounted() {
+
+
+
+
         axios.post("http://localhost:8080/pos/analysis", {   
             "startDate": "",
             "endDate": ""
@@ -187,7 +192,6 @@ export default{
                     }),
             ])
         })
-        
         .then(([response2, response3]) => {
             this.analysis = response2.data.analysis;
             this.analysis.popularDishes = this.analysis.popularDishes.sort((a, b) => b.orders - a.orders);
@@ -414,8 +418,16 @@ export default{
             lastDay = String(lastDay.getDate()).padStart(2, '0')
             this.startDate = `${year}-01-${firstDay}`;
             this.endDate = `${year}-12-${lastDay}`;
-            this.postStartDateAndEndDate(this.startDate, this.endDate)
-            this.preCurrentYear
+            this.postStartDateAndEndDate(this.startDate, this.endDate);
+
+            this.option.legend.data[1] = String(year)
+            this.option.series[1].name = String(year)
+            this.option.legend.data[0] = String(year-1)
+            this.option.series[0].name = String(year-1)
+            // 接下來送出一年的12個月份
+            //[preDates,currentDates]
+            let result = this.getFirstAndLastDaysOfYear(year);
+            this.postEveryMonthOfYear(result)
 
             return `${year}年`;
         },
@@ -450,11 +462,188 @@ export default{
             this.preDateForYear = newDate2;        
         },
 
-
-
-
     },
     methods:{
+        postEveryMonthOfYearDishes(mealName){
+        console.log(mealName)
+            this.analysis12Month = []
+            this.lastYearAnalysis12Month = []
+            let result = this.getFirstAndLastDaysOfYear(this.dateForYear.getFullYear())
+            // 當前年當月
+            let currentDate = result[1]
+            let promisesCurrrDate = [];
+            for (let month=0; month<12; month++){
+                console.log(currentDate[month][0])
+                console.log(currentDate[month][1])
+                let promise = axios.post("http://localhost:8080/pos/analysis", {   
+                            "startDate":currentDate[month][0],
+                            "endDate":currentDate[month][1],
+                            "mealName": mealName
+                })
+                promisesCurrrDate.push(promise)
+            }
+            Promise.all(promisesCurrrDate)
+                .then(responses=>{
+                    responses.forEach(response => {
+                        this.analysis12Month.push(response.data.analysis);
+                    });
+                    let mealTotalOrdersList = this.analysis12Month.map(item => item.analysisMealVo.mealTotalOrders);
+                    console.log(this.analysis12Month)    
+                    this.option.series[1].data = mealTotalOrdersList
+                    this.drawChart()
+                })
+                .catch(error => {
+                    console.error("Error in one or more requests:", error);
+                });    
+                
+
+            //去年同月    
+            let lastYearDate = result[2]
+            let promisesLastYearDate = [];
+            for (let month=0; month<12; month++){
+                let promise = axios.post("http://localhost:8080/pos/analysis", {   
+                            "startDate":lastYearDate[month][0],
+                            "endDate":lastYearDate[month][1],
+                            "mealName": mealName
+                })
+                promisesLastYearDate.push(promise)
+            }
+            Promise.all(promisesLastYearDate)
+                .then(responses=>{
+                    responses.forEach(response => {
+                        this.lastYearAnalysis12Month.push(response.data.analysis);
+                    });
+                    let mealTotalOrdersList = this.lastYearAnalysis12Month.map(item => item.analysisMealVo.mealTotalOrders);
+                    console.log('last' + mealTotalOrdersList)    
+                    this.option.series[0].data = mealTotalOrdersList
+                    this.drawChart()
+                })
+                .catch(error => {
+                    console.error("Error in one or more requests:", error);
+                });    
+
+
+
+
+
+        },
+        getFirstAndLastDaysOfYear(year){
+            const currentDates = [];
+            for (let month = 0; month < 12; month++) {
+                // 第一個月的第一天
+                const firstDay = new Date(year, month, 1);
+                // 該月的最後一天
+                const lastDay = new Date(year, month + 1, 0);
+                // 格式化日期為 yyyy-mm-dd 格式
+                const firstDayFormatted = firstDay.toISOString().split('T')[0];
+                const lastDayFormatted = lastDay.toISOString().split('T')[0];
+                // 將兩個日期加入結果
+                currentDates.push([firstDayFormatted, lastDayFormatted]);
+            }
+
+            const preDates = [];
+            for (let month = 0; month < 12; month++) {
+                // 第一個月的第一天
+                const firstDay = new Date(year, month-1, 1);
+                // 該月的最後一天
+                const lastDay = new Date(year, month, 0);
+                // 格式化日期為 yyyy-mm-dd 格式
+                const firstDayFormatted = firstDay.toISOString().split('T')[0];
+                const lastDayFormatted = lastDay.toISOString().split('T')[0];
+                // 將兩個日期加入結果
+                preDates.push([firstDayFormatted, lastDayFormatted]);
+            }
+
+            const lastYearDates = [];
+            for (let month = 0; month < 12; month++) {
+                // 第一個月的第一天
+                const firstDay = new Date(year-1, month, 1);
+                // 該月的最後一天
+                const lastDay = new Date(year-1, month+1, 0);
+                // 格式化日期為 yyyy-mm-dd 格式
+                const firstDayFormatted = firstDay.toISOString().split('T')[0];
+                const lastDayFormatted = lastDay.toISOString().split('T')[0];
+                // 將兩個日期加入結果
+                lastYearDates.push([firstDayFormatted, lastDayFormatted]);
+            }
+            
+            return [preDates, currentDates, lastYearDates]
+        },
+        postEveryMonthOfYear(result){
+            //當前年前一個月
+            // let preDate = result[0]
+            // let promisesPreDate = [];
+            // for (let month=0; month<12; month++){
+            //     let promise = axios.post("http://localhost:8080/pos/analysis", {   
+            //                 "startDate":preDate[month][0],
+            //                 "endDate":preDate[month][1]
+            //     })
+            //     promisesPreDate.push(promise)
+            // }
+            // Promise.all(promisesPreDate)
+            //     .then(responses=>{
+            //         responses.forEach(response => {
+            //             this.preAnalysis12Month.push(response.data.analysis);
+            //         });
+            //         let totalRevenueList = this.preAnalysis12Month.map(item => item.totalRevenue);
+            //         console.log('pre' + totalRevenueList)    
+            //         this.option.series[1].data = totalRevenueList
+            //         this.drawChart()
+
+            //     })
+            //     .catch(error => {
+            //         console.error("Error in one or more requests:", error);
+            //     });
+
+
+            // 當前年當月
+            let currentDate = result[1]
+            let promisesCurrrDate = [];
+            for (let month=0; month<12; month++){
+                let promise = axios.post("http://localhost:8080/pos/analysis", {   
+                            "startDate":currentDate[month][0],
+                            "endDate":currentDate[month][1]
+                })
+                promisesCurrrDate.push(promise)
+            }
+            Promise.all(promisesCurrrDate)
+                .then(responses=>{
+                    responses.forEach(response => {
+                        this.analysis12Month.push(response.data.analysis);
+                    });
+                    let totalRevenueList = this.analysis12Month.map(item => item.totalRevenue);
+                    this.option.series[1].data = totalRevenueList
+                    this.drawChart()
+                })
+                .catch(error => {
+                    console.error("Error in one or more requests:", error);
+                });    
+                
+
+            //去年同月    
+            let lastYearDate = result[2]
+            let promisesLastYearDate = [];
+            for (let month=0; month<12; month++){
+                let promise = axios.post("http://localhost:8080/pos/analysis", {   
+                            "startDate":lastYearDate[month][0],
+                            "endDate":lastYearDate[month][1]
+                })
+                promisesLastYearDate.push(promise)
+            }
+            Promise.all(promisesLastYearDate)
+                .then(responses=>{
+                    responses.forEach(response => {
+                        this.lastYearAnalysis12Month.push(response.data.analysis);
+                    });
+                    let totalRevenueList = this.lastYearAnalysis12Month.map(item => item.totalRevenue);
+                    this.option.series[0].data = totalRevenueList
+                    this.drawChart()
+                })
+                .catch(error => {
+                    console.error("Error in one or more requests:", error);
+                });    
+
+        },
         todayDate(){
             let today = new Date();
             const year = today.getFullYear();
@@ -501,9 +690,15 @@ export default{
             return false;
         },
         drawChart() {
-            const myChart = echarts.init(document.getElementById("echart"));
+            const myChart = echarts.init(document.getElementById("echart1"));
             if (myChart) {
                 myChart.setOption(this.optionLine);  
+            } else {
+                console.error("Invalid DOM: chart container not found");
+            }
+            const myChart2 = echarts.init(document.getElementById("echart2"));
+            if (myChart2) {
+                myChart2.setOption(this.option);  
             } else {
                 console.error("Invalid DOM: chart container not found");
             }
@@ -706,15 +901,23 @@ export default{
                         </div>    
                     </div> -->
                 </div>
-                <div class="chartContainer">
-                    <h1>營運分析圖</h1>
-                    <div id="echart" >
+                <div class="chartArea">
+                    <div class="chartContainer">
+                        <h1>每日營業額</h1>
+                        <div id="echart1" >
+                        </div>
                     </div>
-                </div>
+                    <div class="chartContainer">
+                        <h1>比較圖</h1>
+                        <div id="echart2" >
+                        </div>
+                    </div>
+                </div>    
             </div>
             <div class="innerContainer2-Right">
                 <div class="title">
                     <h1>人氣餐點排行</h1>
+
                     <!-- <p>View All</p> -->
                 </div >
                 <div class="column">
@@ -722,7 +925,8 @@ export default{
                     <p>Name</p>
                 </div>
                 <div class="poppularDishes">
-                    <div class="dishItem" v-if="analysis && analysis.popularDishes!==null" v-for="(dish,index) in analysis.popularDishes">
+                    <div class="dishItem" v-if="analysis && analysis.popularDishes!==null" v-for="(dish,index) in analysis.popularDishes"
+                    @click="postEveryMonthOfYearDishes(dish.name)">
                         <p class="rank">{{ String(index+1).padStart(2,"0")}}</p>
                         <img class="img" src="https://tokyo-kitchen.icook.network/uploads/recipe/cover/420886/dd9e8293a9b1a758.jpg" alt="">
                         <div class="content">
@@ -733,7 +937,6 @@ export default{
                             </div>
                         </div>
                     </div>
-
                 </div>
             </div>
     </div>
@@ -926,7 +1129,7 @@ $down-font: #388e3c;
         align-items: flex-start;
         justify-content: flex-start;
         .innerContainer2-Left{
-            width: 65%;
+            width: 75%;
             height: 100%;
             display: flex;
             flex-direction: column;
@@ -1022,34 +1225,59 @@ $down-font: #388e3c;
                     }
                 }
             }
-            .chartContainer{
+            .chartArea{
                 width: 100%;
-                height: 600px;
+                height: 100%;
                 display: flex;
-                flex-direction: column;
-                align-items: flex-start;
-                justify-content: flex-start;
-                border-radius: 12px;
-                background-color: white;
-                border: 2px solid rgba(0, 0, 0, 0.25);
-                padding: 2% 4%;
-
-                h1{
-                    font-size: 25px;
-                    margin: 0 0 20px 0;
-                }
-                #echart{
+                align-items: center;
+                justify-content: center;
+                .chartContainer{
                     width: 100%;
                     height: 100%;
                     display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    border: 1px solid rgba(0, 0, 0, 0.25);
+                    flex-direction: column;
+                    align-items: flex-start;
+                    justify-content: flex-start;
+                    border-radius: 12px;
+                    background-color: white;
+                    border: 2px solid rgba(0, 0, 0, 0.25);
+                    padding: 2% 2%;
+                    margin: 0 2% 0 0;
+                    &:nth-child(1){
+                        width: 40%;
+                    }
+                    &:nth-child(2){
+                        width: 60%;
+                    }
+
+
+                    h1{
+                        font-size: 25px;
+                        margin: 0 0 20px 0;
+                    }
+                    #echart1{
+                        width: 100%;
+                        height: 100%;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        border: 1px solid rgba(0, 0, 0, 0.25);
+                    }
+                    #echart2{
+                        width: 100%;
+                        height: 100%;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        border: 1px solid rgba(0, 0, 0, 0.25);
+                    }
                 }
+
             }
+            
         }
         .innerContainer2-Right{
-            width: 35%;
+            width: 25%;
             height: 100%;
             display: flex;
             flex-direction: column;
@@ -1060,7 +1288,7 @@ $down-font: #388e3c;
             border: 2px solid rgba(0, 0, 0, 0.25);
             padding: 20px 20px;
             overflow-y: scroll;
-
+            scrollbar-width: thin;
             .title{
                 width: 100%;
                 display: flex;
@@ -1085,7 +1313,6 @@ $down-font: #388e3c;
                     margin: 0 10px 0 0;
                 }
             }
-
             .poppularDishes{
                 width: 100%;
                 height: 100%;
@@ -1100,9 +1327,16 @@ $down-font: #388e3c;
                     display: flex;
                     align-items: center;
                     justify-content: flex-start;
-                    // background-color: rgb(127, 142, 255);
+                    cursor: pointer;
+                    border-radius: 12px;
                     margin: 10px 0;
                     padding: 10px 10px;
+                    &:hover{
+                        background-color: rgba(0, 0, 255, 0.1);
+                    }
+                    &:active{
+                        background-color: rgba(0, 0, 255, 0.2);
+                    }
 
                     .rank{
                         margin: 0 20px 0 0;

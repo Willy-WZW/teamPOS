@@ -291,7 +291,7 @@ export default {
                 <div class="comboName">
                     <input type="text" placeholder="套餐名稱" v-model="comboName">
                 </div>
-                <h1>{{ comboName }}</h1>
+                <!-- <h1>{{ comboName }}</h1> -->
                 <!-- <h1>{{ comboDetail }}</h1> -->
                 <!-- <h1>{{ selectedCategory }}</h1> -->
                 <!-- <h1>{{ selectedMeal }}</h1> -->
@@ -362,9 +362,9 @@ export default {
                     <!-- <h1>{{ discountAmount }}</h1> -->
                     <!-- <h1 v-if="mealContainer[0].length>0 && mealContainer[1].length>0">{{ totalPrice() }}</h1> -->
                 <div class="comboMain">
-                    <h1>{{ categories[0] }}</h1>
-                    <h1>{{ menus[0] }}</h1>
-                    <h1>{{ comboItemsList[0] }}</h1>
+                    <!-- <h1>{{ categories[0] }}</h1> -->
+                    <!-- <h1>{{ menus[0] }}</h1> -->
+                    <!-- <h1>{{ comboItemsList[0] }}</h1> -->
                     <div class="createCombo" @click="createMeal">+&nbsp&nbsp新增套餐</div>
                     <div class="comboItem" v-for="(comboItem, comboItemIndex) in comboItemsList">
                        
