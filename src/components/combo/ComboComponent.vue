@@ -23,6 +23,7 @@ export default {
             //edit template
             comboItemIndex:null,
             comboName:null,
+            oldComboName:null,
             selectedMeal:[],  // ['', '']
             selectedCategory:[],
             comboDetail:[], // [[], []]
@@ -71,13 +72,15 @@ export default {
         createMeal(){
             this.editeMode = true
             this.createMode = true
+            this.selectedMeal=[]
+            this.selectedCategory=[]
         },
         saveMeal(){
             axios.post("http://localhost:8080/pos/createCombo",{
                 "comboName":this.comboName,
                 "comboDetail":JSON.stringify(this.comboDetail),
                 "discountAmount":this.discountAmount,
-                "categoryId":9
+                "categoryId":8
             })
             .then(response=>{
                 console.log(response)
@@ -123,6 +126,10 @@ export default {
             this.editeMode = true
             this.comboItemIndex = comboItemIndex
             this.comboName = comboItem.comboName
+            this.oldComboName = comboItem.comboName
+
+            this.selectedMeal=[]
+            this.selectedCategory=[]
             for (let i=0; i<comboItem.comboDetail.length; i++){
                 this.selectedMeal.push('')
                 this.selectedCategory.push('')
@@ -132,13 +139,15 @@ export default {
             this.discountAmount = comboItem.discountAmount
         },
         updateMeal(){
-            console.log(this.comboDetail)
             this.comboDetail = this.comboDetail.filter(combo=>combo.dishes.length!=0)
+            console.log(this.oldComboName)
+            console.log(this.comboName)
             axios.post("http://localhost:8080/pos/updateCombo",{
-                "oldComboName":this.comboName,
+                "oldComboName":this.oldComboName,
                 "comboName":this.comboName,
                 "comboDetail":JSON.stringify(this.comboDetail),
-                "discountAmount":this.discountAmount
+                "discountAmount":this.discountAmount,
+                "category_id":9
             })
             .then(response=>{
                 console.log(response)
@@ -193,7 +202,7 @@ export default {
         },
 
         addComboContentInner(){
-            this.comboDetail.push({"categoryId":1,"dishes":[]})
+            this.comboDetail.push({"catgoryId":1,"dishes":[]})
             this.selectedMeal.push('')
             this.selectedCategory.push('')
 
@@ -222,6 +231,9 @@ export default {
 
             return totalAmount;
         },
+        // addCategory(categorName){
+        //     const categoryId = this.categories.find(category=>category.category == categorName)
+        // },
 
         addMeal(comboItemIndex){
             const dishes = this.comboDetail[comboItemIndex].dishes
@@ -230,6 +242,8 @@ export default {
             if(!mealExists){
                 const selectedMeal = this.menus.find(menu => menu.mealName == this.selectedMeal[comboItemIndex]);
                 this.comboDetail[comboItemIndex].dishes.push(selectedMeal.mealName)
+                const category = this.categories.find(category=>category.categoryId == selectedMeal.categoryId)
+                this.comboDetail[comboItemIndex].catgoryId = category.categoryId
             }
         },
         deleteMeal(comboItemIndex, meal){
@@ -291,11 +305,11 @@ export default {
                 <div class="comboName">
                     <input type="text" placeholder="套餐名稱" v-model="comboName">
                 </div>
-                <h1>{{ comboName }}</h1>
+                <!-- <h1>{{ comboName }}</h1> -->
                 <!-- <h1>{{ comboDetail }}</h1> -->
-                <!-- <h1>{{ selectedCategory }}</h1> -->
-                <!-- <h1>{{ selectedMeal }}</h1> -->
-                <!-- <h1>{{ comboDetail }}</h1> -->
+                <h1>{{ selectedCategory }}</h1>
+                <h1>{{ selectedMeal }}</h1>
+                <h1>{{ comboDetail }}</h1>
                 <!-- <h1>{{ comboItemsList }}</h1> -->
                 <div class="comboContent">
                     <div class="comboContentInner" v-for="(comboItem, comboItemIndex) in comboDetail">    
@@ -362,9 +376,9 @@ export default {
                     <!-- <h1>{{ discountAmount }}</h1> -->
                     <!-- <h1 v-if="mealContainer[0].length>0 && mealContainer[1].length>0">{{ totalPrice() }}</h1> -->
                 <div class="comboMain">
-                    <h1>{{ categories[0] }}</h1>
-                    <h1>{{ menus[0] }}</h1>
-                    <h1>{{ comboItemsList[0] }}</h1>
+                    <!-- <h1>{{ categories[0] }}</h1> -->
+                    <!-- <h1>{{ menus[0] }}</h1> -->
+                    <!-- <h1>{{ comboItemsList[0] }}</h1> -->
                     <div class="createCombo" @click="createMeal">+&nbsp&nbsp新增套餐</div>
                     <div class="comboItem" v-for="(comboItem, comboItemIndex) in comboItemsList">
                        

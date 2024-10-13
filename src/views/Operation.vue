@@ -50,7 +50,7 @@ export default {
         justify-content: start;
         align-items: center;
         flex-direction: column;
-        padding: 0 4%
+        padding: 0 2%
     }
 }
 </style>
