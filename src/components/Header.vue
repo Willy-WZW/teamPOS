@@ -50,7 +50,7 @@ export default {
         <div class="authorizations":class="{isSelected: selected === 'authorizations'}" @click="authorizations">
             <span>權限管理</span>
         </div>
-        <router-link class="comboLink" :to="{ name: 'comboPage' }">套餐入口</router-link>
+        <!-- <router-link class="comboLink" :to="{ name: 'comboPage' }">套餐入口</router-link> -->
     </div>
 </template>
 
