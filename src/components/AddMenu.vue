@@ -424,6 +424,7 @@ export default {
         async createMenu() {
             console.log(this.menuList);
 
+            // 1. 檢查每個菜單項的 mealName 和 price
             let invalidMealNames = [];
             let invalidPrices = [];
 
@@ -458,10 +459,37 @@ export default {
                 });
                 return; // 如果有無效項目，則不繼續執行
             }
+
+            // 2. 準備要傳送的表單資料
+            const formData = new FormData();
+            // 將 menuList 直接附加到 FormData
+            this.menuList.forEach((menu, index) => {
+                formData.append(`menuList[${index}].mealName`, menu.mealName);
+                formData.append(`menuList[${index}].price`, menu.price);
+                formData.append(`menuList[${index}].workstationId`, menu.workstationId);
+                formData.append(`menuList[${index}].available`, menu.available);
+                formData.append(`menuList[${index}].categoryId`, menu.categoryId);
+                formData.append(`menuList[${index}].pictureName`, ""); // 後端會設定路徑
+            });
+
+            // 添加圖片檔案至 FormData
+            this.menuList.forEach((menu) => {
+                if (menu.pictureName instanceof File) {
+                    formData.append('files', menu.pictureName);
+                }
+            });
+
+            // 3. 發送請求到後端
+            console.log(formData);
             try {
-                const menuData = { menuList: this.menuList };
-                console.log(menuData);
-                const response = await axios.post('http://localhost:8080/menu/create', menuData);
+                // const menuData = { menuList: this.menuList };
+                // console.log(menuData);
+                const response = await axios.post('http://localhost:8080/menu/create', formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data'
+                    }
+                });
+
                 if (response.data.code === 200) {
                     Swal.fire({
                         title: '成功',
@@ -483,7 +511,7 @@ export default {
                 console.error('新增菜單失敗:', error);
                 Swal.fire({
                     title: '錯誤',
-                    text: '請稍後再試',
+                    text: error.response?.data?.message || '請稍後再試',
                     icon: 'error',
                     confirmButtonText: '好的'
                 });
@@ -592,7 +620,7 @@ export default {
             try {
                 const response = await axios.get("http://localhost:8080/menu/all");
                 this.savedMenuList = response.data;
-                console.log(this.savedMenuList); // 查看獲取的菜單資料
+                // console.log(this.savedMenuList); // 查看獲取的菜單資料
             } catch (error) {
                 // console.error('獲取菜單時發生錯誤:', error);
                 Swal.fire({
@@ -953,25 +981,22 @@ export default {
         },
         // 用於觸發隱藏的 input 框
         selectFile(mealName) {
-            const fileInput = this.$refs[`fileInput_new_${mealName}`];
-            const inputElement = Array.isArray(fileInput) ? fileInput[0] : fileInput;
-            if (inputElement) {
-                inputElement.click();
-            } else {
-                console.error("new file input is undefined or not a valid input element");
+            // 使用 mealName 來查找 ref
+            const inputRef = this.$refs[`fileInput_new_${mealName}`];
+            if (inputRef && inputRef[0]) {
+                inputRef[0].click();
             }
         },
         // 處理文件上傳
         handleFileChange(event, mealName) {
             const file = event.target.files[0];
-            if (file) {
+            const menuIndex = this.menuList.findIndex(menu => menu.mealName === mealName);
+            if (file && menuIndex !== -1) {
+                // 使用 FileReader 來顯示圖片預覽
                 const reader = new FileReader();
                 reader.onload = (e) => {
-                    // 將 base64 資料設置到 pictureName
-                    const menuItem = this.menuList.find(menu => menu.mealName === mealName);
-                    if (menuItem) {
-                        menuItem.pictureName = e.target.result;
-                    }
+                    this.menuList[menuIndex].previewSrc = e.target.result; // 圖片預覽
+                    this.menuList[menuIndex].pictureName = file; // 儲存圖片檔案
                 };
                 reader.readAsDataURL(file);
             }
@@ -1117,7 +1142,7 @@ export default {
             <div class="menuArea" v-if="!comboPage">
                 <div class="menuTop">
                     <div class="mtLeft">
-                        <span>{{ selectedCategoryId == null ? '菜單分類' : selectedCategory}}</span>
+                        <span>{{ selectedCategoryId == null ? '菜單分類' : selectedCategory }}</span>
                     </div>
                     <div class="mtMid">
                         <i class="fa-solid fa-square-pen" :class="{ 'disIcon': selectedCategory == null }"
@@ -1189,12 +1214,13 @@ export default {
                     <!-- 按下新增餐點，動態新增的div -->
                     <div class="menuItem" v-for="(menu, index) in menuList" :key="index">
                         <div class="itemPic">
-                            <input type="file" :ref="'fileInput_new_' + menu.mealName" :key="'new' + mealName"
+                            <input type="file" :ref="'fileInput_new_' + menu.mealName" :key="'new' + menu.mealName"
                                 @change="event => handleFileChange(event, menu.mealName)" accept="image/*"
                                 style="display: none;" />
                             <!-- 如果有圖片預覽則顯示圖片，否則顯示上傳圖標 -->
                             <div class="prePicture" @click="selectFile(menu.mealName)" style="cursor: pointer;">
-                                <img v-if="menu.pictureName" :src="menu.pictureName" alt="Image Preview"
+                                <img v-if="menu.previewSrc || menu.pictureName"
+                                    :src="menu.previewSrc || menu.pictureName" alt="Image Preview"
                                     style="width: 100%; height: 100%;" />
                                 <i v-else class="fa-solid fa-upload"></i>
                             </div>
