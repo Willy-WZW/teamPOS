@@ -23,6 +23,7 @@ export default {
             //edit template
             comboItemIndex:null,
             comboName:null,
+            oldComboName:null,
             selectedMeal:[],  // ['', '']
             selectedCategory:[],
             comboDetail:[], // [[], []]
@@ -123,6 +124,7 @@ export default {
             this.editeMode = true
             this.comboItemIndex = comboItemIndex
             this.comboName = comboItem.comboName
+            this.oldComboName = comboItem.comboName
             for (let i=0; i<comboItem.comboDetail.length; i++){
                 this.selectedMeal.push('')
                 this.selectedCategory.push('')
@@ -132,13 +134,15 @@ export default {
             this.discountAmount = comboItem.discountAmount
         },
         updateMeal(){
-            console.log(this.comboDetail)
             this.comboDetail = this.comboDetail.filter(combo=>combo.dishes.length!=0)
+            console.log(this.oldComboName)
+            console.log(this.comboName)
             axios.post("http://localhost:8080/pos/updateCombo",{
-                "oldComboName":this.comboName,
+                "oldComboName":this.oldComboName,
                 "comboName":this.comboName,
                 "comboDetail":JSON.stringify(this.comboDetail),
-                "discountAmount":this.discountAmount
+                "discountAmount":this.discountAmount,
+                "category_id":9
             })
             .then(response=>{
                 console.log(response)
