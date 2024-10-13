@@ -472,7 +472,6 @@ export default {
             this.showPopup = false;
             this.showBackdrop = false;
         },
-
         // 加入訂單
         addToOrder() {
             const newOrder = {
@@ -633,6 +632,7 @@ export default {
                 <div class="orderList">
                     <h2>餐點明細</h2>
                     <div v-for="(order, index) in orderDetails" :key="index" class="orderItem">
+                        <!-- 餐點名稱 -->
                         <div class="itemName">
                             {{ order.item.mealName || order.item.comboName }}
                             <span v-if="order.item.mealName">${{ order.item.price }}</span>
@@ -642,11 +642,9 @@ export default {
                         <div class="customization" v-if="Object.keys(order.customization).length">
                             <ul>
                                 <li v-for="(option, key) in order.customization" :key="key">
-                                    {{ key }}:
                                     <span v-if="Array.isArray(option)">
                                         <span v-for="item in option" :key="item.optionContent"> {{ item.optionContent }} +${{ item.extraPrice }} </span>
                                     </span>
-                                    <span v-else> {{ option.optionContent }} +${{ option.extraPrice }} </span>
                                 </li>
                             </ul>
                         </div>
