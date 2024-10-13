@@ -308,18 +308,18 @@ export default {
             // 檢查所有的值是否已經填寫完畢
             if (this.openingTime && this.closingTime && this.diningDuration) {
                 try {
-                const response = await axios.get('http://localhost:8080/reservation/calculateAvailableStartTimes', {
-                    params: {
-                    openingTime: this.openingTime,
-                    closingTime: this.closingTime,
-                    diningDuration: this.diningDuration
-                    }
-                });
-                
-                // 更新 timeSlots
-                this.timeSlots = response.data;
+                    const response = await axios.get('http://localhost:8080/reservation/calculateAvailableStartTimes', {
+                        params: {
+                            openingTime: this.openingTime,
+                            closingTime: this.closingTime,
+                            diningDuration: this.diningDuration
+                        }
+                    });
+
+                    // 提取開始時間
+                    this.timeSlots = response.data.map(slot => slot.startTime);
                 } catch (error) {
-                console.error('Error fetching time slots:', error);
+                    console.error('Error fetching time slots:', error);
                 }
             }
         },

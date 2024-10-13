@@ -100,7 +100,7 @@ export default {
             //         },
             //     ],
             // },
-            selectedDate: new Date().toISOString().substring(0, 10), // 預設為當日日期（格式 yyyy-MM-dd）
+            selectedDate: "", // 預設為當日日期（格式 yyyy-MM-dd）
             orderList: [], // 存放訂單列表資料
             drawerVisible: false, // Drawer 顯示控制
             selectedOrder: {}, // 被選中的訂單詳細資料
@@ -201,9 +201,12 @@ export default {
     },
     mounted() {
 
-        const today = new Date().toISOString().split('T')[0];
-        document.querySelector('.dateInput').setAttribute('max', today);
+        const today = new Date();
+        today.setHours(today.getHours() + 8); // 將時間調整為台灣時間
+        const localDate = today.toISOString().split('T')[0];
+        document.querySelector('.dateInput').setAttribute('max', localDate);
         
+        this.selectedDate = localDate;
 
         //預設加載當日訂單資料
         this.fetchOrders();
