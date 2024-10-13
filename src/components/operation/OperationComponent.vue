@@ -166,9 +166,6 @@ export default{
     },
     mounted() {
 
-
-
-
         axios.post("http://localhost:8080/pos/analysis", {   
             "startDate": "",
             "endDate": ""
@@ -277,6 +274,19 @@ export default{
             this.endDate = `${year}-${month}-${lastDay}`;
             this.postStartDateAndEndDate(this.startDate, this.endDate)
             this.preCurrentMonth
+
+            //這是為了計算第二張圖用的
+            this.option.legend.data[1] = String(year)
+            this.option.series[1].name = String(year)
+            this.option.legend.data[0] = String(year-1)
+            this.option.series[0].name = String(year-1)
+
+
+            // 接下來送出一年的12個月份
+            //[preDates,currentDates]
+            let result = this.getFirstAndLastDaysOfYear(year);
+            this.postEveryMonthOfYear(result)
+
 
             return `${year}年${month}月`;
         },
@@ -793,9 +803,8 @@ export default{
 
 <div class="container" v-if="analysis">
     <div class="innerContainer0">
-
         <p class="topStyle" :class="{topStyleClick: currentTopSelect == '日常統計'}" @click="currentTopSelect = '日常統計'">日常統計</p>
-        <p class="topStyle" :class="{topStyleClick: currentTopSelect == '活動統計'}"  @click="currentTopSelect = '活動統計'">活動統計</p>
+        <!-- <p class="topStyle" :class="{topStyleClick: currentTopSelect == '活動統計'}"  @click="currentTopSelect = '活動統計'">活動統計</p> -->
     </div>
     <!-- <h1>{{ allDateList }}</h1>
     <h1 >{{ dateForDay }}</h1>
@@ -1249,8 +1258,6 @@ $down-font: #388e3c;
                     &:nth-child(2){
                         width: 60%;
                     }
-
-
                     h1{
                         font-size: 25px;
                         margin: 0 0 20px 0;
@@ -1272,9 +1279,7 @@ $down-font: #388e3c;
                         border: 1px solid rgba(0, 0, 0, 0.25);
                     }
                 }
-
             }
-            
         }
         .innerContainer2-Right{
             width: 25%;
