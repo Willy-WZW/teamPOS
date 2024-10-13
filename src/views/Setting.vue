@@ -75,6 +75,7 @@ export default {
         width: 100%;
         height: 100%;
         overflow-y: scroll;
+        scrollbar-width: none;
         display: flex;
         justify-content: start;
         align-items: start;
