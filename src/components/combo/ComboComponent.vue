@@ -307,9 +307,9 @@ export default {
                 </div>
                 <!-- <h1>{{ comboName }}</h1> -->
                 <!-- <h1>{{ comboDetail }}</h1> -->
-                <h1>{{ selectedCategory }}</h1>
-                <h1>{{ selectedMeal }}</h1>
-                <h1>{{ comboDetail }}</h1>
+                <!-- <h1>{{ selectedCategory }}</h1> -->
+                <!-- <h1>{{ selectedMeal }}</h1> -->
+                <!-- <h1>{{ comboDetail }}</h1> -->
                 <!-- <h1>{{ comboItemsList }}</h1> -->
                 <div class="comboContent">
                     <div class="comboContentInner" v-for="(comboItem, comboItemIndex) in comboDetail">    
