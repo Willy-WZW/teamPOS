@@ -267,12 +267,10 @@ export default {
 
 <style scoped lang="scss">
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@100..900&display=swap');
-$active-color: #DDE1E6;
 $boxShadow: #F2F4F8;
 $background-color: #FFFFFF;
 $black-color: #1E1E1E;
-$gray-color: #c1c7cd;
-
+$gray-color: #DDE1E6;
 
 .lefter {
     width: 100%;
@@ -281,20 +279,20 @@ $gray-color: #c1c7cd;
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 10px;
+    padding: 0.625rem;
 
     .timeCode {
         width: 100%;
         height: 10%;
-        border-bottom: 1px solid $gray-color;
+        border-bottom: 0.0625rem solid $gray-color; // 原本的 1px 轉換為 0.0625rem
         display: flex;
         justify-content: center;
         align-items: center;
         flex-direction: column;
 
         .timeStyle {
-            margin: 10px auto;
-            font-size: 18px;
+            margin: 0.625rem auto; 
+            font-size: 1.125rem; 
         }
     }
 
@@ -311,16 +309,16 @@ $gray-color: #c1c7cd;
         // 新增通用按鈕樣式
         .button-common {
             width: 97%;
-            height: 75px; // 固定高度
-            border-radius: 10px;
-            box-shadow: -6px 5px 1px $boxShadow;
+            height: 4.6875rem; // 原本的 75px 轉換為 4.6875rem
+            border-radius: 0.625rem; // 原本的 10px 轉換為 0.625rem
+            box-shadow: -0.375rem 0.3125rem 0.0625rem $boxShadow; // 原本的 -6px 5px 1px $boxShadow 轉換為 rem
             display: flex;
             flex-direction: column;
             justify-content: space-evenly;
             align-items: center;
             font-family: "Noto Sans TC", sans-serif;
             cursor: pointer;
-            padding: 5px;
+            padding: 0.3125rem; // 原本的 5px 轉換為 0.3125rem
 
             i,
             .material-symbols-outlined {
@@ -329,8 +327,8 @@ $gray-color: #c1c7cd;
             }
 
             h3 {
-                font-size: 16px; // 統一文字大小
-                letter-spacing: 2px;
+                font-size: 1rem; // 原本的 16px 轉換為 1rem
+                letter-spacing: 0.125rem; // 原本的 2px 轉換為 0.125rem
             }
         }
 
@@ -349,14 +347,14 @@ $gray-color: #c1c7cd;
         }
 
         .selected {
-            background-color: $active-color;
+            background-color: $gray-color;
             box-shadow: none;
         }
     }
 
     .userAndlogoutArea {
         width: 100%;
-        height: 120px;
+        height: 7.5rem; // 原本的 120px 轉換為 7.5rem
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -365,15 +363,15 @@ $gray-color: #c1c7cd;
 
         .Permissions {
             width: 97%;
-            height: 85px; // 固定高度
-            border-bottom: 1px solid $gray-color;
+            height: 5.3125rem; // 原本的 85px 轉換為 5.3125rem
+            border-bottom: 0.0625rem solid $gray-color; // 原本的 1px 轉換為 0.0625rem
             display: flex;
             flex-direction: column;
             justify-content: space-evenly;
             align-items: center;
             font-family: "Noto Sans TC", sans-serif;
             cursor: pointer;
-            padding: 5px;
+            padding: 0.3125rem; // 原本的 5px 轉換為 0.3125rem
 
             i,
             .material-symbols-outlined {
@@ -382,8 +380,8 @@ $gray-color: #c1c7cd;
             }
 
             h3 {
-                font-size: 16px; // 統一文字大小
-                letter-spacing: 2px;
+                font-size: 1rem; // 原本的 16px 轉換為 1rem
+                letter-spacing: 0.125rem; // 原本的 2px 轉換為 0.125rem
             }
         }
 
@@ -393,9 +391,9 @@ $gray-color: #c1c7cd;
             text-decoration: none;
             color: $black-color;
             font-weight: bold;
-            letter-spacing: 4px;
-            font-size: 20px;
-            padding: 10px;
+            letter-spacing: 0.25rem; // 原本的 4px 轉換為 0.25rem
+            font-size: 1.25rem; // 原本的 20px 轉換為 1.25rem
+            padding: 0.625rem; // 原本的 10px 轉換為 0.625rem
             cursor: pointer;
         }
     }
