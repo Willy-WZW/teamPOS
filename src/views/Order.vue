@@ -6,314 +6,15 @@ export default {
         return {
             // Res格式
             orderMenuData: {
-                // code: 200,
-                // message: "Success!",
                 categoriesList: [
-                    // { categoryId: 2, category: "漢堡" },
-                    // { categoryId: 3, category: "吐司" },
-                    // { categoryId: 4, category: "蛋餅" },
-                    // { categoryId: 5, category: "沙拉" },
-                    // { categoryId: 6, category: "炒泡麵" },
-                    // { categoryId: 7, category: "炸物" },
-                    // { categoryId: 8, category: "飲料" },
-                    // { categoryId: 9, category: "套餐" },
                 ],
                 menuItemList: [
-                    // { categoryId: 2, mealName: "歐姆蛋堡", price: 55, workstationId: 1, available: 1, picture: "base64" },
-                    // { categoryId: 2, mealName: "燻雞堡", price: 65, workstationId: 1, available: 1, picture: "base64" },
-                    // { categoryId: 2, mealName: "牛肉堡", price: 75, workstationId: 1, available: 1, picture: "base64" },
-                    // { categoryId: 2, mealName: "田園蔬菜堡", price: 40, workstationId: 1, available: 1, picture: "base64" },
-                    // { categoryId: 2, mealName: "豬肉堡", price: 70, workstationId: 1, available: 1, picture: "base64" },
-                    // { categoryId: 3, mealName: "培根蛋吐司", price: 40, workstationId: 2, available: 1, picture: "base64" },
-                    // { categoryId: 3, mealName: "火腿蛋吐司", price: 40, workstationId: 2, available: 1, picture: "base64" },
-                    // { categoryId: 3, mealName: "煎蛋吐司", price: 30, workstationId: 2, available: 1, picture: "base64" },
-                    // { categoryId: 3, mealName: "薯餅蛋吐司", price: 45, workstationId: 2, available: 1, picture: "base64" },
-                    // { categoryId: 3, mealName: "鮪魚蛋吐司", price: 40, workstationId: 2, available: 1, picture: "base64" },
-                    // { categoryId: 4, mealName: "九層塔蛋餅", price: 45, workstationId: 3, available: 1, picture: "base64" },
-                    // { categoryId: 4, mealName: "原味蛋餅", price: 30, workstationId: 3, available: 1, picture: "base64" },
-                    // { categoryId: 4, mealName: "火腿蛋餅", price: 45, workstationId: 3, available: 1, picture: "base64" },
-                    // { categoryId: 4, mealName: "蔬菜蛋餅", price: 40, workstationId: 3, available: 1, picture: "base64" },
-                    // { categoryId: 4, mealName: "起司蛋餅", price: 40, workstationId: 3, available: 1, picture: "base64" },
-                    // { categoryId: 5, mealName: "凱薩沙拉", price: 70, workstationId: 4, available: 1, picture: "base64" },
-                    // { categoryId: 5, mealName: "煙燻鮭魚沙拉", price: 130, workstationId: 4, available: 1, picture: "base64" },
-                    // { categoryId: 5, mealName: "鮮蝦沙拉", price: 80, workstationId: 4, available: 1, picture: "base64" },
-                    // { categoryId: 6, mealName: "原味炒泡麵", price: 45, workstationId: 5, available: 1, picture: "base64" },
-                    // { categoryId: 6, mealName: "泰式炒泡麵", price: 50, workstationId: 5, available: 1, picture: "base64" },
-                    // { categoryId: 6, mealName: "牛肉炒泡麵", price: 60, workstationId: 5, available: 1, picture: "base64" },
-                    // { categoryId: 6, mealName: "豬肉炒泡麵", price: 55, workstationId: 5, available: 1, picture: "base64" },
-                    // { categoryId: 7, mealName: "洋蔥圈", price: 35, workstationId: 6, available: 1, picture: "base64" },
-                    // { categoryId: 7, mealName: "薯條", price: 40, workstationId: 6, available: 1, picture: "base64" },
-                    // { categoryId: 7, mealName: "薯餅", price: 30, workstationId: 6, available: 1, picture: "base64" },
-                    // { categoryId: 7, mealName: "雞塊", price: 40, workstationId: 6, available: 1, picture: "base64" },
-                    // { categoryId: 8, mealName: "紅茶", price: 25, workstationId: 7, available: 1, picture: "base64" },
-                    // { categoryId: 8, mealName: "綠茶", price: 25, workstationId: 7, available: 1, picture: "base64" },
-                    // { categoryId: 8, mealName: "美式咖啡", price: 50, workstationId: 7, available: 1, picture: "base64" },
-                    // { categoryId: 8, mealName: "鮮奶紅茶", price: 35, workstationId: 7, available: 1, picture: "base64" },
-                    // { categoryId: 8, mealName: "鮮奶綠茶", price: 35, workstationId: 7, available: 1, picture: "base64" },
                 ],
                 optionList: [
-                    // {
-                    //     categoryId: 2,
-                    //     optionTitle: "加料",
-                    //     optionType: "checkbox",
-                    //     optionItems: [
-                    //         { optionContent: "培根", extraPrice: 20 },
-                    //         { optionContent: "蔬菜", extraPrice: 20 },
-                    //         { optionContent: "雙層", extraPrice: 40 },
-                    //     ],
-                    // },
-                    // {
-                    //     categoryId: 2,
-                    //     optionTitle: "加蛋",
-                    //     optionType: "radio",
-                    //     optionItems: [
-                    //         { optionContent: "全熟蛋", extraPrice: 15 },
-                    //         { optionContent: "半熟蛋", extraPrice: 15 },
-                    //         { optionContent: "歐姆蛋", extraPrice: 25 },
-                    //     ],
-                    // },
-                    // {
-                    //     categoryId: 3,
-                    //     optionTitle: "加蛋",
-                    //     optionType: "radio",
-                    //     optionItems: [
-                    //         { optionContent: "全熟蛋", extraPrice: 15 },
-                    //         { optionContent: "半熟蛋", extraPrice: 15 },
-                    //         { optionContent: "歐姆蛋", extraPrice: 25 },
-                    //     ],
-                    // },
-                    // {
-                    //     categoryId: 3,
-                    //     optionTitle: "加起司",
-                    //     optionType: "radio",
-                    //     optionItems: [
-                    //         { optionContent: "不炙燒", extraPrice: 10 },
-                    //         { optionContent: "炙燒", extraPrice: 10 },
-                    //     ],
-                    // },
-                    // {
-                    //     categoryId: 4,
-                    //     optionTitle: "加料",
-                    //     optionType: "checkbox",
-                    //     optionItems: [
-                    //         { optionContent: "九層塔", extraPrice: 10 },
-                    //         { optionContent: "火腿", extraPrice: 10 },
-                    //         { optionContent: "起司", extraPrice: 10 },
-                    //     ],
-                    // },
-                    // {
-                    //     categoryId: 4,
-                    //     optionTitle: "辣",
-                    //     optionType: "radio",
-                    //     optionItems: [
-                    //         { optionContent: "不辣", extraPrice: 0 },
-                    //         { optionContent: "加特製辣醬", extraPrice: 0 },
-                    //     ],
-                    // },
-                    // {
-                    //     categoryId: 5,
-                    //     optionTitle: "加料",
-                    //     optionType: "checkbox",
-                    //     optionItems: [
-                    //         { optionContent: "水煮蛋", extraPrice: 10 },
-                    //         { optionContent: "酪梨", extraPrice: 20 },
-                    //         { optionContent: "雞胸肉", extraPrice: 30 },
-                    //     ],
-                    // },
-                    // {
-                    //     categoryId: 5,
-                    //     optionTitle: "醬料",
-                    //     optionType: "radio",
-                    //     optionItems: [
-                    //         { optionContent: "不醬", extraPrice: 0 },
-                    //         { optionContent: "低脂醬", extraPrice: 0 },
-                    //     ],
-                    // },
-                    // {
-                    //     categoryId: 6,
-                    //     optionTitle: "加料",
-                    //     optionType: "checkbox",
-                    //     optionItems: [
-                    //         { optionContent: "肉多多", extraPrice: 20 },
-                    //         { optionContent: "菜多多", extraPrice: 15 },
-                    //     ],
-                    // },
-                    // {
-                    //     categoryId: 6,
-                    //     optionTitle: "加蛋",
-                    //     optionType: "radio",
-                    //     optionItems: [
-                    //         { optionContent: "全熟蛋", extraPrice: 15 },
-                    //         { optionContent: "半熟蛋", extraPrice: 15 },
-                    //         { optionContent: "炒蛋", extraPrice: 20 },
-                    //     ],
-                    // },
-                    // {
-                    //     categoryId: 6,
-                    //     optionTitle: "辣度",
-                    //     optionType: "radio",
-                    //     optionItems: [
-                    //         { optionContent: "不辣", extraPrice: 0 },
-                    //         { optionContent: "中辣", extraPrice: 0 },
-                    //         { optionContent: "大辣", extraPrice: 0 },
-                    //         { optionContent: "小辣", extraPrice: 0 },
-                    //     ],
-                    // },
-                    // {
-                    //     categoryId: 7,
-                    //     optionTitle: "胡椒",
-                    //     optionType: "radio",
-                    //     optionItems: [
-                    //         { optionContent: "不胡椒", extraPrice: 0 },
-                    //         { optionContent: "多胡椒", extraPrice: 0 },
-                    //     ],
-                    // },
-                    // {
-                    //     categoryId: 7,
-                    //     optionTitle: "醬料",
-                    //     optionType: "radio",
-                    //     optionItems: [
-                    //         { optionContent: "不醬", extraPrice: 0 },
-                    //         { optionContent: "番茄醬", extraPrice: 0 },
-                    //         { optionContent: "糖醋醬", extraPrice: 0 },
-                    //     ],
-                    // },
-                    // {
-                    //     categoryId: 8,
-                    //     optionTitle: "冰塊",
-                    //     optionType: "radio",
-                    //     optionItems: [
-                    //         { optionContent: "去冰", extraPrice: 0 },
-                    //         { optionContent: "少冰", extraPrice: 0 },
-                    //         { optionContent: "微冰", extraPrice: 0 },
-                    //         { optionContent: "正常冰", extraPrice: 0 },
-                    //     ],
-                    // },
-                    // {
-                    //     categoryId: 8,
-                    //     optionTitle: "加料",
-                    //     optionType: "checkbox",
-                    //     optionItems: [
-                    //         { optionContent: "椰果", extraPrice: 10 },
-                    //         { optionContent: "珍珠", extraPrice: 10 },
-                    //         { optionContent: "粉粿", extraPrice: 10 },
-                    //     ],
-                    // },
-                    // {
-                    //     categoryId: 8,
-                    //     optionTitle: "甜度",
-                    //     optionType: "radio",
-                    //     optionItems: [
-                    //         { optionContent: "半糖", extraPrice: 0 },
-                    //         { optionContent: "微糖", extraPrice: 0 },
-                    //         { optionContent: "正常甜", extraPrice: 0 },
-                    //         { optionContent: "無糖", extraPrice: 0 },
-                    //     ],
-                    // },
                 ],
                 comboList: [
-                    {
-                        comboName: "一號餐",
-                        comboDetail: [
-                            { categoryId: 2, workstationId: 2, dishesList: [{ dishName: "歐姆蛋堡", price: 55 }] },
-                            {
-                                categoryId: 7,
-                                workstationId: 7,
-                                dishesList: [
-                                    { dishName: "薯條", price: 40 },
-                                    { dishName: "雞塊", price: 40 },
-                                    { dishName: "洋蔥圈", price: 35 },
-                                ],
-                            },
-                            {
-                                categoryId: 8,
-                                workstationId: 8,
-                                dishesList: [
-                                    { dishName: "紅茶", price: 25 },
-                                    { dishName: "綠茶", price: 25 },
-                                    { dishName: "美式咖啡", price: 50 },
-                                ],
-                            },
-                        ],
-                        discountAmount: -20,
-                    },
-                    {
-                        comboName: "二號餐",
-                        comboDetail: [
-                            { categoryId: 6, workstationId: 6, dishesList: [{ dishName: "泰式炒泡麵", price: 50 }] },
-                            {
-                                categoryId: 2,
-                                workstationId: 2,
-                                dishesList: [
-                                    { dishName: "豬肉堡", price: 70 },
-                                    { dishName: "牛肉堡", price: 75 },
-                                ],
-                            },
-                        ],
-                        discountAmount: -25,
-                    },
-                    {
-                        comboName: "三號餐",
-                        comboDetail: [
-                            { categoryId: 5, workstationId: 5, dishesList: [{ dishName: "鮮蝦沙拉", price: 80 }] },
-                            {
-                                categoryId: 4,
-                                workstationId: 4,
-                                dishesList: [
-                                    { dishName: "九層塔蛋餅", price: 45 },
-                                    { dishName: "火腿蛋餅", price: 45 },
-                                    { dishName: "蔬菜蛋餅", price: 40 },
-                                ],
-                            },
-                        ],
-                        discountAmount: -30,
-                    },
-                    {
-                        comboName: "四號餐",
-                        comboDetail: [
-                            { categoryId: 5, workstationId: 5, dishesList: [{ dishName: "凱薩沙拉", price: 70 }] },
-                            {
-                                categoryId: 8,
-                                workstationId: 8,
-                                dishesList: [
-                                    { dishName: "紅茶", price: 25 },
-                                    { dishName: "綠茶", price: 25 },
-                                    { dishName: "鮮奶紅茶", price: 35 },
-                                    { dishName: "鮮奶綠茶", price: 35 },
-                                ],
-                            },
-                        ],
-                        discountAmount: -15,
-                    },
-                    {
-                        comboName: "五號餐",
-                        comboDetail: [
-                            { categoryId: 3, workstationId: 3, dishesList: [{ dishName: "原味蛋吐司", price: 30 }] },
-                            {
-                                categoryId: 7,
-                                workstationId: 7,
-                                dishesList: [
-                                    { dishName: "薯條", price: 40 },
-                                    { dishName: "雞塊", price: 40 },
-                                ],
-                            },
-                            {
-                                categoryId: 8,
-                                workstationId: 8,
-                                dishesList: [
-                                    { dishName: "紅茶", price: 25 },
-                                    { dishName: "綠茶", price: 25 },
-                                    { dishName: "美式咖啡", price: 50 },
-                                    { dishName: "鮮奶紅茶", price: 35 },
-                                    { dishName: "鮮奶綠茶", price: 35 },
-                                ],
-                            },
-                        ],
-                        discountAmount: -10,
-                    },
                 ],
                 tableNumberList: [
-                    // "A01", "A02", "A03", "A04", "A05"
                 ],
             },
             // 各項資料分類
@@ -341,17 +42,8 @@ export default {
     },
     computed: {},
     mounted() {
-        //this.fetchOrderMenuData();
         this.fetchOrderData();
-        // 初始化 orderMenuData 並進行資料分配
-        // console.log("看一下" + this.categories);
-        // console.log(this.orderMenuData.categoriesList);
-        
-        // this.categories = this.orderMenuData.categoriesList;
-        // this.menuItems = this.orderMenuData.menuItemList;
-        // this.options = this.orderMenuData.optionList;
-        this.combos = this.orderMenuData.comboList;
-        // this.tables = this.orderMenuData.tableNumberList;
+    
         // 預設載入第一個分類的餐點
         if (this.categories.length > 0) {
             this.selectedCategory = this.categories[0].categoryId;
@@ -378,7 +70,7 @@ export default {
                     this.categories = this.orderMenuData.categoriesList;
                     this.menuItems = this.orderMenuData.menuItemList;
                     this.options = this.orderMenuData.optionList;
-                    // this.combos = this.orderMenuData.comboList;
+                    this.combos = this.orderMenuData.comboList;
                     this.tables = this.orderMenuData.tableNumberList;
 
                 })
@@ -387,17 +79,7 @@ export default {
                 });
 
 
-
-            // axios
-            //     .get("/pos/getOrderMenu")
-            //     .then((response) => {
-            //         this.orderMenuData = response.data; // 用後端資料替換初始化的假資料
-                    
-                    
-            //     })
-            //     .catch((error) => {
-            //         console.error("Error fetching data: ", error);
-            //     });
+          
         },
         // 根據所選分類篩選餐點
         filterMenuByCategory(categoryId) {
@@ -545,7 +227,9 @@ export default {
                 <h1>菜單</h1>
                 <!-- 各菜單分類區塊 -->
                 <div class="categories">
-                    <button v-for="category in categories" :key="category.categoryId" @click="filterMenuByCategory(category.categoryId)" :class="{ active: selectedCategory === category.categoryId }">
+                    <button v-for="category in categories" :key="category.categoryId"
+                        @click="filterMenuByCategory(category.categoryId)"
+                        :class="{ active: selectedCategory === category.categoryId }">
                         {{ category.category }}
                     </button>
                 </div>
@@ -554,7 +238,8 @@ export default {
                 <div class="menu">
                     <!-- 單點品項-->
                     <div v-if="selectedCategory !== 9">
-                        <div v-for="item in filteredMenuItems" :key="item.mealName" class="menuItem" @click="showItemPopup(item)">
+                        <div v-for="item in filteredMenuItems" :key="item.mealName" class="menuItem"
+                            @click="showItemPopup(item)">
                             <div class="imageIcon">{{ item.picture }}</div>
                             <div class="itemName">{{ item.mealName }}</div>
                             <div class="itemPrice">${{ item.price }}</div>
@@ -563,7 +248,8 @@ export default {
 
                     <!-- 套餐品項 -->
                     <div v-if="selectedCategory === 9">
-                        <div v-for="combo in filteredMenuItems" :key="combo.comboName" class="menuItem" @click="showItemPopup(combo)">
+                        <div v-for="combo in filteredMenuItems" :key="combo.comboName" class="menuItem"
+                            @click="showItemPopup(combo)">
                             <div class="itemName">{{ combo.comboName }}</div>
                             <div class="comboDishes">
                                 <div v-for="detail in combo.comboDetail" :key="detail.categoryId" class="mainDish">
@@ -604,10 +290,12 @@ export default {
 
                 <!-- 3. 單點客製化選項 -->
                 <div v-if="selectedCategory !== 9">
-                    <div v-for="option in options.filter((opt) => opt.categoryId === selectedCategory)" :key="option.optionTitle" class="optionGroup">
+                    <div v-for="option in options.filter((opt) => opt.categoryId === selectedCategory)"
+                        :key="option.optionTitle" class="optionGroup">
                         <h4>{{ option.optionTitle }}</h4>
                         <div v-for="item in option.optionItems" :key="item.optionContent" class="optionItem">
-                            <input :type="option.optionType" :id="item.optionContent" :value="item" v-model="selectedOptions[option.optionTitle]" @change="updateTotalAmount" />
+                            <input :type="option.optionType" :id="item.optionContent" :value="item"
+                                v-model="selectedOptions[option.optionTitle]" @change="updateTotalAmount" />
                             <label :for="item.optionContent">
                                 <span>{{ item.optionContent }}</span>
                                 <span class="optionPrice">+ ${{ item.extraPrice }}</span>
@@ -622,7 +310,9 @@ export default {
                         <h4>{{ categories.find((cat) => cat.categoryId === detail.categoryId).category }}</h4>
 
                         <div v-for="dish in detail.dishesList" :key="dish.dishName" class="optionItem">
-                            <input type="radio" :id="dish.dishName" :value="dish" v-model="selectedDishes[detail.categoryId]" @change="updateComboTotal" :name="detail.categoryId" />
+                            <input type="radio" :id="dish.dishName" :value="dish"
+                                v-model="selectedDishes[detail.categoryId]" @change="updateComboTotal"
+                                :name="detail.categoryId" />
                             <label :for="dish.dishName">
                                 <span>{{ dish.dishName }}</span>
                                 <span class="dishPrice">+ ${{ dish.price }}</span>
@@ -678,7 +368,8 @@ export default {
                             <ul>
                                 <li v-for="(option, key) in order.customization" :key="key">
                                     <span v-if="Array.isArray(option)">
-                                        <span v-for="item in option" :key="item.optionContent"> {{ item.optionContent }} +${{ item.extraPrice }} </span>
+                                        <span v-for="item in option" :key="item.optionContent"> {{ item.optionContent }}
+                                            +${{ item.extraPrice }} </span>
                                     </span>
                                 </li>
                             </ul>
@@ -705,7 +396,8 @@ export default {
 
                 <!-- 總價和訂單按鈕 -->
                 <div class="submitButton">
-                    <div class="totalPrice">合計&nbsp;&nbsp;&nbsp; $ {{ orderDetails.reduce((sum, order) => sum + order.totalPrice, 0) }}</div>
+                    <div class="totalPrice">合計&nbsp;&nbsp;&nbsp; $ {{ orderDetails.reduce((sum, order) => sum +
+                        order.totalPrice, 0) }}</div>
                     <button @click="submitOrder">送出訂單</button>
                 </div>
             </div>
@@ -741,7 +433,8 @@ export default {
         // border: 2px solid black;
 
         .menuSection {
-            width: 70%; /* 固定菜單區塊寬度 */
+            width: 70%;
+            /* 固定菜單區塊寬度 */
             display: flex;
             flex-direction: column;
             border: 1px solid rgba(grey, 0.5);
@@ -808,6 +501,7 @@ export default {
                     &:hover {
                         border: 3px solid rgba(grey, 1);
                     }
+
                     //缺 &.active 的 class
 
                     .imageIcon {
@@ -819,6 +513,7 @@ export default {
                         justify-content: center;
                         align-items: center;
                         margin-bottom: 2%;
+
                         i {
                             color: rgba(grey, 0.8);
                         }
@@ -843,7 +538,8 @@ export default {
         }
 
         .orderSection {
-            width: 29%; /* 固定訂單區塊寬度 */
+            width: 29%;
+            /* 固定訂單區塊寬度 */
             display: flex;
             flex-direction: column;
             border: 1px solid rgba(grey, 0.5);
@@ -870,6 +566,7 @@ export default {
                 span {
                     font-size: 1rem;
                 }
+
                 select {
                     margin-left: 10%;
                     width: 70%;
@@ -922,8 +619,10 @@ export default {
                         margin-bottom: 10px;
 
                         ul {
-                            padding-left: 20px; /* 使用點狀列表 */
-                            list-style-type: disc; /* 設定列表樣式 */
+                            padding-left: 20px;
+                            /* 使用點狀列表 */
+                            list-style-type: disc;
+                            /* 設定列表樣式 */
 
                             li {
                                 margin-bottom: 5px;
@@ -1052,6 +751,7 @@ export default {
                     display: flex;
                     align-items: center;
                     justify-content: center;
+
                     i {
                         color: rgba(grey, 1);
                     }
@@ -1103,7 +803,8 @@ export default {
                             .optionPrice {
                                 /* 右側顯示額外價格 */
                                 text-align: right;
-                                margin-left: auto; /* 自動將額外價格推至右側 */
+                                margin-left: auto;
+                                /* 自動將額外價格推至右側 */
                             }
                         }
                     }
