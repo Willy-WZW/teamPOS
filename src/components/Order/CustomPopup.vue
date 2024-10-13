@@ -1,79 +1,126 @@
 <script>
 export default {
     props: {
-        item: Object, // 接收選擇的餐點或套餐資料
+        item: Object,
         optionsList: Array,
+        categoriesList: Array,
     },
     data() {
         return {
-            selectedDish: null, // 追蹤套餐中的選中餐點
-            selectedOptions: {}, // 存放選擇的客製化內容
+            singleDishes: {}, // 單點餐點
+            comboDishes: {}, // 套餐餐點
+            singleOptions: {}, // 單點選項
+            comboOptions: {}, // 套餐選項
+            totalPrice: 0,
         };
     },
     computed: {
-        // 根據 item 判斷是否為套餐，並格式化顯示資料
         isCombo() {
             return !!this.item.comboDetail;
         },
-        comboDetails() {
-            return this.item.comboDetail.map((detail) => detail.dishesList[0].dishName).join(", ");
-        },
-        itemPrice() {
-            if (this.isCombo) {
-                return this.item.comboPrice;
-            }
-            return this.item.price;
-        },
-        comboDishes() {
-            // 套餐中的所有菜品，以 Radio 顯示
+        groupedComboDishes() {
             return this.item.comboDetail.map((detail) => ({
-                name: detail.dishesList[0].dishName,
-                price: detail.dishesList[0].price,
+                categoryName: this.getCategoryName(detail.categoryId),
                 categoryId: detail.categoryId,
+                dishes: detail.dishesList.map((dish) => ({
+                    name: dish.dishName,
+                    price: dish.price,
+                    categoryId: detail.categoryId,
+                })),
             }));
         },
+        itemPrice() {
+            return this.isCombo ? this.item.comboPrice : this.item.price;
+        },
         filteredOptions() {
-            let categoryId;
-
-            // 如果是套餐，從選中的 dish 中取得 categoryId
-            if (this.isCombo && this.selectedDish) {
-                categoryId = this.selectedDish.categoryId;
-            } else if (this.item) {
-                categoryId = this.item.categoryId;
-            }
-
-            // 如果 categoryId 不存在，避免錯誤
-            if (!categoryId) return [];
-
+            const selectedDish = this.singleDishes.default || null;
+            const categoryId = selectedDish ? selectedDish.categoryId : this.item.categoryId;
             return this.optionsList.filter((option) => option.categoryId === categoryId);
         },
     },
     mounted() {
-        if (this.isCombo && this.comboDishes.length > 0) {
-            // 預設選擇第一個 dish
-            this.selectedDish = this.comboDishes[0];
+        if (this.isCombo) {
+            this.comboDishes = this.groupedComboDishes.reduce((acc, group) => {
+                acc[group.categoryName] = group.dishes[0];
+                return acc;
+            }, {});
         } else {
-            this.selectedDish = this.item || null;
+            this.singleDishes = { default: this.item };
         }
     },
     methods: {
-        selectDish(dish) {
-            this.selectedDish = dish; // 更新選中的菜品
-        },
-        toggleOption(optionTitle, optionContent) {
-            // 切換選擇的客製化選項
-            if (!this.selectedOptions[optionTitle]) {
-                this.selectedOptions[optionTitle] = [];
-            }
-            const index = this.selectedOptions[optionTitle].indexOf(optionContent);
-            if (index === -1) {
-                this.selectedOptions[optionTitle].push(optionContent);
+        selectDish(isCombo, categoryName, dish) {
+            if (isCombo) {
+                this.comboDishes[categoryName] = dish;
             } else {
-                this.selectedOptions[optionTitle].splice(index, 1);
+                this.singleDishes["default"] = dish;
             }
+            this.calculateTotal();
+            console.log("單點餐點:", this.singleDishes);
+            console.log("套餐餐點:", this.comboDishes);
+        },
+        toggleOption(isCombo, dishName, optionTitle, optionContent, extraPrice, optionType) {
+            const options = isCombo ? this.comboOptions[dishName] || [] : this.singleOptions[dishName] || [];
+
+            if (optionType === "radio") {
+                options.length = 0; // 單選：清除其他選項
+                options.push({ title: optionTitle, content: optionContent, price: extraPrice });
+            } else {
+                const index = options.findIndex((opt) => opt.content === optionContent);
+                if (index !== -1) {
+                    options.splice(index, 1); // 移除已選選項
+                } else {
+                    options.push({ title: optionTitle, content: optionContent, price: extraPrice }); // 新增選項
+                }
+            }
+
+            if (isCombo) {
+                this.comboOptions[dishName] = options;
+            } else {
+                this.singleOptions[dishName] = options;
+            }
+
+            this.calculateTotal();
+            console.log("單點選項:", this.singleOptions);
+            console.log("套餐選項:", this.comboOptions);
+        },
+        calculateTotal() {
+            let total = 0;
+
+            // 計算單點總金額
+            if (this.singleDishes.default) {
+                const dish = this.singleDishes.default;
+                total += dish.price;
+
+                const options = this.singleOptions[dish.mealName] || [];
+                total += options.reduce((sum, opt) => sum + opt.price, 0);
+            }
+
+            // 計算套餐總金額
+            Object.values(this.comboDishes).forEach((dish) => {
+                total += dish.price;
+
+                const options = this.comboOptions[dish.name] || [];
+                total += options.reduce((sum, opt) => sum + opt.price, 0);
+            });
+
+            // 如果有折扣，扣除折扣金額
+            if (this.item.discountAmount) {
+                total -= this.item.discountAmount;
+            }
+
+            this.totalPrice = total;
+            console.log("總金額:", this.totalPrice);
+        },
+        getCategoryName(categoryId) {
+            const category = this.categoriesList.find((cat) => cat.categoryId === categoryId);
+            return category ? category.category : "未分類";
+        },
+        getOptionsForDish(dish) {
+            return this.optionsList.filter((option) => option.categoryId === dish.categoryId);
         },
         closePopup() {
-            this.$emit("close"); // 發出關閉事件，讓主元件控制彈窗關閉
+            this.$emit("close");
         },
     },
 };
@@ -85,31 +132,79 @@ export default {
 
         <img v-if="item.picture" :src="item.picture" class="popupMenuImage" />
         <h3>{{ item.mealName || item.comboName }}</h3>
-        <p v-if="isCombo">內容：{{ comboDetails }}</p>
+
+        <!-- 顯示每個分類的第一個菜品名稱 -->
+        <p v-if="isCombo">
+            內容：
+            <span v-for="(group, index) in groupedComboDishes" :key="index"> | {{ group.dishes[0].name }} </span>
+        </p>
+
         <p>價格：${{ itemPrice }}</p>
 
-        <!-- 套餐選擇區-->
+        <!-- 套餐選擇區 -->
         <div v-if="isCombo">
-            <p>選擇套餐內容：</p>
-            <div v-for="dish in comboDishes" :key="dish.name">
-                <label>
-                    <input type="radio" name="comboDish" :value="dish" :checked="selectedDish && selectedDish.name === dish.name" @change="selectDish(dish)" />
-                    {{ dish.name }} - ${{ dish.price }}
-                </label>
+            <div v-for="(group, index) in groupedComboDishes" :key="index">
+                <h4># {{ group.categoryName }}</h4>
+
+                <!-- 菜品選擇區 -->
+                <div class="dishRadioGroup">
+                    <div v-for="dish in group.dishes" :key="dish.name">
+                        <label>
+                            <input
+                                type="radio"
+                                :name="group.categoryName"
+                                :value="dish"
+                                :checked="comboDishes[group.categoryName]?.name === dish.name"
+                                @change="selectDish(true, group.categoryName, dish)" />
+                            {{ dish.name }} - ${{ dish.price }}
+                        </label>
+                    </div>
+                </div>
+
+                <!-- 該分類下的客製化區塊 -->
+                <div v-if="comboDishes[group.categoryName]" class="comboItemOptions">
+                    <div v-for="option in getOptionsForDish(comboDishes[group.categoryName])" :key="option.optionTitle" class="comboItemOption">
+                        <h5>{{ option.optionTitle }}</h5>
+                        <div v-for="item in option.optionItems" :key="item.optionContent">
+                            <label>
+                                <input
+                                    :type="option.optionType"
+                                    :name="`${group.categoryName}-${option.optionTitle}`"
+                                    @change="toggleOption(true, comboDishes[group.categoryName].name, option.optionTitle, item.optionContent, item.extraPrice, option.optionType)" />
+                                {{ item.optionContent }} (+${{ item.extraPrice }})
+                            </label>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <!-- 客製化區塊-->
-        <div v-for="option in filteredOptions" :key="option.optionTitle">
-            <h4>{{ option.optionTitle }}</h4>
-            <div v-for="item in option.optionItems" :key="item.optionContent">
-                <label>
-                    <input :type="option.optionType" :name="option.optionTitle" :value="item.optionContent" @change="toggleOption(option.optionTitle, item.optionContent)" />
-                    {{ item.optionContent }} (+${{ item.extraPrice }})
-                </label>
+        <!-- 單點的客製化區塊 -->
+        <div v-else>
+            <div v-for="option in filteredOptions" :key="option.optionTitle">
+                <h4>{{ option.optionTitle }}</h4>
+                <div v-for="item in option.optionItems" :key="item.optionContent">
+                    <label>
+                        <input
+                            :type="option.optionType"
+                            :name="option.optionTitle"
+                            @change="toggleOption(false, singleDishes.default.mealName, option.optionTitle, item.optionContent, item.extraPrice, option.optionType)" />
+                        {{ item.optionContent }} (+${{ item.extraPrice }})
+                    </label>
+                </div>
             </div>
         </div>
+
+        <!-- 合計金額區塊 -->
+        <div class="totalPriceBlock">
+            <h3>合計：${{ totalPrice }}</h3>
+        </div>
     </div>
+
+    <pre>{{ singleDishes }}</pre>
+    <pre>{{ comboDishes }}</pre>
+    <pre>{{ singleOptions }}</pre>
+    <pre>{{ comboOptions }}</pre>
 </template>
 
 <style scoped lang="scss">
@@ -122,7 +217,7 @@ export default {
     padding: 20px;
     border: 1px solid #ccc;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    max-width: 300px;
+    max-width: 400px;
     width: 100%;
 }
 .popupMenuImage {
@@ -130,5 +225,10 @@ export default {
     height: 200px;
     object-fit: cover;
     margin-bottom: 10px;
+}
+.comboItemOptions {
+    display: flex;
+    border: 1px solid gray;
+    padding: 0 10px;
 }
 </style>

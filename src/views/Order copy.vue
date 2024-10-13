@@ -3,7 +3,6 @@ import LeftBar from "@/components/LeftBar.vue";
 import Categores from "@/components/Order/Categores.vue";
 import MenuItems from "@/components/Order/MenuItems.vue";
 import CustomPopup from "@/components/Order/CustomPopup.vue";
-import OrderSummary from "@/components/Order/OrderSummary.vue";
 
 export default {
     data() {
@@ -329,6 +328,7 @@ export default {
             showPopup: false, // 控制彈跳視窗的顯示
             orderItems: [], // 儲存所有選擇的訂單項目
             activeCategoryId: null, // 追蹤當前選中的分類
+            selectedTableNumber: 'A01', // 當前選擇的桌號
         };
     },
     components: {
@@ -336,7 +336,6 @@ export default {
         Categores,
         MenuItems,
         CustomPopup,
-        OrderSummary,
     },
     computed: {},
     mounted() {
@@ -381,6 +380,10 @@ export default {
             this.selectedItem = item;
             this.showPopup = true;
         },
+
+        handleOrderSubmit(orderDetails) {
+            console.log("傳入的訂單資料:", orderDetails); // 查看傳遞的資料格式
+        },
     },
 };
 </script>
@@ -398,9 +401,13 @@ export default {
                     :combos="combosList"
                     @selectItem="handleItemSelect"
                     :currentCategory="categoriesList.find((cat) => cat.categoryId === activeCategoryId)?.category" />
-                <CustomPopup v-if="showPopup" :item="selectedItem" :optionsList="optionsList" @close="showPopup = false" />
-                <OrderSummary :orderItems="orderItems" />
+                <CustomPopup v-if="showPopup" :item="selectedItem" :optionsList="optionsList" :categoriesList="categoriesList" :tableNumber="selectedTableNumber" @close="showPopup = false" @submitOrder="handleOrderSubmit"/>
             </div>
+        </div>
+        <div class="orderArea">
+            <!-- 桌號(tableNumberList撈資料並綁定選項)及人數選單(1~20人，只供前端使用)-->
+            <!-- 餐點明細：顯示從CustomPopupCopy傳來的資料 -->
+            <!-- 送出訂單按鈕：將訂單明細包裝成完整req格式接上 api 存入資料庫 -->
         </div>
     </div>
 </template>
@@ -433,6 +440,11 @@ export default {
 
         .menuArea {
             width: 70%;
+            border: 2px solid black;
+        }
+
+        .orderArea {
+            width: 30%;
             border: 2px solid black;
         }
     }

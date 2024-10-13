@@ -309,3 +309,195 @@ DishVo {
 }
 
 
+/// addOrder api request 格式
+每筆訂單以陣列儲存以下物件
+{
+    "id": 送出訂單後自動生成，前端不用填寫,
+    "orderId":202410091101A01(日期(20241009)+送出訂單時間(1101)＋桌號(A01)),
+    "orderMealId":UUID 用以組合套餐，同筆訂單的同個套餐名稱UUID相同，單點或其他套餐再給其他UUID(使用JS的UUID生成函數),
+    "comboName":套餐名稱(一號餐,二號餐)，單點設定為null,
+    "mealName":套餐中的單品名稱或單點餐點名稱,
+    "options":餐點客製化選項如(半糖,去冰),
+    "workstationId":餐點對應的工作臺id(mealName的workstationId),
+    "price":套餐折扣價 或 單點+客製化選項金額,
+    "mealStatus": "準備中"(固定),
+    "tableNumber":從tableNumberList撈出選項，送出訂單前會選好,
+    "orderTime":localDatetimen 送出訂單的日期時間,
+    "checkout" :0(固定),
+}
+
+// 舉例同筆訂單中有套餐和單點
+//1.套餐
+// 1.1 套餐總覽：price 為套餐折扣價（discountAmount）
+[
+    {
+        "id": ,
+        "orderId":"202410131101A01",
+        "orderMealId":"1b9d6a9b-53e1-4a22-9e74-1c00b6e09b79",
+        "comboName":"二號餐",
+        "mealName":null,
+        "options":null,
+        "workstationId":0,
+        "price":-25(discountAmount),
+        "mealStatus": "準備中"(固定),
+        "tableNumber":"A01",
+        "orderTime":2024-10-13 11:01:03,
+        "checkout" :0(固定),
+    },
+    // 1.2 套餐單品項
+    {
+        "id": ,
+        "orderId": "202410131101A01",
+        "orderMealId":"1b9d6a9b-53e1-4a22-9e74-1c00b6e09b79",
+        "comboName":"二號餐",
+        "mealName":"泰式炒泡麵",
+        "options":"加辣,加雞蛋",
+        "workstationId":6,
+        "price":85(泰式炒泡麵+加辣+加雞蛋合計金額),
+        "mealStatus": "準備中",
+        "tableNumber":"A01",
+        "orderTime":2024-10-13 11:01:03,
+        "checkout" :0,
+    },
+    {
+        "id": ,
+        "orderId":"202410131101A01",
+        "orderMealId":"1b9d6a9b-53e1-4a22-9e74-1c00b6e09b79",
+        "comboName":"二號餐",
+        "mealName":"牛肉堡",
+        "options":"多起司",
+        "workstationId":3,
+        "price":95(牛肉堡+多起司合計金額),
+        "mealStatus": "準備中",
+        "tableNumber":"A01",
+        "orderTime":2024-10-13 11:01:03,
+        "checkout" :0,
+    },
+    //單點
+    {
+        "id": ,
+        "orderId":"202410131101A01",
+        "orderMealId":"66f0b1e5-10c1-471f-8e11-c70b6e09b23a",
+        "comboName":null,
+        "mealName":"豬肉堡",
+        "options":"加雙份肉,加醬料",
+        "workstationId":3,
+        "price":105(豬肉堡+加雙份肉+加醬料合計金額),
+        "mealStatus": "準備中",
+        "tableNumber":"A01",
+        "orderTime":2024-10-13 11:01:03,
+        "checkout" :0,
+    },
+]
+
+
+@Id
+@GeneratedValue(strategy = GenerationType.IDENTITY)
+@NotBlank(message = "Id cannot be null or empty")
+@Column(name = "id")
+private Integer id;
+
+@Column(name = "order_id")
+private String orderId;
+
+@Column(name = "order_meal_id")
+private String orderMealId;
+
+@Column(name = "combo_name")
+private String comboName;
+
+@Column(name = "meal_name")
+private String mealName;
+
+@Column(name = "options")
+private String options;
+
+@Column(name = "workstation_id")
+private Integer workstationId;
+
+@Column(name = "price")
+private Integer price;
+
+@Column(name = "meal_status", columnDefinition = "ENUM('準備中', '待送餐點', '已送達')")
+private String mealStatus;
+
+@Column(name = "table_number")
+private String tableNumber;
+
+@Column(name = "order_time")
+private LocalDateTime orderTime;
+
+@Column(name = "checkout")
+private Boolean checkout = false;
+
+
+//CustomPopup
+//單點 selectedDishes
+{
+    "default": {
+      "categoryId": 2,
+      "mealName": "燻雞堡",
+      "price": 65,
+      "workstationId": 1,
+      "available": 1,
+      "picture": "base64"
+    }
+}
+//單點 selectedOptions
+{
+    "加料": [
+      {
+        "title": "加料",
+        "content": "培根",
+        "price": 20
+      }
+    ],
+    "加蛋": [
+      {
+        "title": "加蛋",
+        "content": "半熟蛋",
+        "price": 15
+      }
+    ]
+  }
+
+//套餐 selectedDishes
+{
+    "沙拉": {
+      "name": "凱薩沙拉",
+      "price": 70,
+      "categoryId": 5
+    },
+    "飲料": {
+      "name": "紅茶",
+      "price": 25,
+      "categoryId": 8
+    }
+}
+// 套餐 selectedOptions
+  {
+    "凱薩沙拉": [
+      {
+        "title": "凱薩沙拉",
+        "content": "醬料",
+        "price": "不醬"
+      },
+      {
+        "title": "凱薩沙拉",
+        "content": "加料",
+        "price": "酪梨"
+      }
+    ],
+    "紅茶": [
+      {
+        "title": "紅茶",
+        "content": "冰塊",
+        "price": "正常冰"
+      },
+      {
+        "title": "紅茶",
+        "content": "加料",
+        "price": "珍珠"
+      }
+    ]
+  }
