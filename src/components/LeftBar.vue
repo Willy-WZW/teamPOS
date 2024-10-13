@@ -200,15 +200,10 @@ export default {
             <div class="timeStyle">{{ dateCode }}</div>
         </div>
         <div class="control">
-            <div class="setting" @click="goSetting()" :class="{ 'selected': this.$route.path == '/setting' }"
-                v-if="managedAreas.includes('設定')">
-                <i class="fa-solid fa-gear"></i>
-                <h3>設定</h3>
-            </div>
-            <div class="operation" @click="goOperation()" :class="{ 'selected': this.$route.path == '/operation' }"
-                v-if="managedAreas.includes('營運')">
-                <i class="fa-solid fa-chart-simple"></i>
-                <h3>營運</h3>
+            <div class="event" @click="goEvent()" :class="{ 'selected': this.$route.path == '/event' }"
+                v-if="managedAreas.includes('活動')">
+                <i class="fa-regular fa-calendar-check"></i>
+                <h3>活動</h3>
             </div>
             <div class="order" @click="goOrder()" :class="{ 'selected': this.$route.path == '/order' }"
                 v-if="managedAreas.includes('點餐')">
@@ -232,11 +227,6 @@ export default {
                 </div>
                 <h3>桌位結帳</h3>
             </div>
-            <div class="event" @click="goEvent()" :class="{ 'selected': this.$route.path == '/event' }"
-                v-if="managedAreas.includes('活動')">
-                <i class="fa-regular fa-calendar-check"></i>
-                <h3>活動</h3>
-            </div>
             <div class="workstation" @click="goWorkstation()"
                 :class="{ 'selected': this.$route.path == '/workstation' }" v-if="managedAreas.includes('工作檯')">
                 <i class="fa-solid fa-fire-burner"></i>
@@ -247,12 +237,22 @@ export default {
                 <i class="fa-solid fa-clock-rotate-left"></i>
                 <h3>歷史紀錄</h3>
             </div>
-            <div class="history" @click="goStaffInfo()" :class="{ 'selected': this.$route.path == '/staffInfo' }"
+            <div class="operation" @click="goOperation()" :class="{ 'selected': this.$route.path == '/operation' }"
+                v-if="managedAreas.includes('營運')">
+                <i class="fa-solid fa-chart-simple"></i>
+                <h3>營運</h3>
+            </div>
+            <div class="staffInfo" @click="goStaffInfo()" :class="{ 'selected': this.$route.path == '/staffInfo' }"
                 v-if="managedAreas.includes('員工管理')">
                 <i class="fa-solid fa-user"></i>
                 <h3>員工管理</h3>
             </div>
-            
+            <div class="setting" @click="goSetting()" :class="{ 'selected': this.$route.path == '/setting' }"
+                v-if="managedAreas.includes('設定')">
+                <i class="fa-solid fa-gear"></i>
+                <h3>設定</h3>
+            </div>
+
         </div>
         <div class="userAndlogoutArea">
             <div class="Permissions" @click="goUserInfo()" :class="{ 'selected': this.$route.path == '/userInfo' }">
@@ -300,7 +300,7 @@ $gray-color: #c1c7cd;
 
     .control {
         width: 80%;
-        height: 690px;
+        height: 90%;
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -324,7 +324,8 @@ $gray-color: #c1c7cd;
 
             i,
             .material-symbols-outlined {
-                font-size: 24px; // 統一圖標大小
+                max-height: 50%; // 設定最大高度為 50%
+                height: auto; // 讓高度自動
             }
 
             h3 {
@@ -341,7 +342,9 @@ $gray-color: #c1c7cd;
         .tableChechout,
         .event,
         .workstation,
-        .history {
+        .history,
+        .staffInfo {
+            height: 10%;
             @extend .button-common;
         }
 
@@ -374,7 +377,8 @@ $gray-color: #c1c7cd;
 
             i,
             .material-symbols-outlined {
-                font-size: 24px; // 統一圖標大小
+                max-height: 50%; // 設定最大高度為 50%
+                height: auto; // 讓高度自動
             }
 
             h3 {
@@ -386,6 +390,7 @@ $gray-color: #c1c7cd;
         .logout-button {
             border: none;
             background-color: none;
+            text-decoration: none;
             color: $black-color;
             font-weight: bold;
             letter-spacing: 4px;
