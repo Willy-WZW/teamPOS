@@ -151,8 +151,11 @@ export default {
         <div class="leftBar">
             <LeftBar />
         </div>
+
         <div class="mainArea">
+
             <div class="menuArea">
+                <h2>菜單</h2>
                 <Categores :categories="categoriesList" @selectCategory="filterMenuItems" :activeCategoryId="activeCategoryId" />
                 <MenuItems
                     :menuItems="menuItemsList"
@@ -161,28 +164,33 @@ export default {
                     :currentCategory="categoriesList.find((cat) => cat.categoryId === activeCategoryId)?.category" />
                 <CustomPopup v-if="showPopup" :item="selectedItem" :optionsList="optionsList" :categoriesList="categoriesList" @close="showPopup = false" @addToOrder="handleAddToOrder" />
             </div>
-        </div>
-        <div class="orderArea">
-            <!-- 桌號(tableNumberList撈資料並綁定選項)及人數選單(1~20人，只供前端使用)-->
-            <div class="tableAndCustomerNum">
-                <label for="tableSelect">桌號：</label>
-                <select id="tableSelect" v-model="selectedTableNumber">
-                    <option v-for="table in tablesList" :key="table" :value="table">
-                        {{ table }}
-                    </option>
-                </select>
+
+            <div class="orderArea">
+                <h2>訂單</h2>
+
+                <!-- 桌號(tableNumberList撈資料並綁定選項)及人數選單(1~20人，只供前端使用)-->
+                <div class="tableAndCustomerNum">
+                    <label for="tableSelect">桌號：</label>
+                    <select id="tableSelect" v-model="selectedTableNumber">
+                        <option v-for="table in tablesList" :key="table" :value="table">
+                            {{ table }}
+                        </option>
+                    </select>
+                </div>
+    
+                <!-- 餐點明細：顯示從CustomPopupCopy傳來的資料 -->
+                <div class="orderSummary">
+                    <h2>訂單明細</h2>
+                    <pre>{{ orderList }}</pre>
+                </div>
+    
+                <!-- 送出訂單按鈕：將訂單明細包裝成完整req格式接上 api 存入資料庫 -->
+    
+                <button @click="submitOrder">送出訂單</button>
             </div>
 
-            <!-- 餐點明細：顯示從CustomPopupCopy傳來的資料 -->
-            <div class="orderSummary">
-                <h2>訂單明細</h2>
-                <pre>{{ orderList }}</pre>
-            </div>
-
-            <!-- 送出訂單按鈕：將訂單明細包裝成完整req格式接上 api 存入資料庫 -->
-
-            <button @click="submitOrder">送出訂單</button>
         </div>
+        
     </div>
 </template>
 
