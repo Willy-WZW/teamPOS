@@ -472,6 +472,7 @@ export default {
 
                                 <!-- this.menus.find(menu=>menu.categoryId == detailItem.categoryId) -->
                                 <!-- <h2 class="detailName">{{ this.menus.find(menu=>menu.categoryId == detailItem.categoryId)}}</h2> -->
+                                <h2 class="detailName"></h2>
                                 <div class="comboDetail" v-for="(meal, mealIndex) in detailItem.dishes">
                                     <p class="mealName" :class="{'firstMealClass': mealIndex == 0}">• {{ meal }}</p>
                                     <p>$ {{ searchMealPrice(meal) }}</p>
@@ -780,7 +781,7 @@ $addDiv: #343a3f;
                     overflow-y: auto;
                     scrollbar-width: none;
                     .comboName{
-                        margin: 0 0 10% 0;
+                        margin: 0 0 5% 0;
                         h1{
                             width: max-content;
                             display: flex;
@@ -828,7 +829,7 @@ $addDiv: #343a3f;
                                 border-radius: 12px;
                                 background-color: rgba(0, 0, 0, 0.1);
                                 padding: 0 4%;
-                                margin: 2% 0;
+                                margin: 4% 0;
                             }
                             .comboDetail{
                                 display: flex;
