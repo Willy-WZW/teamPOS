@@ -184,7 +184,7 @@ export default {
 
         this.timeInterval = setInterval(() => {
             this.updateTime()
-        }, 1000)
+        }, 60000)
     },
     beforeDestroy() {
         // 清除計時器

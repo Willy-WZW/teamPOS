@@ -31,7 +31,6 @@ export default {
             selectedWorkstation: "", //當前選擇的工作檯名稱
             lastSelectedWorkstationId: 0, // 用於儲存上次的選擇
             comboPage: false,
-            // comboPage:false
         }
     },
     components: {
@@ -1113,8 +1112,8 @@ export default {
             <div class="saveCategory" @click="saveCategory()">儲存</div>
             <div class="editCategory" @click="editCategory()">編輯</div>
         </div>
-        <div class="menuAndCust">
-            <div class="menuArea" v-if="!comboPage">
+        <div class="menuAndCust" v-if="!comboPage">
+            <div class="menuArea">
                 <div class="menuTop">
                     <div class="mtLeft">
                         <span>{{ selectedCategoryId == null ? '菜單分類' : selectedCategory }}</span>
@@ -1214,7 +1213,7 @@ export default {
                     </div>
                 </div>
             </div>
-            <ComboComponent class="comboArea" v-if="comboPage"></ComboComponent>
+
             <div class="customerization">
                 <div class="cuTop">
                     <div class="cuLeft">
@@ -1291,6 +1290,7 @@ export default {
                 </div>
             </div>
         </div>
+        <ComboComponent class="comboArea" v-if="comboPage"></ComboComponent>
     </div>
 </template>
 
@@ -1713,7 +1713,7 @@ $editColor: #e6b800;
                         align-items: center;
                         border-bottom: 1px solid $borderBot;
                         margin: 0 4%;
-                        
+
                         .itemStatus {
                             width: 50%;
                             margin-bottom: 2%;
@@ -1788,12 +1788,6 @@ $editColor: #e6b800;
                 }
 
             }
-        }
-
-        .comboArea {
-            width: 100%;
-            height: 69%;
-            z-index: 99;
         }
 
         .customerization {
@@ -2030,5 +2024,15 @@ $editColor: #e6b800;
         }
 
     }
+
+    .comboArea {
+        width: 76.5%;
+        height: 100%;
+        z-index: 99;
+        position: absolute;
+        top: 0;
+        right: 0;
+    }
+
 }
 </style>
