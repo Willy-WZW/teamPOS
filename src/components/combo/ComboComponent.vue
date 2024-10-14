@@ -277,7 +277,7 @@ export default {
         },
 
         addComboContentInner(){
-            this.comboDetail.push({"catgoryId":1,"dishes":[]})
+            this.comboDetail.push({"categoryId":1,"dishes":[]})
             this.selectedMeal.push('')
             this.selectedCategory.push('')
 
@@ -318,7 +318,7 @@ export default {
                 const selectedMeal = this.menus.find(menu => menu.mealName == this.selectedMeal[comboItemIndex]);
                 this.comboDetail[comboItemIndex].dishes.push(selectedMeal.mealName)
                 const category = this.categories.find(category=>category.categoryId == selectedMeal.categoryId)
-                this.comboDetail[comboItemIndex].catgoryId = category.categoryId
+                this.comboDetail[comboItemIndex].categoryId = category.categoryId
             }
         },
         deleteMeal(comboItemIndex, meal){
@@ -471,8 +471,7 @@ export default {
                                 </select> -->
 
                                 <!-- this.menus.find(menu=>menu.categoryId == detailItem.categoryId) -->
-
-                                <h2 class="detailName">{{ this.menus.find(menu=>menu.categoryId == detailItem.categoryId) }}</h2>
+                                <!-- <h2 class="detailName">{{ this.menus.find(menu=>menu.categoryId == detailItem.categoryId)}}</h2> -->
                                 <div class="comboDetail" v-for="(meal, mealIndex) in detailItem.dishes">
                                     <p class="mealName" :class="{'firstMealClass': mealIndex == 0}">• {{ meal }}</p>
                                     <p>$ {{ searchMealPrice(meal) }}</p>
