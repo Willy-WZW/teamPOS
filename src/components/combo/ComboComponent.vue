@@ -30,7 +30,9 @@ export default {
             comboContentInnerQuantity:0,
             discountAmount:0,
             //searchCombo container 
-            comboItemsList:[]
+            comboItemsList:[],
+
+            countCombo:0
 
         }
     },
@@ -95,9 +97,18 @@ export default {
                 this.comboItemsList.forEach(comboItem => {
                     comboItem.comboDetail = JSON.parse(comboItem.comboDetail);
                 });
+
+                Swal.fire({
+                        title:'新增套餐成功',
+                        icon: 'success',
+                    });
             })
             .catch(error => {
                 console.error("Error:", error.response ? error.response.data : error.message);
+                Swal.fire({
+                        title:'新增套餐失敗',
+                        icon: 'error',
+                    });
             });
 
             this.editeMode = false
@@ -108,6 +119,8 @@ export default {
             this.comboDetail = [], // [[], []]
             this.comboContentInnerQuantity = 0,
             this.discountAmount = 0
+
+         
 
         },  
 
@@ -139,42 +152,104 @@ export default {
             this.discountAmount = comboItem.discountAmount
         },
         updateMeal(){
-            this.comboDetail = this.comboDetail.filter(combo=>combo.dishes.length!=0)
-            console.log(this.oldComboName)
-            console.log(this.comboName)
-            axios.post("http://localhost:8080/pos/updateCombo",{
-                "oldComboName":this.oldComboName,
-                "comboName":this.comboName,
-                "comboDetail":JSON.stringify(this.comboDetail),
-                "discountAmount":this.discountAmount,
-                "category_id":9
+            Swal.fire({
+                title: '確定要繼續嗎？',
+                text: "確認是否要更新套餐內容",
+                icon: 'warning',
+                showCancelButton: true,  // 顯示取消按鈕
+                confirmButtonText: '是的，繼續',
+                cancelButtonText: '取消',
             })
-            .then(response=>{
-                console.log(response)
-                return axios.post("http://localhost:8080/pos/searchCombo", {
-                    "comboName": "",
-                });
-            })
+            .then((result)=>{
+                if (result.isConfirmed){
+                    Swal.fire({
+                        title:'已成功更新',
+                        icon:'success',
 
-            .then(response=>{
-                console.log(response)
-                this.comboItemsList = response.data.comboItemsList
-                this.comboItemsList.forEach(comboItem => {
-                    comboItem.comboDetail = JSON.parse(comboItem.comboDetail);
-                });
-            })
-            .catch(error => {
-                console.error("Error:", error.response ? error.response.data : error.message);
-            });
+                    });
+                    this.comboDetail = this.comboDetail.filter(combo=>combo.dishes.length!=0)
+                    return axios.post("http://localhost:8080/pos/updateCombo",{
+                        "oldComboName":this.oldComboName,
+                        "comboName":this.comboName,
+                        "comboDetail":JSON.stringify(this.comboDetail),
+                        "discountAmount":this.discountAmount,
+                        "category_id":9
+                    })
+                    .then(response=>{
+                        console.log(response)
+                        return axios.post("http://localhost:8080/pos/searchCombo", {
+                            "comboName": "",
+                        });
+                    })
+                    .then(response=>{
+                        console.log(response)
+                        this.comboItemsList = response.data.comboItemsList
+                        this.comboItemsList.forEach(comboItem => {
+                            comboItem.comboDetail = JSON.parse(comboItem.comboDetail);
+                        });
+                        this.editeMode = false
+                        this.createMode = false
+                        this.comboItemIndex = null,
+                        this.comboName = null,
+                        this.selectedMeal = [],  // ['', '']
+                        this.comboDetail = [], // [[], []]
+                        this.comboContentInnerQuantity = 0,
+                        this.discountAmount = 0
+                    })
+                    .catch(error => {
+                        console.error("Error:", error.response ? error.response.data : error.message);
+                        Swal.fire({
+                                title:'新增套餐失敗',
+                                icon: 'error',
+                            });
+                    });
 
-            this.editeMode = false
-            this.createMode = false
-            this.comboItemIndex = null,
-            this.comboName = null,
-            this.selectedMeal = [],  // ['', '']
-            this.comboDetail = [], // [[], []]
-            this.comboContentInnerQuantity = 0,
-            this.discountAmount = 0
+
+                    }
+                }
+            )
+
+
+            // this.comboDetail = this.comboDetail.filter(combo=>combo.dishes.length!=0)
+            // console.log(this.oldComboName)
+            // console.log(this.comboName)
+            // axios.post("http://localhost:8080/pos/updateCombo",{
+            //     "oldComboName":this.oldComboName,
+            //     "comboName":this.comboName,
+            //     "comboDetail":JSON.stringify(this.comboDetail),
+            //     "discountAmount":this.discountAmount,
+            //     "category_id":9
+            // })
+            // .then(response=>{
+            //     console.log(response)
+            //     return axios.post("http://localhost:8080/pos/searchCombo", {
+            //         "comboName": "",
+            //     });
+            // })
+
+            // .then(response=>{
+            //     console.log(response)
+            //     this.comboItemsList = response.data.comboItemsList
+            //     this.comboItemsList.forEach(comboItem => {
+            //         comboItem.comboDetail = JSON.parse(comboItem.comboDetail);
+            //     });
+            // })
+            // .catch(error => {
+            //     console.error("Error:", error.response ? error.response.data : error.message);
+            //     Swal.fire({
+            //             title:'新增套餐失敗',
+            //             icon: 'error',
+            //         });
+            // });
+
+            // this.editeMode = false
+            // this.createMode = false
+            // this.comboItemIndex = null,
+            // this.comboName = null,
+            // this.selectedMeal = [],  // ['', '']
+            // this.comboDetail = [], // [[], []]
+            // this.comboContentInnerQuantity = 0,
+            // this.discountAmount = 0
 
         },  
 
@@ -202,7 +277,7 @@ export default {
         },
 
         addComboContentInner(){
-            this.comboDetail.push({"catgoryId":1,"dishes":[]})
+            this.comboDetail.push({"categoryId":1,"dishes":[]})
             this.selectedMeal.push('')
             this.selectedCategory.push('')
 
@@ -243,7 +318,7 @@ export default {
                 const selectedMeal = this.menus.find(menu => menu.mealName == this.selectedMeal[comboItemIndex]);
                 this.comboDetail[comboItemIndex].dishes.push(selectedMeal.mealName)
                 const category = this.categories.find(category=>category.categoryId == selectedMeal.categoryId)
-                this.comboDetail[comboItemIndex].catgoryId = category.categoryId
+                this.comboDetail[comboItemIndex].categoryId = category.categoryId
             }
         },
         deleteMeal(comboItemIndex, meal){
@@ -396,8 +471,8 @@ export default {
                                 </select> -->
 
                                 <!-- this.menus.find(menu=>menu.categoryId == detailItem.categoryId) -->
-
-                                <h2 class="detailName">{{ this.menus.find(menu=>menu.categoryId == detailItem.categoryId) }}</h2>
+                                <!-- <h2 class="detailName">{{ this.menus.find(menu=>menu.categoryId == detailItem.categoryId)}}</h2> -->
+                                <h2 class="detailName"></h2>
                                 <div class="comboDetail" v-for="(meal, mealIndex) in detailItem.dishes">
                                     <p class="mealName" :class="{'firstMealClass': mealIndex == 0}">• {{ meal }}</p>
                                     <p>$ {{ searchMealPrice(meal) }}</p>
@@ -706,7 +781,7 @@ $addDiv: #343a3f;
                     overflow-y: auto;
                     scrollbar-width: none;
                     .comboName{
-                        margin: 0 0 10% 0;
+                        margin: 0 0 5% 0;
                         h1{
                             width: max-content;
                             display: flex;
@@ -754,7 +829,7 @@ $addDiv: #343a3f;
                                 border-radius: 12px;
                                 background-color: rgba(0, 0, 0, 0.1);
                                 padding: 0 4%;
-                                margin: 2% 0;
+                                margin: 4% 0;
                             }
                             .comboDetail{
                                 display: flex;

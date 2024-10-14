@@ -215,6 +215,11 @@ export default {
                 <i class="fa-solid fa-list-check"></i>
                 <h3>餐點狀態</h3>
             </div>
+            <div class="workstation" @click="goWorkstation()"
+                :class="{ 'selected': this.$route.path == '/workstation' }" v-if="managedAreas.includes('工作檯')">
+                <i class="fa-solid fa-fire-burner"></i>
+                <h3>工作檯</h3>
+            </div>
             <div class="tableChechout" @click="goTCheckout()"
                 :class="{ 'selected': this.$route.path == '/tableAndCheckout' }" v-if="managedAreas.includes('桌位結帳')">
                 <div>
@@ -226,11 +231,6 @@ export default {
                     </span>
                 </div>
                 <h3>桌位結帳</h3>
-            </div>
-            <div class="workstation" @click="goWorkstation()"
-                :class="{ 'selected': this.$route.path == '/workstation' }" v-if="managedAreas.includes('工作檯')">
-                <i class="fa-solid fa-fire-burner"></i>
-                <h3>工作檯</h3>
             </div>
             <div class="history" @click="goHistory()" :class="{ 'selected': this.$route.path == '/history' }"
                 v-if="managedAreas.includes('歷史紀錄')">

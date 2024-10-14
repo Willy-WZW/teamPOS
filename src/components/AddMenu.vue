@@ -1818,7 +1818,7 @@ $editColor: #e6b800;
 
         .customerization {
             width: 100%;
-            min-height: 171px; //31%
+            max-height: 31%; //31%
             margin-top: 1.5%;
             border-radius: 10px;
             display: flex;
@@ -1932,6 +1932,7 @@ $editColor: #e6b800;
                     margin-right: 3%;
                     border-radius: 10px;
                     border: 1px solid $borderBot;
+                    font-family: "Noto Sans TC", sans-serif;
                 }
 
                 .cuTitle {
