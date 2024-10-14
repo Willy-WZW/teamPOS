@@ -277,7 +277,7 @@ export default {
         },
 
         addComboContentInner(){
-            this.comboDetail.push({"catgoryId":1,"dishes":[]})
+            this.comboDetail.push({"categoryId":1,"dishes":[]})
             this.selectedMeal.push('')
             this.selectedCategory.push('')
 
@@ -318,7 +318,7 @@ export default {
                 const selectedMeal = this.menus.find(menu => menu.mealName == this.selectedMeal[comboItemIndex]);
                 this.comboDetail[comboItemIndex].dishes.push(selectedMeal.mealName)
                 const category = this.categories.find(category=>category.categoryId == selectedMeal.categoryId)
-                this.comboDetail[comboItemIndex].catgoryId = category.categoryId
+                this.comboDetail[comboItemIndex].categoryId = category.categoryId
             }
         },
         deleteMeal(comboItemIndex, meal){
@@ -471,8 +471,8 @@ export default {
                                 </select> -->
 
                                 <!-- this.menus.find(menu=>menu.categoryId == detailItem.categoryId) -->
-
-                                <h2 class="detailName">{{ this.menus.find(menu=>menu.categoryId == detailItem.categoryId) }}</h2>
+                                <!-- <h2 class="detailName">{{ this.menus.find(menu=>menu.categoryId == detailItem.categoryId)}}</h2> -->
+                                <h2 class="detailName"></h2>
                                 <div class="comboDetail" v-for="(meal, mealIndex) in detailItem.dishes">
                                     <p class="mealName" :class="{'firstMealClass': mealIndex == 0}">• {{ meal }}</p>
                                     <p>$ {{ searchMealPrice(meal) }}</p>
@@ -781,7 +781,7 @@ $addDiv: #343a3f;
                     overflow-y: auto;
                     scrollbar-width: none;
                     .comboName{
-                        margin: 0 0 10% 0;
+                        margin: 0 0 5% 0;
                         h1{
                             width: max-content;
                             display: flex;
@@ -829,7 +829,7 @@ $addDiv: #343a3f;
                                 border-radius: 12px;
                                 background-color: rgba(0, 0, 0, 0.1);
                                 padding: 0 4%;
-                                margin: 2% 0;
+                                margin: 4% 0;
                             }
                             .comboDetail{
                                 display: flex;
