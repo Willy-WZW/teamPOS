@@ -39,10 +39,12 @@ export default {
                 });
         },
         filterOrdersByWorkstation() {
-            if (this.selectedWorkstationId === null) return [];
+            if (!this.orders || this.selectedWorkstationId === null) return {};
 
+            const orders = this.orders || [];
             const groupedOrders = {};
-            this.orders
+
+            orders
                 .filter(order => order.workstationId === this.selectedWorkstationId)
                 .forEach(order => {
                     if (!groupedOrders[order.tableNumber]) {
@@ -241,14 +243,15 @@ $textColor: #697077;
             display: flex;
             overflow-x: auto;
             scrollbar-width: none;
-            
-            .noOrders{
+
+            .noOrders {
                 width: 100%;
                 display: flex;
                 justify-content: center;
                 align-items: center;
                 flex-direction: column;
             }
+
             .orders {
                 padding-left: 5%;
                 min-width: 33.3%;
@@ -258,7 +261,6 @@ $textColor: #697077;
                     overflow-y: scroll;
                     max-height: 85%;
                     scrollbar-width: none;
-
                 }
 
                 .table {
@@ -281,14 +283,17 @@ $textColor: #697077;
                     background-color: #F2F4F8;
                     margin-top: 3%;
                     border-radius: 10px;
+                    position: relative;
 
+                    .fa-check {
+                        position: absolute;
+                        right: 20px;
+                        font-size: 30px;
+                        cursor: pointer;
+                    }
                 }
             }
         }
     }
-}
-
-.fa-check {
-    cursor: pointer;
 }
 </style>

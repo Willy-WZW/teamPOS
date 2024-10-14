@@ -58,45 +58,48 @@ export default {
                 });
         },
         getEvents() {
+            const colorPalette = ['#FF0000', '#0000E3', '#00BB00', '#BF0060'];
             const assignedEvents = [];
 
             return this.allAnnouncements.map((announce) => {
                 const startDate = new Date(announce.announceStartTime);
                 const endDate = new Date(announce.announceEndTime);
-
-                // 找到重疊的顏色，避免同一時間段顏色重疊
                 const overlappingColors = assignedEvents
                     .filter(event => !(new Date(event.end) < startDate || new Date(event.start) > endDate))
                     .map(event => event.color);
 
-                // 生成隨機顏色，避免重複顏色
+                // 使用隨機顏色，避免重疊顏色
                 let eventColor;
                 do {
-                    eventColor = this.getRandomColor(); // 使用隨機顏色生成函數
+                    // eventColor = this.getRandomColor();
+                    eventColor = colorPalette[Math.floor(Math.random() * colorPalette.length)];
                 } while (overlappingColors.includes(eventColor));
 
-                const eventObj = {
+                assignedEvents.push({
+                    title: announce.announceTitle,
+                    start: startDate,
+                    end: endDate,
+                    color: eventColor
+                });
+
+                return {
                     title: announce.announceTitle,
                     start: startDate,
                     end: endDate,
                     color: eventColor
                 };
-
-                assignedEvents.push(eventObj);
-                return eventObj;
             });
         },
 
         // 隨機生成 HEX 顏色
-        getRandomColor() {
-            const letters = '0123456789ABCDEF';
-            let color = '#';
-            for (let i = 0; i < 6; i++) {
-                color += letters[Math.floor(Math.random() * 16)];
-            }
-            return color;
-        }
-        ,
+        // getRandomColor() {
+        //     const letters = '0123456789ABCDEF';
+        //     let color = '#';
+        //     for (let i = 0; i < 6; i++) {
+        //         color += letters[Math.floor(Math.random() * 16)];
+        //     }
+        //     return color;
+        // },
         displayCurrentMonthAnnouncements() {
             const currentMonth = new Date().getMonth();
             const currentYear = new Date().getFullYear();
@@ -233,6 +236,7 @@ export default {
 
 .announcebox {
     width: 350px;
+    height: 100%;
     margin-left: 15%;
     border: 1px solid;
     border-radius: 10px;
@@ -249,7 +253,7 @@ export default {
 
 .announcebox-content {
     width: 100%;
-    max-height: 620px;
+    max-height: 90%;
     overflow-y: scroll;
     display: flex;
     flex-direction: column;
@@ -282,6 +286,17 @@ export default {
     border-top: none;
     border-bottom-right-radius: 10px;
     border-bottom-left-radius: 10px;
+}
+
+pre {
+    white-space: pre-wrap;
+    word-break: break-word;
+    overflow-y: auto;
+}
+
+th {
+    border-radius: 10px;
+    background-color: #DDE1E6;
 }
 </style>
 
@@ -328,19 +343,10 @@ export default {
 
 .fc .fc-daygrid-day {
     height: auto;
-    
+
 }
 
-pre {
-    white-space: pre-wrap;
-    word-break: break-word;
-    overflow-y: auto;
-}
 
-th {
-    border-radius: 10px;
-    background-color: #DDE1E6;
-}
 
 .fc .fc-button-group>.fc-button {
     margin-top: 10%;
@@ -348,8 +354,9 @@ th {
 
 .fc .fc-scrollgrid {
     border: none;
-    
+
 }
+
 .fc-toolbar {
     height: 100px;
     position: sticky;
@@ -357,13 +364,16 @@ th {
     z-index: 10;
     background-color: white;
 }
-thead {
-    position: sticky;
-    top:100px;
-    z-index: 50; 
-    background-color: #DDE1E6; 
-}
-.fc .fc-toolbar.fc-header-toolbar{
+
+.fc .fc-toolbar.fc-header-toolbar {
     margin-bottom: 0px;
+}
+
+.fc .fc-scrollgrid-section-header.fc-scrollgrid-section-sticky>* {
+    top: 0px;
+    position: sticky;
+    top: 100px;
+    z-index: 50;
+    background-color: #DDE1E6;
 }
 </style>
