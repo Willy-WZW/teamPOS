@@ -1297,7 +1297,7 @@ export default {
 <style scoped lang="scss">
 $divColor: #fff;
 $addDiv: #343a3f;
-$suppliable: #1ce34e;
+$suppliable: #28A745;
 $soldOut: #e02d11;
 $borderBot: #697077;
 $editColor: #e6b800;
@@ -1618,7 +1618,7 @@ $editColor: #e6b800;
 
                 .addMenuDiv {
                     width: 22%;
-                    max-height: 248px; //65%
+                    height: 72%; //65%
                     margin: 0 4% 1% 0;
                     border-radius: 10px;
                     display: flex;
@@ -1642,7 +1642,7 @@ $editColor: #e6b800;
                     grid-column-gap: 8px;
                     grid-row-gap: 6px;
                     width: 22%;
-                    max-height: 248px; //65%
+                    height: 72%; //65%
                     margin: 0 4% 1% 0;
                     border-radius: 10px;
                     border: 1px solid black;
@@ -1723,8 +1723,8 @@ $editColor: #e6b800;
                             font-size: 17px;
                             font-weight: bold;
                             font-family: "Noto Sans TC", sans-serif;
-                            color: $suppliable;
-                            background-color: white;
+                            color: white;
+                            background-color: $suppliable;
                             border: 1px solid $suppliable;
                             display: flex;
                             justify-content: center;
@@ -1743,10 +1743,6 @@ $editColor: #e6b800;
                             background-color: white;
                             border-color: $soldOut;
                             color: $soldOut;
-                        }
-
-                        span {
-                            // margin-left: 12%;
                         }
                     }
 
@@ -1803,6 +1799,7 @@ $editColor: #e6b800;
         .customerization {
             width: 100%;
             max-height: 31%; //31%
+            min-height: 31%;
             margin-top: 1.5%;
             border-radius: 10px;
             display: flex;
