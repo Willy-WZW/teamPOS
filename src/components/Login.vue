@@ -45,7 +45,7 @@ export default {
                                 confirmButtonText: '確定',
                             }).then(() => {
                                 sessionStorage.setItem('memberId', data.memberId);
-                                this.$router.push('/system');
+                                this.$router.push('/event');
 
                             });
 
@@ -97,7 +97,7 @@ export default {
                                 confirmButtonText: '確定',
                             });
                             sessionStorage.setItem('staffNumber', data.staffNumber);
-                            this.$router.push('/system');
+                            this.$router.push('/event');
                         } else {
                             Swal.fire({
                                 title: data.message,
