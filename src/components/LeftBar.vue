@@ -1,5 +1,7 @@
 <script>
 import { RouterLink } from 'vue-router';
+import Swal from 'sweetalert2';
+
 export default {
     data() {
         return {
@@ -108,8 +110,29 @@ export default {
                         if (data && data.staff) {
                             this.userName = data.staff.name;
 
+                            if (data.staff.firstLogin) {
+                                Swal.fire({
+                                    title: '第一次登入請修改密碼',
+                                    text: '',
+                                    icon: 'warning',
+                                    confirmButtonText: '確定',
+                                }).then(() => {
+
+                                    fetch(`http://localhost:8080/api/staff/updateFirstLogin/${staffNumber}`, {
+                                        method: 'GET',
+                                        headers: {
+                                            'Content-Type': 'application/json'
+                                        }
+                                    })
+                                });
+
+                                this.goUserInfo();
+                            }
+                        
                             // 找到相對應的權限物件
                             const foundPermission = this.permissions.find(permission => permission.id == data.staff.authorization);
+
+                            
 
                             if (foundPermission) {
                                 this.managedAreas = foundPermission.managedAreas;
