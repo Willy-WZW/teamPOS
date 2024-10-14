@@ -566,8 +566,9 @@ $addDiv: #343a3f;
 }
 
 .fa-solid {
+    font-size: 20px;
     cursor: pointer;
-    margin-left: 5%;
+    margin-left: 10%;
 }
 
 button {
