@@ -441,7 +441,7 @@ $addDiv: #343a3f;
         .preview-image {
             width: 100%;
             height: 300px;
-            object-fit: fill;
+            object-fit: contain;
         }
 
         .upload-placeholder {
@@ -505,7 +505,7 @@ $addDiv: #343a3f;
         .previewlist-image {
             width: 250px;
             height: 150px;
-            object-fit: contain;
+            object-fit: fill;
             border-top-right-radius: 10px;
             border-top-left-radius: 10px;
             cursor: pointer;
