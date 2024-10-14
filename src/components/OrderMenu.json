@@ -715,3 +715,5 @@ private Boolean checkout = false;
     "workstationId":3,
     "price":105(豬肉培根蛋吐司price+蔥花蛋price+烤酥price 或直接取this.totalPrice?),
 },
+
+[ {"categoryId": 2,"dishes": ["培根蛋吐司"]}, {"categoryId":6, "dishes": ["薯條","雞塊"]}, {"categoryId":7,"dishes": ["紅茶","綠茶","美式咖啡","鮮奶紅茶","鮮奶綠茶"]}]
