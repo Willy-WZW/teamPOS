@@ -374,7 +374,7 @@ export default {
                             <th>電話</th>
                             <th>密碼</th>
                             <th>email</th>
-                            <th>授權</th>
+                            <th>權限</th>
                             <th>操作</th>
                         </tr>
                     </thead>
