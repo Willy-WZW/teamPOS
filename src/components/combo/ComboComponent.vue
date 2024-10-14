@@ -160,11 +160,11 @@ export default {
             })
             .then((result)=>{
                 if (result.isConfirmed){
-                    Swal.fire(
-                        '已繼續',
-                        '已成功更新'+`${mealName}`+'餐點狀態為已送達。',
-                        'success'
-                    );
+                    Swal.fire({
+                        title:'已成功更新',
+                        icon:'success',
+
+                    });
                     this.comboDetail = this.comboDetail.filter(combo=>combo.dishes.length!=0)
                     return axios.post("http://localhost:8080/pos/updateCombo",{
                         "oldComboName":this.oldComboName,
@@ -185,6 +185,14 @@ export default {
                         this.comboItemsList.forEach(comboItem => {
                             comboItem.comboDetail = JSON.parse(comboItem.comboDetail);
                         });
+                        this.editeMode = false
+                        this.createMode = false
+                        this.comboItemIndex = null,
+                        this.comboName = null,
+                        this.selectedMeal = [],  // ['', '']
+                        this.comboDetail = [], // [[], []]
+                        this.comboContentInnerQuantity = 0,
+                        this.discountAmount = 0
                     })
                     .catch(error => {
                         console.error("Error:", error.response ? error.response.data : error.message);
@@ -193,14 +201,7 @@ export default {
                                 icon: 'error',
                             });
                     });
-                    this.editeMode = false
-                    this.createMode = false
-                    this.comboItemIndex = null,
-                    this.comboName = null,
-                    this.selectedMeal = [],  // ['', '']
-                    this.comboDetail = [], // [[], []]
-                    this.comboContentInnerQuantity = 0,
-                    this.discountAmount = 0
+
 
                     }
                 }
