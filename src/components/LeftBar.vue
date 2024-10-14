@@ -1,5 +1,7 @@
 <script>
 import { RouterLink } from 'vue-router';
+import { computed } from 'vue';
+import { useFontStore } from '@/stores/fontStores';
 export default {
     data() {
         return {
@@ -189,15 +191,26 @@ export default {
     beforeDestroy() {
         // 清除計時器
         clearInterval(this.timeInterval);
-    }
+    },
+    setup() {
+        const fontStore = useFontStore();
+        const currentFont = computed(() => fontStore.fonts[fontStore.currentFontIndex]);
+        const changeFont = () => {
+            fontStore.nextFont();
+        };
+        return {
+            currentFont,
+            changeFont
+        };
+    },
 }
 </script>
 
 <template>
     <div class="lefter">
-        <div class="timeCode">
-            <div class="timeStyle">{{ timeCode }}</div>
-            <div class="timeStyle">{{ dateCode }}</div>
+        <div class="timeCode" @click="changeFont">
+            <div class="timeStyle" :style="{ fontFamily: currentFont }">{{ timeCode }}</div>
+            <div class="timeStyle" :style="{ fontFamily: currentFont }">{{ dateCode }}</div>
         </div>
         <div class="control">
             <div class="event" @click="goEvent()" :class="{ 'selected': this.$route.path == '/event' }"
@@ -291,8 +304,8 @@ $gray-color: #DDE1E6;
         flex-direction: column;
 
         .timeStyle {
-            margin: 0.625rem auto; 
-            font-size: 1.125rem; 
+            margin: 0.625rem auto;
+            font-size: 1.125rem;
         }
     }
 
