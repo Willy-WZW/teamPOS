@@ -1,4 +1,6 @@
 <script>
+import { v4 as uuidv4 } from "uuid";
+
 export default {
     props: {
         item: Object,
@@ -7,15 +9,23 @@ export default {
     },
     data() {
         return {
-            singleDishes: {}, // 單點餐點
-            singleOptions: {}, // 單點選項
+            // 被選擇的單點餐點及選項
+            singleDishes: {},
+            singleOptions: {},
+
+            // 被選擇的套餐餐點及選項
             comboDishes: {
                 comboName: this.item.comboName,
                 discountAmount: this.item.discountAmount,
                 comboBasicPrice: this.item.comboPrice,
-                selectedDishes: [], // 選中的菜品和其客製化選項
+                selectedDishes: [], // 菜品和其客製化選項
             },
+
             totalPrice: 0,
+
+            //  傳到主元件的陣列
+            comboList: [], //套餐訂單
+            singleList: [], // 單點訂單
         };
     },
     computed: {
@@ -49,6 +59,7 @@ export default {
             // 預設選擇每個分類的第一個菜品
             this.comboDishes.selectedDishes = this.groupedComboDishes.map((group) => ({
                 ...group.dishes[0], // 選擇第一個菜品
+                workstationId: this.getWorkstationId(group.categoryId), // 取得對應的 workstationId
                 selectedOptions: {}, // 初始化選項
             }));
             this.totalPrice = this.comboDishes.comboBasicPrice;
@@ -80,6 +91,39 @@ export default {
             this.singleOptions[optionTitle] = options;
             this.calculateTotal();
         },
+        // 組裝單點訂單資料
+        assembleSingleOrder() {
+            const orderMealId = uuidv4(); // 生成唯一的 orderMealId
+
+            const options = Object.values(this.singleOptions)
+                .flat()
+                .map((opt) => opt.content)
+                .join(", "); // 組合所有選項的 content
+
+            const totalPrice =
+                this.singleDishes.price +
+                Object.values(this.singleOptions)
+                    .flat()
+                    .reduce((sum, opt) => sum + opt.price, 0); // 計算總價
+
+            const singleOrder = {
+                orderMealId,
+                comboName: null, // 單點沒有套餐名稱
+                mealName: this.singleDishes.mealName,
+                options: options || null, // 如果沒有選項則為 null
+                workstationId: this.singleDishes.workstationId || 0,
+                price: totalPrice,
+            };
+
+            this.singleList.push(singleOrder); // 加入到 singleList 中
+
+            // 傳送資料至主元件
+            this.$emit("addToOrder", this.singleList);
+
+            // 關閉視窗
+            this.closePopup();
+        },
+
         // 套餐
         selectComboDish(categoryName, dish) {
             const existingDishIndex = this.comboDishes.selectedDishes.findIndex((d) => d.categoryId === dish.categoryId);
@@ -132,6 +176,56 @@ export default {
         getCategoryIdByName(categoryName) {
             const category = this.categoriesList.find((cat) => cat.category === categoryName);
             return category ? category.categoryId : null;
+        },
+        getWorkstationId(categoryId) {
+            const detail = this.item.comboDetail.find((d) => d.categoryId === categoryId);
+            return detail ? detail.workstationId : null;
+        },
+        // 組裝套餐訂單資料
+        assembleComboOrder() {
+            const orderMealId = uuidv4(); // 生成唯一的 orderMealId
+
+            // 1.1 套餐總覽
+            const comboOverview = {
+                orderMealId,
+                comboName: this.comboDishes.comboName,
+                mealName: null,
+                options: null,
+                workstationId: 0,
+                price: this.comboDishes.discountAmount,
+            };
+
+            // 1.2 套餐單品項
+            const comboItems = this.comboDishes.selectedDishes.map((dish) => {
+                const options = Object.values(dish.selectedOptions)
+                    .flat()
+                    .map((opt) => opt.content)
+                    .join(", "); // 將選項以逗號分隔
+
+                const totalPrice =
+                    dish.price +
+                    Object.values(dish.selectedOptions)
+                        .flat()
+                        .reduce((sum, opt) => sum + opt.price, 0); // 計算選項的總金額
+
+                return {
+                    orderMealId,
+                    comboName: this.comboDishes.comboName,
+                    mealName: dish.name,
+                    options: options || null,
+                    workstationId: dish.workstationId || 0,
+                    price: totalPrice,
+                };
+            });
+
+            // 將總覽和單品項加入 comboList
+            this.comboList.push(comboOverview, ...comboItems);
+
+            // 傳送資料至主元件
+            this.$emit("addToOrder", this.comboList);
+
+            // 關閉視窗
+            this.closePopup();
         },
 
         // 共用：套餐計算待修正
@@ -196,6 +290,8 @@ export default {
         <div class="totalPriceBlock">
             <h3>合計：${{ totalPrice }}</h3>
         </div>
+
+        <button @click="assembleSingleOrder">加入訂單</button>
     </div>
 
     <!-- 套餐客製化視窗 -->
@@ -250,6 +346,8 @@ export default {
         <div class="totalPriceBlock">
             <h3>合計：${{ totalPrice }}</h3>
         </div>
+
+        <button @click="assembleComboOrder">加入訂單</button>
     </div>
 
     <pre>{{ singleDishes }}</pre>
