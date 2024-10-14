@@ -5,10 +5,8 @@ import Swal from 'sweetalert2';
 export default {
     data () {
         return {
-            // 桌號的 tableManagementContentArea 數據
             tableList: [], // 桌位列表，從後端獲取資料
             newTable: { table_number: '', table_capacity: '', table_status: 'AVAILABLE' }, // 新增桌號的初始值
-            capacityOptions: ['2人桌', '4人桌', '6人桌', '8人桌', '10人桌'], // 可選的容納人數
             showNewTableRow: false, // 控制新增桌號行是否顯示
         };
     },
@@ -18,15 +16,13 @@ export default {
     },
 
     methods: {
-        //桌號管理方法
-
         // 加載初始的桌位數據
         async loadInitialTableData () {
             try {
                 const response = await axios.get('http://localhost:8080/tableManagement/getAllTables');
                 this.tableList = response.data.map(table => ({
                     table_number: table.tableNumber,
-                    table_capacity: `${table.tableCapacity}人桌`,
+                    table_capacity: table.tableCapacity, // 這裡設為數字
                     table_status: table.tableStatus,  // 保留桌位狀態
                 }));
                 console.log('桌號加載成功:', this.tableList);
@@ -41,23 +37,20 @@ export default {
                 });
             }
         },
-        // 切換選單
-        selectMenu (item) {
-            this.selectedMenu = item;
-        },
-        // 新增輸入欄位
+
+        // 新增桌號輸入欄位
         addTableRow() {
             // 在 tableList 中新增一個新的輸入欄位
             this.tableList.push({
-                table_number: '', // 新桌位的桌號為空
-                table_capacity: '', // 新桌位的容納人數為空
-                table_status: 'AVAILABLE',  // 預設狀態
+                table_number: '', 
+                table_capacity: '', 
+                table_status: 'AVAILABLE',
             });
         },
+
         // 刪除桌位
         removeTable (index) {
             const table = this.tableList[index];
-            
             // 檢查狀態，如果是 RESERVED 或 ACTIVE，則禁止刪除
             if (table.table_status === 'RESERVED' || table.table_status === 'ACTIVE') {
                 Swal.fire({
@@ -72,10 +65,12 @@ export default {
             // 否則，執行刪除
             this.tableList.splice(index, 1);
         },
+
         // 刪除新增桌號欄位
         deleteNewTable () {
             this.showNewTableRow = false;
         },
+
         // 新增、刪除、更新桌號操作
         async saveChanges() {
             try {
@@ -170,6 +165,7 @@ export default {
                 });
             }
         },
+
         // 取消桌號操作
         cancelChanges () {
             Swal.fire({
@@ -195,7 +191,7 @@ export default {
 </script>
 
 <template>
-<div class="tableManagementContentArea">
+<div class="tableManagementArea">
     <!-- 顯示桌號標題 -->
     <h2 class="tableNumberTitle">桌號管理</h2>
 
@@ -228,9 +224,7 @@ export default {
                     <td>
                         <select class="tableCapacity" v-model="table.table_capacity" >
                             <option value="" disabled>選擇容納人數</option>
-                            <option v-for="option in capacityOptions" :key="option" :value="option">
-                                {{ option }}
-                            </option>
+                            <option v-for="n in 20" :key="n" :value="n">{{ n }}人桌</option>
                         </select>
                     </td>
 
@@ -253,9 +247,7 @@ export default {
                     <td>
                         <select class="tableCapacity" v-model="newTable.table_capacity">
                             <option value="" disabled>選擇容納人數</option>
-                            <option v-for="option in capacityOptions" :key="option" :value="option">
-                                {{ option }}
-                            </option>
+                            <option v-for="n in 20" :key="n" :value="n">{{ n }}人桌</option>
                         </select>
                     </td>
 
@@ -291,7 +283,7 @@ $black-color: #1E1E1E;
 $gray-color: #DDE1E6;
 $boxShadow: #F2F4F8;
 
-.tableManagementContentArea {
+.tableManagementArea {
     width: 80%; 
     height: 100%;
     border-radius: 0.625rem; // 10px -> 0.625rem
