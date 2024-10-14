@@ -30,7 +30,9 @@ export default {
             comboContentInnerQuantity:0,
             discountAmount:0,
             //searchCombo container 
-            comboItemsList:[]
+            comboItemsList:[],
+
+            countCombo:0
 
         }
     },

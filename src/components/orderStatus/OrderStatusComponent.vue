@@ -76,6 +76,16 @@ export default{
                     }); 
                 }
             })
+        },
+        countUndelivered(){
+            let count = 0
+            if(this.undelivered != null){
+                for (let i=0; i<this.undelivered.length; i++){
+                    count += this.undelivered[i].mealList.length
+                }
+            }
+            return count
+
         }
     }
 }
@@ -89,7 +99,7 @@ export default{
                 <h1>餐點狀態</h1>
                 <div>
                     <p>待送餐點</p>
-                    <p>13</p>
+                    <p>{{countUndelivered()}}</p>
                 </div>
             </div>
             
