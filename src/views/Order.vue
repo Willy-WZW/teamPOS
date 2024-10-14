@@ -13,12 +13,15 @@ export default {
             optionsList: [],
             combosList: [],
             tablesList: [],
+
             //邏輯變數
             selectedItem: null, // 存放選中的餐點或套餐資訊
             showPopup: false, // 控制彈跳視窗的顯示
             orderItems: [], // 儲存所有選擇的訂單項目
             activeCategoryId: null, // 追蹤當前選中的分類
-            selectedTableNumber: "A01", // 當前選擇的桌號
+
+            orderList: [], // 存放所有從子元件傳來的訂單資料
+            selectedTableNumber: null, // 被選中的桌號
         };
     },
     components: {
@@ -30,10 +33,14 @@ export default {
     computed: {},
     mounted() {
         this.fetchOrderData();
-        // 預設顯示第一個分類
+        // 預設顯示第一個分類：失效中待搶救
         if (this.categoriesList.length > 0) {
             const firstCategoryId = this.categoriesList[0].categoryId;
             this.filterMenuItems(firstCategoryId);
+        }
+        // 預設選中第一個桌號
+        if (this.tablesList.length > 0) {
+            this.selectedTableNumber = this.tablesList[0];
         }
     },
     methods: {
@@ -77,9 +84,63 @@ export default {
             this.selectedItem = item;
             this.showPopup = true;
         },
+        // 接收子元件傳來的訂單資料，並將其加入到 orderList
+        handleAddToOrder(order) {
+            console.log("收到的訂單資料:", order);
 
-        handleOrderSubmit(orderDetails) {
-            console.log("傳入的訂單資料:", orderDetails); // 查看傳遞的資料格式
+            this.orderList = [...this.orderList, ...order]; // 將資料加入 orderList
+        },
+        submitOrder() {
+            const now = new Date();
+            const formattedDate = now.toISOString().slice(0, 10).replace(/-/g, "");
+            const formattedTime = now.toTimeString().slice(0, 5).replace(/:/g, "");
+            const orderId = `${formattedDate}${formattedTime}${this.selectedTableNumber}`;
+
+            // 將每個訂單物件轉換為符合格式的結構
+            const ordersList = this.orderList.map((item) => ({
+                orderId: orderId,
+                orderMealId: item.orderMealId,
+                comboName: item.comboName,
+                mealName: item.mealName,
+                options: item.options,
+                workstationId: item.workstationId,
+                price: item.price,
+                mealStatus: "準備中", // 固定值
+                tableNumber: this.selectedTableNumber, // 被選中的桌號
+                orderTime: now.toISOString(), // ISO 時間格式
+                checkout: false, // 固定值
+            }));
+
+            // 封裝為最終送出的資料結構
+            const finalOrder = {
+                ordersList: ordersList,
+            };
+
+            console.log("送出的訂單資料:", finalOrder); // 預覽格式是否正確
+
+            //送出訂單的 API 請求
+            fetch("http://localhost:8080/pos/addOrder", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(finalOrder),
+            })
+                .then((response) => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    console.log("訂單已成功送出！");
+                    this.resetOrder();
+                })
+                .catch((error) => {
+                    console.error("送出訂單失敗:", error);
+                });
+        },
+        resetOrder() {
+            this.orderList = [];
+            this.selectedTableNumber = null;
+            console.log("訂單已重置");
         },
     },
 };
@@ -98,20 +159,29 @@ export default {
                     :combos="combosList"
                     @selectItem="handleItemSelect"
                     :currentCategory="categoriesList.find((cat) => cat.categoryId === activeCategoryId)?.category" />
-                <CustomPopup
-                    v-if="showPopup"
-                    :item="selectedItem"
-                    :optionsList="optionsList"
-                    :categoriesList="categoriesList"
-                    :tableNumber="selectedTableNumber"
-                    @close="showPopup = false"
-                    @submitOrder="handleOrderSubmit" />
+                <CustomPopup v-if="showPopup" :item="selectedItem" :optionsList="optionsList" :categoriesList="categoriesList" @close="showPopup = false" @addToOrder="handleAddToOrder" />
             </div>
         </div>
         <div class="orderArea">
             <!-- 桌號(tableNumberList撈資料並綁定選項)及人數選單(1~20人，只供前端使用)-->
+            <div class="tableAndCustomerNum">
+                <label for="tableSelect">桌號：</label>
+                <select id="tableSelect" v-model="selectedTableNumber">
+                    <option v-for="table in tablesList" :key="table" :value="table">
+                        {{ table }}
+                    </option>
+                </select>
+            </div>
+
             <!-- 餐點明細：顯示從CustomPopupCopy傳來的資料 -->
+            <div class="orderSummary">
+                <h2>訂單明細</h2>
+                <pre>{{ orderList }}</pre>
+            </div>
+
             <!-- 送出訂單按鈕：將訂單明細包裝成完整req格式接上 api 存入資料庫 -->
+
+            <button @click="submitOrder">送出訂單</button>
         </div>
     </div>
 </template>

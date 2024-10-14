@@ -671,3 +671,47 @@ private Boolean checkout = false;
       }
     ]
 }
+
+
+
+//////////////CustomPopup傳出////////////
+//comboList
+
+"comboList": [
+// 1.1 套餐總覽
+{
+    "orderMealId":"1b9d6a9b-53e1-4a22-9e74-1c00b6e09b79",
+    "comboName":"二號餐",
+    "mealName":null,
+    "options":null,
+    "workstationId":0,
+    "price":-25(discountAmount),
+},
+// 1.2 套餐單品項
+{
+    "orderMealId":"1b9d6a9b-53e1-4a22-9e74-1c00b6e09b79",
+    "comboName":"二號餐",
+    "mealName":"泰式炒泡麵",
+    "options":"大辣,全熟蛋 (selectedOptions的content如果有值就以逗號合併)",
+    "workstationId":5,
+    "price":85(泰式炒泡麵price+大辣price+全熟蛋price),
+},
+{
+    "orderMealId":"1b9d6a9b-53e1-4a22-9e74-1c00b6e09b79",
+    "comboName":"二號餐",
+    "mealName":"牛肉堡",
+    "options":"培根",
+    "workstationId":1,
+    "price":95(牛肉堡price+培根price),
+},
+]
+
+// singleList 
+{
+    "orderMealId":"66f0b1e5-10c1-471f-8e11-c70b6e09b23a",
+    "comboName":null,
+    "mealName":"培根蛋吐司",
+    "options":"蔥花蛋,烤酥(singleOptions的所有content若有值就用逗號組合)",
+    "workstationId":3,
+    "price":105(豬肉培根蛋吐司price+蔥花蛋price+烤酥price 或直接取this.totalPrice?),
+},
