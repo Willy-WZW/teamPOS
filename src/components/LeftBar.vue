@@ -300,7 +300,7 @@ $gray-color: #DDE1E6;
         width: 80%;
         height: 90%;
         display: flex;
-        justify-content: space-between;
+        justify-content: space-evenly;
         align-items: center;
         flex-direction: column;
         color: $black-color;
