@@ -32,7 +32,9 @@ export default {
                     left: 'title',
                     right: 'prev,next'
                 },
-
+                eventLimit: 4,
+                eventLimitText: "更多",
+                eventLimitClick: 'popover',
             }
         };
     },
@@ -55,39 +57,46 @@ export default {
                     console.error("獲取公告失敗：", error);
                 });
         },
-
         getEvents() {
-            const colorPalette = ['#FF0000', '#0000E3', '#00BB00', '#BF0060'];
             const assignedEvents = [];
 
             return this.allAnnouncements.map((announce) => {
                 const startDate = new Date(announce.announceStartTime);
                 const endDate = new Date(announce.announceEndTime);
+
+                // 找到重疊的顏色，避免同一時間段顏色重疊
                 const overlappingColors = assignedEvents
                     .filter(event => !(new Date(event.end) < startDate || new Date(event.start) > endDate))
                     .map(event => event.color);
 
-                // 使用隨機顏色，避免重疊顏色
+                // 生成隨機顏色，避免重複顏色
                 let eventColor;
                 do {
-                    eventColor = colorPalette[Math.floor(Math.random() * colorPalette.length)];
+                    eventColor = this.getRandomColor(); // 使用隨機顏色生成函數
                 } while (overlappingColors.includes(eventColor));
 
-                assignedEvents.push({
-                    title: announce.announceTitle,
-                    start: startDate,
-                    end: endDate,
-                    color: eventColor
-                });
-
-                return {
+                const eventObj = {
                     title: announce.announceTitle,
                     start: startDate,
                     end: endDate,
                     color: eventColor
                 };
+
+                assignedEvents.push(eventObj);
+                return eventObj;
             });
         },
+
+        // 隨機生成 HEX 顏色
+        getRandomColor() {
+            const letters = '0123456789ABCDEF';
+            let color = '#';
+            for (let i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
+        }
+        ,
         displayCurrentMonthAnnouncements() {
             const currentMonth = new Date().getMonth();
             const currentYear = new Date().getFullYear();
@@ -210,6 +219,8 @@ export default {
             background-color: #fff;
             border-radius: 10px;
             margin-left: 1%;
+            overflow-y: scroll;
+            scrollbar-width: none;
         }
 
         .calendar-container {
@@ -227,12 +238,13 @@ export default {
     border-radius: 10px;
     display: flex;
     flex-direction: column;
-    align-items: center;    
+    align-items: center;
     background-color: #fff;
 }
 
 .announcetitle {
-    margin-top: 3%;
+    margin-top: 2%;
+    margin-bottom: 2%;
 }
 
 .announcebox-content {
@@ -314,9 +326,10 @@ export default {
 
 }
 
-/* .fc .fc-daygrid-day {
-    表格每格
-} */
+.fc .fc-daygrid-day {
+    height: auto;
+    
+}
 
 pre {
     white-space: pre-wrap;
@@ -333,8 +346,24 @@ th {
     margin-top: 10%;
 }
 
-.fc .fc-scrollgrid{
-    border: none; 
+.fc .fc-scrollgrid {
+    border: none;
+    
 }
-
+.fc-toolbar {
+    height: 100px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background-color: white;
+}
+thead {
+    position: sticky;
+    top:100px;
+    z-index: 50; 
+    background-color: #DDE1E6; 
+}
+.fc .fc-toolbar.fc-header-toolbar{
+    margin-bottom: 0px;
+}
 </style>
