@@ -198,7 +198,9 @@ export default {
     <div class="menuCategory">
         <h1>工作檯分類</h1>
         <div class="optionArea">
-            <div v-for="(category, index) in categories" :key="index" class="cOption" @click="selectWorkstation(category.workstationId)">
+            <div v-for="(category, index) in categories" :key="index" class="cOption"
+                :class="{ selected: selectedWorkstationId === category.workstationId }"
+                @click="selectWorkstation(category.workstationId)">
                 <span v-if="!isEditing">
                     {{ category.workstationName }}
                 </span>
@@ -206,6 +208,7 @@ export default {
                 <i class="fa-regular fa-circle-xmark" v-if="isEditing"
                     @click="removeWorkstation(category.workstationId)"></i>
             </div>
+
             <div class="inputOp" v-for="(input, index) in cgInput" :key="index">
                 <input type="text" v-model="input.text" placeholder="請輸入工作檯名稱" />
             </div>
@@ -217,10 +220,10 @@ export default {
         <div @click="editCategory" class="editCategory">編輯</div>
     </div>
     <div class="menuList">
-            <div v-for="(menu, index) in filteredMenuList" :key="index" class="menuItem">
-                {{ menu.mealName }}
-            </div>
-            <div v-if="filteredMenuList.length === 0">此工作檯目前無菜單</div>
+        <div v-for="(menu, index) in filteredMenuList" :key="index" class="menuItem">
+            {{ menu.mealName }}
+        </div>
+        <div v-if="filteredMenuList.length === 0">此工作檯目前無菜單</div>
     </div>
 </template>
 
@@ -228,7 +231,8 @@ export default {
 <style scoped lang="scss">
 $divColor: #fff;
 $addDiv: #343a3f;
-*{
+
+* {
     font-family: "Noto Sans TC", sans-serif;
 }
 
@@ -273,6 +277,12 @@ $addDiv: #343a3f;
             margin-bottom: 5%;
             background-color: #f2f4f8;
             cursor: pointer;
+
+            &.selected {
+                color: #fff;
+                background-color: #697077;
+            }
+
             span {
                 font-weight: bold;
                 font-family: "Noto Sans TC", sans-serif;
@@ -353,8 +363,8 @@ input {
     left: 22%;
     background-color: white;
     padding-left: 2%;
-    
-    .menuItem{
+
+    .menuItem {
         margin-top: 2%;
         border-left: 5px solid #C1C7CD;
         padding-left: 0.5%;
