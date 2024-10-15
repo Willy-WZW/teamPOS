@@ -31,7 +31,6 @@ export default {
             selectedWorkstation: "", //當前選擇的工作檯名稱
             lastSelectedWorkstationId: 0, // 用於儲存上次的選擇
             comboPage: false,
-            // comboPage:false
         }
     },
     components: {
@@ -199,6 +198,11 @@ export default {
         },
         switchSta(menu) {
             menu.available = !menu.available
+            // 查找正在編輯的菜單項目，並更新其 available 狀態
+            const itemToEdit = this.editedMenuItems.find(item => item.mealName === menu.mealName);
+            if (itemToEdit) {
+                itemToEdit.available = menu.available;
+            }
         },
         // 新增菜單input
         addMenu() {
@@ -608,6 +612,8 @@ export default {
             // 檢查是否已經在編輯列表中
             if (!this.editIndexList.includes(mealName)) {
                 this.editIndexList.push(mealName);
+                console.log(this.editIndexList);
+
             }
 
             // 如果該菜單項目還沒被加入到 editedMenuItems，則初始化該項目
@@ -618,7 +624,7 @@ export default {
                 this.editedMenuItems.push({ ...itemToEdit });
             }
 
-            // console.log("目前正在編輯的項目:", this.editedMenuItems);
+            console.log("目前正在編輯的項目:", this.editedMenuItems);
         },
         editWorkbench() {
             // 切換編輯模式
@@ -1113,11 +1119,11 @@ export default {
             <div class="saveCategory" @click="saveCategory()">儲存</div>
             <div class="editCategory" @click="editCategory()">編輯</div>
         </div>
-        <div class="menuAndCust">
-            <div class="menuArea" v-if="!comboPage">
+        <div class="menuAndCust" v-if="!comboPage">
+            <div class="menuArea">
                 <div class="menuTop">
                     <div class="mtLeft">
-                        <span>{{ selectedCategoryId == null ? '菜單分類' : selectedCategory}}</span>
+                        <span>{{ selectedCategoryId == null ? '菜單分類' : selectedCategory }}</span>
                     </div>
                     <div class="mtMid">
                         <i class="fa-solid fa-square-pen" :class="{ 'disIcon': selectedCategory == null }"
@@ -1165,14 +1171,7 @@ export default {
                             <span v-if="!editIndexList.includes(item.mealName)">${{ item.price }}</span>
                             <input v-else v-model="item.price" type="number" @input="updateEditedItem(item)">
                         </div>
-                        <!-- <div class="itemWorksta">
-                            <span>工作檯</span>
-                            <span v-if="!editIndexList.includes(item.mealName)">{{ item.workstationId }}</span>
-                            <select v-else v-model="item.workstationId" @change="updateEditedItem(item)">
-                                <option value="0">工作檯選擇</option>
-                            </select>
-                        </div> -->
-                        <div class="itemBot">
+                        <div class="itemWorksta">
                             <div class="itemStatus" v-if="!editIndexList.includes(item.mealName)"
                                 :class="{ soldOut: item.available == false }">
                                 <span>{{ item.available ? "供應中" : "售完" }}</span>
@@ -1180,6 +1179,8 @@ export default {
                             <div v-else class="itemStatus" :class="{ flip: !item.available }" @click="switchSta(item)">
                                 <span>{{ item.available ? "供應中" : "售完" }}</span>
                             </div>
+                        </div>
+                        <div class="itemBot">
                             <div class="itemIcon">
                                 <i class="fa-solid fa-square-pen" @click="editMenuFromDB(item.mealName)"></i>
                                 <i class="fa-solid fa-trash-can" @click="deleteMenuFromDB(item.mealName)"></i>
@@ -1206,15 +1207,11 @@ export default {
                             <input type="number" v-model.number="menu.price" placeholder="餐點金額">
                         </div>
                         <div class="itemWorksta">
-                            <!-- <span>工作檯</span>
-                            <select v-model="menu.workstationId">
-                                <option value="0">工作檯選擇</option>
-                            </select> -->
-                        </div>
-                        <div class="itemBot">
                             <div class="itemStatus" :class="{ flip: !menu.available }" @click="switchSta(menu)">
                                 <span>{{ menu.available ? "供應中" : "售完" }}</span>
                             </div>
+                        </div>
+                        <div class="itemBot">
                             <div class="itemIcon">
                                 <i class="fa-solid disable fa-square-pen" style="pointer-events: none;"></i>
                                 <i class="fa-solid fa-trash-can" @click="removeMenu(index)"></i>
@@ -1223,7 +1220,7 @@ export default {
                     </div>
                 </div>
             </div>
-            <ComboComponent class="comboArea" v-if="comboPage"></ComboComponent>
+
             <div class="customerization">
                 <div class="cuTop">
                     <div class="cuLeft">
@@ -1300,13 +1297,14 @@ export default {
                 </div>
             </div>
         </div>
+        <ComboComponent class="comboArea" v-if="comboPage"></ComboComponent>
     </div>
 </template>
 
 <style scoped lang="scss">
 $divColor: #fff;
 $addDiv: #343a3f;
-$suppliable: #1ce34e;
+$suppliable: #28A745;
 $soldOut: #e02d11;
 $borderBot: #697077;
 $editColor: #e6b800;
@@ -1627,7 +1625,7 @@ $editColor: #e6b800;
 
                 .addMenuDiv {
                     width: 22%;
-                    max-height: 248px; //65%
+                    height: 72%; //65%
                     margin: 0 4% 1% 0;
                     border-radius: 10px;
                     display: flex;
@@ -1651,7 +1649,7 @@ $editColor: #e6b800;
                     grid-column-gap: 8px;
                     grid-row-gap: 6px;
                     width: 22%;
-                    max-height: 248px; //65%
+                    height: 72%; //65%
                     margin: 0 4% 1% 0;
                     border-radius: 10px;
                     border: 1px solid black;
@@ -1718,38 +1716,22 @@ $editColor: #e6b800;
                     .itemWorksta {
                         grid-area: 7 / 1 / 8 / 7;
                         display: flex;
+                        justify-content: center;
                         align-items: center;
                         border-bottom: 1px solid $borderBot;
-                        color: #697077;
-                        font-family: "Noto Sans TC", sans-serif;
                         margin: 0 4%;
-
-                        span {
-                            margin-right: 12%;
-                        }
-
-                        select {
-                            width: 60%;
-                            font-family: "Noto Sans TC", sans-serif;
-                        }
-                    }
-
-                    .itemBot {
-                        grid-area: 8 / 1 / 9 / 7;
-                        margin: 0 4%;
-                        display: flex;
 
                         .itemStatus {
                             width: 50%;
-                            margin-right: 5%;
                             margin-bottom: 2%;
                             border-radius: 5px;
                             letter-spacing: 3px;
                             cursor: pointer;
                             font-size: 17px;
                             font-weight: bold;
-                            color: $suppliable;
-                            background-color: white;
+                            font-family: "Noto Sans TC", sans-serif;
+                            color: white;
+                            background-color: $suppliable;
                             border: 1px solid $suppliable;
                             display: flex;
                             justify-content: center;
@@ -1769,11 +1751,17 @@ $editColor: #e6b800;
                             border-color: $soldOut;
                             color: $soldOut;
                         }
+                    }
 
+                    .itemBot {
+                        grid-area: 8 / 1 / 9 / 7;
+                        margin: 0 4%;
+                        display: flex;
 
                         .itemIcon {
-                            width: 35%;
-                            margin-left: 8%;
+                            width: 100%;
+                            margin-left: 4%;
+                            margin-right: 4%;
                             display: flex;
                             justify-content: space-between;
                             align-items: center;
@@ -1800,7 +1788,6 @@ $editColor: #e6b800;
                             }
                         }
                     }
-
                 }
 
                 .menuItem:nth-child(4n) {
@@ -1810,15 +1797,10 @@ $editColor: #e6b800;
             }
         }
 
-        .comboArea {
-            width: 100%;
-            height: 69%;
-            z-index: 99;
-        }
-
         .customerization {
             width: 100%;
             max-height: 31%; //31%
+            min-height: 31%;
             margin-top: 1.5%;
             border-radius: 10px;
             display: flex;
@@ -2049,5 +2031,15 @@ $editColor: #e6b800;
         }
 
     }
+
+    .comboArea {
+        width: 76.5%;
+        height: 100%;
+        z-index: 99;
+        position: absolute;
+        top: 0;
+        right: 0;
+    }
+
 }
 </style>

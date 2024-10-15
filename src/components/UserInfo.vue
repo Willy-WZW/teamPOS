@@ -260,7 +260,7 @@ export default {
                     <span>{{ user.email }}</span>
                 </div>
                 <div class="info-field">
-                    <label>授權:</label>
+                    <label>權限:</label>
                     <span>{{ user.authorizationName }}</span>
                 </div>
             </div>

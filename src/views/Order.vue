@@ -1,4 +1,5 @@
 <script>
+import Swal from "sweetalert2";
 import LeftBar from "@/components/LeftBar.vue";
 import Categores from "@/components/Order/Categores.vue";
 import MenuItems from "@/components/Order/MenuItems.vue";
@@ -20,8 +21,11 @@ export default {
             orderItems: [], // 儲存所有選擇的訂單項目
             activeCategoryId: null, // 追蹤當前選中的分類
 
+            singleList: [], // 單點訂單
+            comboList: [], // 套餐訂單
             orderList: [], // 存放所有從子元件傳來的訂單資料
             selectedTableNumber: null, // 被選中的桌號
+            customerCount: 1, // 預設人數為1
         };
     },
     components: {
@@ -30,18 +34,14 @@ export default {
         MenuItems,
         CustomPopup,
     },
-    computed: {},
+    computed: {
+        // 計算所有訂單的總金額
+        totalAmount() {
+            return this.orderList.reduce((sum, item) => sum + item.price, 0);
+        },
+    },
     mounted() {
         this.fetchOrderData();
-        // 預設顯示第一個分類：失效中待搶救
-        if (this.categoriesList.length > 0) {
-            const firstCategoryId = this.categoriesList[0].categoryId;
-            this.filterMenuItems(firstCategoryId);
-        }
-        // 預設選中第一個桌號
-        if (this.tablesList.length > 0) {
-            this.selectedTableNumber = this.tablesList[0];
-        }
     },
     methods: {
         fetchOrderData() {
@@ -64,10 +64,42 @@ export default {
                     this.optionsList = this.orderMenuData.optionList;
                     this.combosList = this.orderMenuData.comboList;
                     this.tablesList = this.orderMenuData.tableNumberList;
+
+                    // 呼叫初始化處理，為 combosList 的主餐加上 available 屬性
+                    this.combosList = this.addAvailableToCombos(this.orderMenuData.comboList);
+
+                    // 資料載入完成後，設定預設分類與桌號
+                    this.setDefaultCategoryAndTable();
                 })
                 .catch((error) => {
                     console.error("取得菜單資料失敗:", error);
                 });
+        },
+        setDefaultCategoryAndTable() {
+            // 設定預設顯示的第一個分類
+            if (this.categoriesList.length > 0) {
+                const firstCategoryId = this.categoriesList[0].categoryId;
+                this.filterMenuItems(firstCategoryId);
+            }
+
+            // 設定預設選中的桌號
+            if (this.tablesList.length > 0) {
+                this.selectedTableNumber = this.tablesList[0];
+            }
+        },
+        addAvailableToCombos(combos) {
+            return combos.map((combo) => {
+                // 查找主餐名稱
+                const mainDish = combo.comboDetail[0].dishesList[0];
+
+                // 查找 menuItems 中是否有相同名稱的餐點
+                const matchingMeal = this.menuItemsList.find((item) => item.mealName === mainDish.dishName);
+
+                // 若找到則附加 available 屬性，否則預設為 true
+                mainDish.available = matchingMeal ? matchingMeal.available : true;
+
+                return combo;
+            });
         },
         filterMenuItems(categoryId) {
             this.activeCategoryId = categoryId; // 更新 active 狀態
@@ -84,13 +116,72 @@ export default {
             this.selectedItem = item;
             this.showPopup = true;
         },
-        // 接收子元件傳來的訂單資料，並將其加入到 orderList
+        // 接收子元件傳來的訂單List
         handleAddToOrder(order) {
-            console.log("收到的訂單資料:", order);
-
-            this.orderList = [...this.orderList, ...order]; // 將資料加入 orderList
+            if (order.length > 1) {
+                this.comboList.push(...order);
+            } else {
+                this.singleList.push(...order);
+            }
+        },
+        // 編輯訂單
+        editOrder(order, type) {
+            if (type === "single") {
+                this.selectedItem = { ...order }; // 複製訂單內容
+            } else if (type === "combo") {
+                this.selectedItem = { ...order };
+            }
+            this.showPopup = true; // 顯示彈窗進行編輯
+        },
+        // 確認是否刪除該筆訂單
+        confirmDeleteOrder(index, type) {
+            Swal.fire({
+                title: "確定要刪除這筆訂單嗎？",
+                text: "刪除後無法復原！",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#d33",
+                cancelButtonColor: "#3085d6",
+                confirmButtonText: "是的，刪除！",
+                cancelButtonText: "取消",
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    this.deleteOrder(index, type);
+                    Swal.fire("已刪除！", "該筆訂單已成功刪除。", "success");
+                }
+            });
+        },
+        // 刪除該筆訂單
+        deleteOrder(index, type) {
+            if (type === "single") {
+                this.singleList.splice(index, 1);
+            } else if (type === "combo") {
+                this.comboList.splice(index, 1);
+            }
         },
         submitOrder() {
+            if (!this.selectedTableNumber) {
+                Swal.fire({
+                    icon: "error",
+                    title: "錯誤",
+                    text: "請選擇桌號！",
+                    confirmButtonText: "確認",
+                });
+                return; // 中止送出訂單
+            }
+
+            this.orderList = [...this.singleList, ...this.comboList]; // 將資料加入 orderList
+
+            if (this.orderList.length === 0) {
+                Swal.fire({
+                    icon: "error",
+                    title: "錯誤",
+                    text: "請至少選擇一個餐點！",
+                    confirmButtonText: "確認",
+                });
+                return; // 中止送出訂單
+            }
+
             const now = new Date();
             const formattedDate = now.toISOString().slice(0, 10).replace(/-/g, "");
             const formattedTime = now.toTimeString().slice(0, 5).replace(/:/g, "");
@@ -131,6 +222,15 @@ export default {
                         throw new Error(`HTTP error! Status: ${response.status}`);
                     }
                     console.log("訂單已成功送出！");
+
+                    // 訂單成功後彈出 SweetAlert 提示
+                    Swal.fire({
+                        icon: "success",
+                        title: "成功",
+                        text: "訂單已送出！",
+                        confirmButtonText: "確認",
+                    });
+
                     this.resetOrder();
                 })
                 .catch((error) => {
@@ -139,6 +239,8 @@ export default {
         },
         resetOrder() {
             this.orderList = [];
+            this.singleList = [];
+            this.comboList = [];
             this.selectedTableNumber = null;
             console.log("訂單已重置");
         },
@@ -153,7 +255,6 @@ export default {
         </div>
 
         <div class="mainArea">
-
             <div class="menuArea">
                 <h2>菜單</h2>
                 <Categores :categories="categoriesList" @selectCategory="filterMenuItems" :activeCategoryId="activeCategoryId" />
@@ -176,25 +277,63 @@ export default {
                             {{ table }}
                         </option>
                     </select>
-                </div>
-    
-                <!-- 餐點明細：顯示從CustomPopupCopy傳來的資料 -->
-                <div class="orderSummary">
-                    <h2>訂單明細</h2>
-                    <pre>{{ orderList }}</pre>
-                </div>
-    
-                <!-- 送出訂單按鈕：將訂單明細包裝成完整req格式接上 api 存入資料庫 -->
-    
-                <button @click="submitOrder">送出訂單</button>
-            </div>
 
+                    <label for="customerCountSelect">人數：</label>
+                    <select id="customerCountSelect" v-model="customerCount">
+                        <option v-for="n in 20" :key="n" :value="n">{{ n }} 人</option>
+                    </select>
+                </div>
+
+                <!-- 餐點明細：顯示從CustomPopup傳來的資料 -->
+                <div class="orderSummary">
+                    <h3>訂單明細</h3>
+
+                    <!-- 單點訂單 -->
+                    <div v-if="singleList.length > 0">
+                        <!-- <pre>{{ singleList }}</pre> -->
+                        <div v-for="(single, index) in singleList" :key="single.orderMealId" class="singleorderBlock">
+                            <div class="singleHeader">
+                                <p>{{ single.mealName }}</p>
+                                <p>${{ single.mealPrice }}</p>
+                            </div>
+                            <div class="singleOptions">
+                                <p>{{ single.options }}</p>
+                                <p>${{ single.optionsPrice }}</p>
+                            </div>
+                            <div class="singleBottom">
+                                <!-- <button @click="editOrder(single, 'single')">編輯</button> -->
+                                <button @click="confirmDeleteOrder(index, 'single')"><i class="bi bi-trash3-fill"></i></button>
+                                <p>${{ single.price }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <pre> {{ comboList }} </pre>
+                    <!-- 套餐訂單 -->
+                    <!-- <div v-if="processedComboData">
+                        <h3>套餐名稱：{{ processedComboData.overview.comboName }}</h3>
+                        <p>套餐基本價格：${{ processedComboData.overview.comboBasicPrice }}</p>
+                        <ul>
+                            <li v-for="(item, index) in processedComboData.items" :key="index">{{ item.mealName }} ({{ item.options }}) + ${{ item.totalItemPrice }}</li>
+                        </ul>
+                        <p>套餐總價：${{ processedComboData.overview.selectedComboPrice }}</p>
+                    </div> -->
+                </div>
+
+                <!-- 送出訂單按鈕：將訂單明細包裝成完整req格式接上 api 存入資料庫 -->
+                <div class="totalAmountAndBtn">
+                    <p>合計 ${{ totalAmount }}</p>
+                    <button @click="submitOrder" class="submitBtn">送出訂單</button>
+                </div>
+            </div>
         </div>
-        
     </div>
 </template>
 
 <style scoped lang="scss">
+* {
+    letter-spacing: 0.2dvw;
+}
 .big {
     width: 100%;
     height: 100dvh;
@@ -221,13 +360,112 @@ export default {
         letter-spacing: 0.2dvw;
 
         .menuArea {
-            width: 70%;
-            border: 2px solid black;
+            width: 68%;
+            border: 1px solid rgba(grey, 0.5);
+            padding: 2%;
+            border-radius: 10px;
+            background-color: white;
         }
 
         .orderArea {
-            width: 30%;
-            border: 2px solid black;
+            width: 32%;
+            border: 1px solid rgba(grey, 0.5);
+            padding: 2%;
+            border-radius: 10px;
+            background-color: white;
+        }
+    }
+}
+
+h2 {
+    margin-bottom: 2%;
+}
+
+.tableAndCustomerNum {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding-bottom: 5%;
+    border-bottom: 1px solid rgba(grey, 0.5);
+
+    select {
+        padding: 5px;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+    }
+}
+
+.orderSummary {
+    height: 77%;
+    padding: 2% 0;
+    border-bottom: 1px solid rgba(grey, 0.5);
+    overflow-y: scroll;
+    scrollbar-width: none; /* Firefox 隱藏滾動條 */
+}
+
+.totalAmountAndBtn {
+    padding-top: 2%;
+    p {
+        width: 100%;
+        font-size: 1rem;
+        font-weight: 600;
+        text-align: end;
+        margin-bottom: 3%;
+    }
+}
+button.submitBtn {
+    width: 100%;
+    padding: 2%;
+    color: white;
+    font-size: 1rem;
+    background-color: rgba(black, 0.8);
+    border: none;
+    border-radius: 10px;
+}
+
+h3 {
+    margin: 2% 0;
+}
+
+.singleorderBlock {
+    border: 1px solid #ccc;
+    padding: 10px;
+    border-radius: 5px;
+    position: relative;
+    margin-bottom: 10px;
+
+    .singleHeader {
+        display: flex;
+        justify-content: space-between;
+        p {
+            font-weight: 500;
+        }
+    }
+    .singleOptions {
+        display: flex;
+        justify-content: space-between;
+        padding: 3% 0;
+        border-bottom: 1px dashed rgba(grey, 0.8);
+    }
+
+    .singleBottom {
+        padding-top: 2%;
+        display: flex;
+        justify-content: space-between;
+        p {
+            font-weight: 500;
+        }
+        button {
+            background-color: rgba(grey, 0.2);
+            padding: 0.8% 1.8%;
+            border-radius: 5px;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+
+            i {
+                color: black;
+            }
         }
     }
 }

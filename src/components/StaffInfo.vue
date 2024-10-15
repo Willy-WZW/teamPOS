@@ -374,7 +374,7 @@ export default {
                             <th>電話</th>
                             <th>密碼</th>
                             <th>email</th>
-                            <th>授權</th>
+                            <th>權限</th>
                             <th>操作</th>
                         </tr>
                     </thead>
@@ -411,7 +411,7 @@ export default {
                                 <div class="cell-content">
                                     <select v-if="editingId === employee.id" v-model="newEmployee.authorization"
                                         class="edit-input">
-                                        <option value="">選擇授權</option>
+                                        <option value="">選擇權限</option>
                                         <option v-for="auth in authorizations" :value="auth.code" :key="auth.code">
                                             {{ auth.label }}
                                         </option>
@@ -453,7 +453,7 @@ export default {
                             <td><input v-model="newEmployee.email" placeholder="輸入email" class="edit-input"></td>
                             <td>
                                 <select v-model="newEmployee.authorization" class="edit-input">
-                                    <option value="">選擇授權</option>
+                                    <option value="">選擇權限</option>
                                     <option v-for="auth in authorizations" :value="auth.code" :key="auth.code">
                                         {{ auth.label }}
                                     </option>

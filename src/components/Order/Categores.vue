@@ -14,8 +14,7 @@ export default {
 
 <template>
     <div class="categories">
-        <button v-for="category in categories" :key="category.categoryId" :class="{ active: category.categoryId === activeCategoryId }"
-        @click="selectCategory(category.categoryId)">
+        <button v-for="category in categories" :key="category.categoryId" :class="{ active: category.categoryId === activeCategoryId }" @click="selectCategory(category.categoryId)">
             {{ category.category }}
         </button>
     </div>
@@ -25,13 +24,18 @@ export default {
 .categories {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
-    // border: 2px solid red;
+    gap: 20px;
+    border-bottom: 1px dashed rgba(grey, 0.5);
+    padding-bottom: 2%;
 }
 
 button {
-    padding: 10px 20px;
-    border: 1px solid grey;
+    letter-spacing: 0.2dvw;
+    font-weight: 500;
+    font-size: 1rem;
+    padding: 6px 25px;
+    border: 1px solid rgba(grey, 0.5);
+    border-radius: 5px;
     background-color: transparent;
     cursor: pointer;
     // transition: border 0.3s;
@@ -39,10 +43,11 @@ button {
 
 button:hover {
     border: 1px solid grey;
+    background-color: rgba(grey, 0.1);
 }
 
 button.active {
-  border: 3px solid grey; /* 點擊後維持2px的邊框 */
+    border: 2px solid grey; /* 點擊後維持2px的邊框 */
+    background-color: rgba(grey, 0.1);
 }
-
 </style>

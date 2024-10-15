@@ -34,23 +34,28 @@ export default {
         },
         //套餐中的單品
         groupedComboDishes() {
-            return this.item.comboDetail.map((detail) => ({
-                categoryName: this.getCategoryName(detail.categoryId),
-                categoryId: detail.categoryId,
-                dishes: detail.dishesList.map((dish) => ({
-                    name: dish.dishName,
-                    price: dish.price,
+            return this.item.comboDetail.map((detail) => {
+                const defaultDish = detail.dishesList[0]; // 預設餐點
+                return {
+                    categoryName: this.getCategoryName(detail.categoryId),
                     categoryId: detail.categoryId,
-                })),
-            }));
+                    dishes: detail.dishesList.map((dish) => ({
+                        name: dish.dishName,
+                        price: dish.price,
+                        categoryId: detail.categoryId,
+                        // 計算與預設餐點的價差
+                        priceDifference: dish.price - defaultDish.price,
+                    })),
+                };
+            });
         },
         itemPrice() {
             return this.isCombo ? this.item.comboPrice : this.item.price;
         },
         //單點客製化選項
         filteredOptions() {
-            const selectedDish = this.singleDishes.default || null;
-            const categoryId = selectedDish ? selectedDish.categoryId : this.item.categoryId;
+            const categoryId = this.singleDishes.categoryId || this.item.categoryId;
+            // 根據 categoryId 過濾選項，即使該餐點不可用
             return this.optionsList.filter((option) => option.categoryId === categoryId);
         },
     },
@@ -100,6 +105,11 @@ export default {
                 .map((opt) => opt.content)
                 .join(", "); // 組合所有選項的 content
 
+            const optionsPrice = Object.values(this.singleOptions)
+                .flat()
+                .map((opt) => opt.price)
+                .join(", "); // 組合所有選項的 price
+
             const totalPrice =
                 this.singleDishes.price +
                 Object.values(this.singleOptions)
@@ -110,7 +120,9 @@ export default {
                 orderMealId,
                 comboName: null, // 單點沒有套餐名稱
                 mealName: this.singleDishes.mealName,
+                mealPrice: this.singleDishes.price,
                 options: options || null, // 如果沒有選項則為 null
+                optionsPrice: optionsPrice,
                 workstationId: this.singleDishes.workstationId || 0,
                 price: totalPrice,
             };
@@ -193,6 +205,8 @@ export default {
                 options: null,
                 workstationId: 0,
                 price: this.comboDishes.discountAmount,
+                comboBasicPrice: this.comboDishes.comboBasicPrice,
+                selectedComboPrice: this.totalPrice,
             };
 
             // 1.2 套餐單品項
@@ -201,6 +215,10 @@ export default {
                     .flat()
                     .map((opt) => opt.content)
                     .join(", "); // 將選項以逗號分隔
+
+                const optionsPriceTotal = Object.values(dish.selectedOptions)
+                    .flat()
+                    .reduce((sum, opt) => sum + opt.price, 0); // 加總所有選項的 price
 
                 const totalPrice =
                     dish.price +
@@ -213,8 +231,10 @@ export default {
                     comboName: this.comboDishes.comboName,
                     mealName: dish.name,
                     options: options || null,
+                    optionsPriceTotal: optionsPriceTotal,
                     workstationId: dish.workstationId || 0,
                     price: totalPrice,
+                    priceDifference: dish.priceDifference,
                 };
             });
 
@@ -320,7 +340,7 @@ export default {
                             :value="dish"
                             :checked="comboDishes.selectedDishes.some((d) => d.name === dish.name)"
                             @change="selectComboDish(group.categoryName, dish)" />
-                        {{ dish.name }} - ${{ dish.price }}
+                        {{ dish.name }} + ${{ dish.priceDifference }}
                     </label>
                 </div>
             </div>
@@ -350,11 +370,11 @@ export default {
         <button @click="assembleComboOrder">加入訂單</button>
     </div>
 
-    <pre>{{ singleDishes }}</pre>
+    <!-- <pre>{{ singleDishes }}</pre>
     <pre>{{ singleOptions }}</pre>
 
     <pre>{{ comboDishes }}</pre>
-    <pre>{{ selectedDishes }}</pre>
+    <pre>{{ selectedDishes }}</pre> -->
 </template>
 
 <style scoped lang="scss">
@@ -383,5 +403,3 @@ export default {
     padding: 0 10px;
 }
 </style>
-
-
