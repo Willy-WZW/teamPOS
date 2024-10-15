@@ -198,6 +198,11 @@ export default {
         },
         switchSta(menu) {
             menu.available = !menu.available
+            // 查找正在編輯的菜單項目，並更新其 available 狀態
+            const itemToEdit = this.editedMenuItems.find(item => item.mealName === menu.mealName);
+            if (itemToEdit) {
+                itemToEdit.available = menu.available;
+            }
         },
         // 新增菜單input
         addMenu() {
@@ -607,6 +612,8 @@ export default {
             // 檢查是否已經在編輯列表中
             if (!this.editIndexList.includes(mealName)) {
                 this.editIndexList.push(mealName);
+                console.log(this.editIndexList);
+
             }
 
             // 如果該菜單項目還沒被加入到 editedMenuItems，則初始化該項目
@@ -617,7 +624,7 @@ export default {
                 this.editedMenuItems.push({ ...itemToEdit });
             }
 
-            // console.log("目前正在編輯的項目:", this.editedMenuItems);
+            console.log("目前正在編輯的項目:", this.editedMenuItems);
         },
         editWorkbench() {
             // 切換編輯模式
