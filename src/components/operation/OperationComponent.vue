@@ -44,7 +44,7 @@ export default{
                         trigger: 'axis',  // 當軸上的數據被觸發時顯示 tooltip
                     },
                 legend: {
-                    data:['銷售額'],
+                    data:['餐點銷售量'],
                     left: 'center',
                     textStyle: {
                         fontSize: 18,  // 設置圖例的字體大小
@@ -95,7 +95,6 @@ export default{
                     }
                 ]
             },
-
             optionLine:{
                 tooltip: {
                         trigger: 'axis',  // 當軸上的數據被觸發時顯示 tooltip
@@ -236,7 +235,6 @@ export default{
             this.firstOperationDate = response.data.analysis.revenueGrowth[0].day
             this.dateForDay = this.allDateList[this.allDateList.length - 1]
             this.preDateForDay = this.allDateList[this.allDateList.length - 2]
-
         })
         .then(()=>{
             return Promise.all([
@@ -255,18 +253,18 @@ export default{
             this.analysis.popularDishes = this.analysis.popularDishes.sort((a, b) => b.orders - a.orders);
             this.preAnalysis = response3.data.analysis;
 
-        })   
-        .then(()=>{
             this.optionLine.xAxis.data = this.allDateList[this.allDateList.length-1]
-            this.optionLine.series[0].data = this.analysis.revenueGrowth.map(item=>{
-                return item.revenue
-            })
-        })
+            this.optionLine.series[0].data = this.analysis.revenueGrowth.map(item=>item.revenue)
+
+            this.optionLineDishes.xAxis.data = this.analysis.popularDishes.map(item=>item.name)
+            this.optionLineDishes.series[0].data = this.analysis.popularDishes.map(item=>item.orders)
+        })   
         .catch(error => {
             console.error("Error fetching analysis:", error);
         });
         this.$nextTick(() => {
             this.drawChart();  // 初始化图表
+            this.drawDishesChart()
         });
     },
     computed:{
@@ -562,11 +560,13 @@ export default{
     },
     methods:{
         postEveryMonthOfYearDishes(mealName){
+            //這是年在用的
+            this.analysisMealVoList = []
             this.analysis12Month = []
             this.lastYearAnalysis12Month = []
             let result = this.getFirstAndLastDaysOfYear(this.dateForYear.getFullYear())
-            //為了bar的統計圖
-            // 當前年當月
+            //為了bar的統計圖 x軸應該是月份
+            //當前年當月
             let currentDate = result[1]
             let promisesCurrrDate = [];
             for (let month=0; month<12; month++){
@@ -592,7 +592,8 @@ export default{
                 .catch(error => {
                     console.error("Error in one or more requests:", error);
                 });    
-                
+
+            //這是年在用的    x軸應該是月份
             //為了bar的統計圖
             //去年同月    
             let lastYearDate = result[2]
@@ -620,8 +621,14 @@ export default{
                 });    
 
 
-            //點擊商品時計算折線圖顯示販賣的商品數量
+            //點擊商品時計算折線圖顯示販賣的商品數量 
+            //optionLine就是echat1負責，用來顯示x軸是日期y軸是餐點銷售數量
+            //給月使用
             let promisesAnalysisMealVoList = [];
+            this.optionLine.legend.data[0] = '商品銷售量'
+            this.optionLine.series[0].name = '商品銷售量'
+            this.optionLine.series[0].type = 'bar'
+            console.log(this.optionLine)
             for (let i=0; i<this.optionLine.series[0].data.length; i++){
                 let promise = axios.post("http://localhost:8080/pos/analysis", {   
                             "startDate":this.optionLine.xAxis.data[i],
@@ -638,20 +645,13 @@ export default{
                     });
                 })
                 .then(()=>{
-                    this.optionLine.series[0].data = this.analysisMealVoList.map(item=>{
-                            return item.analysisMealVo.mealTotalOrders
-                    })
-                    
+                    let list = this.analysisMealVoList.map(item=>item.analysisMealVo.mealTotalOrders)
+                    this.optionLine.series[0].data = list
+                    this.drawChart()
                 })
                 .catch(error => {
                     console.error("Error in one or more requests:", error);
                 }); 
-
-                this.$nextTick(() => {
-                    this.drawChart();  // 初始化图表
-                });
-
-
         },
         getFirstAndLastDaysOfSeason(year){
             const currentDates = [];
@@ -894,18 +894,18 @@ export default{
         },
         drawChart() {
 
-            // const myChart1 = echarts.init(document.getElementById("echart1"));
-            // if (myChart1) {
-            //     myChart1.setOption(this.optionLine);  
-            // } else {
-            //     console.error("Invalid DOM: chart container not found");
-            // }
-            // const myChart2 = echarts.init(document.getElementById("echart2"));
-            // if (myChart2) {
-            //     myChart2.setOption(this.option);  
-            // } else {
-            //     console.error("Invalid DOM: chart container not found");
-            // }
+            const myChart1 = echarts.init(document.getElementById("echart1"));
+            if (myChart1) {
+                myChart1.setOption(this.optionLine);  
+            } else {
+                console.error("Invalid DOM: chart container not found");
+            }
+            const myChart2 = echarts.init(document.getElementById("echart2"));
+            if (myChart2) {
+                myChart2.setOption(this.option);  
+            } else {
+                console.error("Invalid DOM: chart container not found");
+            }
         },
 
         selectPeriod(type){
@@ -930,27 +930,22 @@ export default{
             .then(response=>{
                 this.analysis = response.data.analysis
                 this.analysis.popularDishes.sort((a,b)=>{return b.orders-a.orders})
+            
+                this.optionLine.xAxis.data = this.analysis.revenueGrowth.map(item=>item.day)
+                this.optionLine.series[0].data = this.analysis.revenueGrowth.map(item=>item.revenue)
+                this.optionLineDishes.xAxis.data = this.analysis.popularDishes.map(item=>item.name)
+                this.optionLineDishes.series[0].data = this.analysis.popularDishes.map(item=>item.orders)
+                console.log(this.optionLineDishes.series[0].data)
             })
             .then(()=>{
-                this.optionLine.xAxis.data = this.analysis.revenueGrowth.map(item=>{
-                    return item.day
-                })
-                this.optionLine.series[0].data = this.analysis.revenueGrowth.map(item=>{
-                    return item.revenue
-                })
-                this.optionLineDishes.xAxis.data = this.analysis.popularDishes.map(item=>item.name)
-                this.optionLineDishes.series[0].data = this.analysis.popularDishes.map(item=>{
-                    return item.orders
-                })
+                this.drawDishesChart();  // 初始化图表
             })
             .catch(()=>{
                 console.error("Error fetching analysis:", error);
             })
-            this.$nextTick(() => {
-                console.log(this.optionLine.xAxis.data)
-                this.drawDishesChart();  // 初始化图表
-            });
         },
+
+        
         postPreStartDateAndPreEndDate(startDate, endDate){
             axios.post("http://localhost:8080/pos/analysis", {   
                             "startDate":startDate,
@@ -1009,10 +1004,17 @@ export default{
         <p class="topStyle" :class="{topStyleClick: currentTopSelect == '活動統計'}"  @click="currentTopSelect = '活動統計'">活動統計</p>
     </div> -->
     <!-- <h1>{{ allDateList }}</h1> -->
-    <h1 >{{ dateForDay }}</h1>
-    <h1 >{{ preDateForDay }}</h1>
-    <h1 v-if="analysis">{{ analysis}}</h1>
-    <h1 v-if="preAnalysis">{{ preAnalysis}}</h1>
+    <!-- <h1 >{{ dateForDay }}</h1> -->
+    <!-- <h1 >{{ preDateForDay }}</h1> -->
+    <!-- <h1 v-if="analysis">{{ analysis}}</h1> -->
+    <!-- <h1 v-if="preAnalysis">{{ preAnalysis}}</h1> -->
+    <!-- <h1>{{ this.dateForDay.toISOString().split('T')[0] }}</h1>  -->
+    <!-- <h1>{{ this.allDateList[this.allDateList.length - 1].toISOString().split('T')[0] }}</h1>  -->
+    <!-- <h1>{{ this.startDate }}</h1>  -->
+    <!-- <h1>{{ this.endDate  }}</h1>  -->
+    <h1>{{ this.analysisMealVoList }}</h1>
+    <h1>{{ this.optionLine.series[0].data }}</h1>
+    <h1>{{ this.optionLine.xAxis.data }}</h1>
     <div class="innerContainer" v-if="currentTopSelect == '日常統計'">
         <div class="dashboardLeft">
             <div class="navHead">
@@ -1025,9 +1027,13 @@ export default{
 
             <div class="echartContainer" v-if="currentHead=='日'">
                 <div class="leftRightContainer">
-                    <i class='bx bx-chevron-left' @click="previousDay" v-if="new Date(firstOperationDate).toISOString().split('T')[0] < dateForDay.toISOString().split('T')[0]"></i>
+                    <i class='bx bx-chevron-left' @click="previousDay" 
+                    v-if="new Date(firstOperationDate).toISOString().split('T')[0] < 
+                    dateForDay.toISOString().split('T')[0]"></i>
                     <p>{{ currentDay }}</p>
-                    <i class='bx bx-chevron-right' @click="nextDay" v-if="dateForDay.toISOString().split('T')[0] < new Date().toISOString().split('T')[0]"></i>
+                    <i class='bx bx-chevron-right' @click="nextDay" 
+                    v-if="this.dateForDay.toISOString().split('T')[0] != 
+                    this.allDateList[this.allDateList.length - 1].toISOString().split('T')[0]"></i>
                 </div>
             </div>
             <div class="echartContainer" v-if="currentHead=='月'">
@@ -1074,7 +1080,7 @@ export default{
                         <p class="title">總銷售額</p>
                         <div class="content">
                             <p class="contentNumber" v-if="analysis && analysis.totalRevenue !== null">${{ analysis.totalRevenue }}</p>
-                            <p class="contentNumber">{{ preAnalysis.totalRevenue }}</p>
+                            <!-- <p class="contentNumber">{{ preAnalysis.totalRevenue }}</p> -->
                         </div>
                         <div class="foot">
                             <!-- <div class="contentRateUp" v-if="analysis && analysis.totalRevenue !== null && preAnalysis && preAnalysis.totalRevenue !== null && calRevenueGrowth()>=0">
@@ -1141,12 +1147,12 @@ export default{
                 </div>
                 <div class="chartArea" >
                     <div class="chartContainer0" v-show="currentHead=='日'">
-                        <h1>每日銷售狀況</h1>
+                        <h1>日餐點銷售數量</h1>
                         <div id="echart0">
                         </div>
                     </div>
                     <div class="chartContainer1" v-show="currentHead=='月'">
-                        <h1>每日營業額</h1>
+                        <h1>月每日營業額</h1>
                         <div id="echart1" >
                         </div>
                     </div>
@@ -1537,7 +1543,7 @@ $down-font: #388e3c;
                     }
                 }
                 .chartContainer1{
-                    width: 50%;
+                    width: 100%;
                     height: 100%;
                     display: flex;
                     flex-direction: column;
