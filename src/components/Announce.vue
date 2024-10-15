@@ -277,7 +277,7 @@ export default {
                     </div>
                     <div style="width: 100%; display: flex; justify-content: space-between; margin-top: 2%;">
                         <h3>標題
-                            <input type="text" v-model="announceTitle" style="width: 100%;">
+                            <input type="text" v-model="announceTitle">
                         </h3>
                         <h3 style="margin-right:12%;">活動時間
                             <input type="date" v-model="announceStartTime" :min="today"> ~
@@ -343,16 +343,16 @@ export default {
                     <div @click="triggerFileInput" v-else class="upload-container with-border" style="cursor: pointer;">
                         <div class="upload-placeholder">點擊此處上傳圖片</div>
                     </div>
-                    <div>
-                        <h3>標題:
+                    <div style="width: 100%; display: flex; justify-content: space-between; margin-top: 2%;">
+                        <h3>標題
                             <input type="text" v-model="announceTitle">
                         </h3>
-                    </div>
-                    <div>
-                        <h3>活動時間:
+                        <h3 style="margin-right:12%;">活動時間
                             <input type="date" v-model="announceStartTime" :min="today"> ~
                             <input type="date" v-model="announceEndTime" :min="announceStartTime">
                         </h3>
+                    </div>
+                    <div>
                     </div>
                     <div class="contentArea">
                         <h3>活動內容:</h3>
@@ -460,6 +460,7 @@ $addDiv: #343a3f;
         .upload-placeholder {
             color: #888;
             font-size: 16px;
+            display: flex
         }
 
         .contentArea {
