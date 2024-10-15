@@ -355,8 +355,7 @@ export default {
                     <div>
                     </div>
                     <div class="contentArea">
-                        <h3>活動內容:</h3>
-                        <textarea name="" id="" v-model="announceContent"></textarea>
+                        <textarea name="" id="" v-model="announceContent" placeholder="活動內容"></textarea>
                     </div>
                 </div>
                 <div class="buttons">
