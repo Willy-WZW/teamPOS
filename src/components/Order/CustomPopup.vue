@@ -370,11 +370,11 @@ export default {
         <button @click="assembleComboOrder">加入訂單</button>
     </div>
 
-    <pre>{{ singleDishes }}</pre>
+    <!-- <pre>{{ singleDishes }}</pre>
     <pre>{{ singleOptions }}</pre>
 
     <pre>{{ comboDishes }}</pre>
-    <pre>{{ selectedDishes }}</pre>
+    <pre>{{ selectedDishes }}</pre> -->
 </template>
 
 <style scoped lang="scss">

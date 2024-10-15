@@ -222,6 +222,15 @@ export default {
                         throw new Error(`HTTP error! Status: ${response.status}`);
                     }
                     console.log("訂單已成功送出！");
+
+                    // 訂單成功後彈出 SweetAlert 提示
+                    Swal.fire({
+                        icon: "success",
+                        title: "成功",
+                        text: "訂單已送出！",
+                        confirmButtonText: "確認",
+                    });
+
                     this.resetOrder();
                 })
                 .catch((error) => {
@@ -230,6 +239,8 @@ export default {
         },
         resetOrder() {
             this.orderList = [];
+            this.singleList = [];
+            this.comboList = [];
             this.selectedTableNumber = null;
             console.log("訂單已重置");
         },
@@ -311,7 +322,7 @@ export default {
 
                 <!-- 送出訂單按鈕：將訂單明細包裝成完整req格式接上 api 存入資料庫 -->
                 <div class="totalAmountAndBtn">
-                    <p>合計 ${{ totalAmount }} </p>
+                    <p>合計 ${{ totalAmount }}</p>
                     <button @click="submitOrder" class="submitBtn">送出訂單</button>
                 </div>
             </div>
@@ -390,7 +401,6 @@ h2 {
     border-bottom: 1px solid rgba(grey, 0.5);
     overflow-y: scroll;
     scrollbar-width: none; /* Firefox 隱藏滾動條 */
-    
 }
 
 .totalAmountAndBtn {
