@@ -31,6 +31,7 @@ export default {
             selectedWorkstation: "", //當前選擇的工作檯名稱
             lastSelectedWorkstationId: 0, // 用於儲存上次的選擇
             comboPage: false,
+            comboCount: 0, //儲存後端資料的計數
         }
     },
     components: {
@@ -406,11 +407,11 @@ export default {
             if (this.menuList.length > 0 || this.editedMenuItems.length > 0 || this.selectedWorkstationId !== this.lastSelectedWorkstationId) {
                 if (this.menuList.length > 0) {
                     this.createMenu(); // 處理新增菜單
-                    console.log(this.menuList);
+                    // console.log(this.menuList);
                 }
                 if (this.editedMenuItems.length > 0) {
                     this.updateMenu(); // 處理修改菜單
-                    console.log(this.editedMenuItems);
+                    // console.log(this.editedMenuItems);
                 }
                 if (this.selectedWorkstationId !== this.lastSelectedWorkstationId) {
                     this.updateMenuWorkId(); // 處理修改菜單的工作檯
@@ -612,8 +613,6 @@ export default {
             // 檢查是否已經在編輯列表中
             if (!this.editIndexList.includes(mealName)) {
                 this.editIndexList.push(mealName);
-                console.log(this.editIndexList);
-
             }
 
             // 如果該菜單項目還沒被加入到 editedMenuItems，則初始化該項目
@@ -624,7 +623,7 @@ export default {
                 this.editedMenuItems.push({ ...itemToEdit });
             }
 
-            console.log("目前正在編輯的項目:", this.editedMenuItems);
+            // console.log("目前正在編輯的項目:", this.editedMenuItems);
         },
         editWorkbench() {
             // 切換編輯模式
@@ -1011,6 +1010,21 @@ export default {
                 reader.readAsDataURL(file);
             }
         },
+        // 後端計算資料表數量的資料
+        async countComboData() {
+            try {
+                // 發送 GET 請求到後端的 API
+                const response = await axios.get('http://localhost:8080/pos/countComboData');
+
+                // 將獲取到的資料存儲到 comboCount
+                this.comboCount = response.data;
+
+                // 日誌顯示結果（可選）
+                // console.log("計數結果：", this.comboCount);
+            } catch (error) {
+                console.error("獲取計數資料時出錯：", error);
+            }
+        }
     },
     mounted() {
         this.fetchCategories(); // 載入時獲取分類
@@ -1018,6 +1032,7 @@ export default {
         this.fetchCust(); // 載入時獲取客製化菜單資料
         this.initializeEditStates();
         this.workstationFromDB();// 載入時獲得工作檯資料
+        this.countComboData(); // 載入時獲得後端資料
     },
     computed: {
         // 計算各菜單分類的菜單選項
@@ -1102,7 +1117,10 @@ export default {
                         <input v-else class="editInputCategory" type="text" v-model="category.category"
                             @blur="stopEditing(cIndex, true)" @keydown.enter="stopEditing(cIndex, false)">
                         <div class="groupOne">
-                            <div class="countOp">{{ categoryMenuCount[category.categoryId] || 0 }}</div>
+                            <div class="countOp">
+                                <span v-if="category.category === '套餐'">{{ comboCount }}</span>
+                                <span v-else>{{ categoryMenuCount[category.categoryId] || 0 }}</span>
+                            </div>
                             <i class="fa-regular fa-circle-xmark" @click="confirmDelete(cIndex)"></i>
                         </div>
                     </div>
@@ -1403,6 +1421,10 @@ $editColor: #e6b800;
                             border-radius: 30px;
                             color: white;
                             background-color: gray;
+                            span{
+                                font-weight: normal;
+                                font-family: "Noto Sans TC", sans-serif;
+                            }
                         }
 
                         .fa-circle-xmark {
