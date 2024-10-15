@@ -1,5 +1,9 @@
 <script>
 import { RouterLink } from 'vue-router';
+import Swal from 'sweetalert2';
+
+import { computed } from 'vue';
+import { useFontStore } from '@/stores/fontStores';
 export default {
     data() {
         return {
@@ -108,8 +112,29 @@ export default {
                         if (data && data.staff) {
                             this.userName = data.staff.name;
 
+                            if (data.staff.firstLogin) {
+                                Swal.fire({
+                                    title: '第一次登入請修改密碼',
+                                    text: '',
+                                    icon: 'warning',
+                                    confirmButtonText: '確定',
+                                }).then(() => {
+
+                                    fetch(`http://localhost:8080/api/staff/updateFirstLogin/${staffNumber}`, {
+                                        method: 'GET',
+                                        headers: {
+                                            'Content-Type': 'application/json'
+                                        }
+                                    })
+                                });
+
+                                this.goUserInfo();
+                            }
+                        
                             // 找到相對應的權限物件
                             const foundPermission = this.permissions.find(permission => permission.id == data.staff.authorization);
+
+                            
 
                             if (foundPermission) {
                                 this.managedAreas = foundPermission.managedAreas;
@@ -184,20 +209,31 @@ export default {
 
         this.timeInterval = setInterval(() => {
             this.updateTime()
-        }, 1000)
+        }, 60000)
     },
     beforeDestroy() {
         // 清除計時器
         clearInterval(this.timeInterval);
-    }
+    },
+    setup() {
+        const fontStore = useFontStore();
+        const currentFont = computed(() => fontStore.fonts[fontStore.currentFontIndex]);
+        const changeFont = () => {
+            fontStore.nextFont();
+        };
+        return {
+            currentFont,
+            changeFont
+        };
+    },
 }
 </script>
 
 <template>
     <div class="lefter">
-        <div class="timeCode">
-            <div class="timeStyle">{{ timeCode }}</div>
-            <div class="timeStyle">{{ dateCode }}</div>
+        <div class="timeCode" @click="changeFont">
+            <div class="timeStyle" :style="{ fontFamily: currentFont }">{{ timeCode }}</div>
+            <div class="timeStyle" :style="{ fontFamily: currentFont }">{{ dateCode }}</div>
         </div>
         <div class="control">
             <div class="event" @click="goEvent()" :class="{ 'selected': this.$route.path == '/event' }"
@@ -291,8 +327,8 @@ $gray-color: #DDE1E6;
         flex-direction: column;
 
         .timeStyle {
-            margin: 0.625rem auto; 
-            font-size: 1.125rem; 
+            margin: 0.625rem auto;
+            font-size: 1.125rem;
         }
     }
 
@@ -300,7 +336,7 @@ $gray-color: #DDE1E6;
         width: 80%;
         height: 90%;
         display: flex;
-        justify-content: space-between;
+        justify-content: space-evenly;
         align-items: center;
         flex-direction: column;
         color: $black-color;

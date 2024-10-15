@@ -1,7 +1,7 @@
 <script>
 import axios from 'axios';
 import Swal from 'sweetalert2';
-import { useCounterStore } from '@/stores/counter'
+import TableManagement from './BusiSetting/TableManagement.vue'; // 確保路徑正確
 
 export default {
     data () {
@@ -9,12 +9,6 @@ export default {
             // managementArea 數據
             selectedMenu: '桌號管理', // 預設選中的選單項目
             managementItems: ['桌號管理', '訂位時段設定', '訂位時段管理'], // 選單項目
-
-            // 桌號的 tableManagementContentArea 數據
-            tableList: [], // 桌位列表，從後端獲取資料
-            newTable: { table_number: '', table_capacity: '', table_status: 'AVAILABLE' }, // 新增桌號的初始值
-            capacityOptions: ['2人桌', '4人桌', '6人桌', '8人桌', '10人桌'], // 可選的容納人數
-            showNewTableRow: false, // 控制新增桌號行是否顯示
 
             // 訂位時間的 managementContentArea 數據
             openingTime: '', // 營業開始時間
@@ -38,8 +32,11 @@ export default {
         };
     },
 
+    components: {
+        TableManagement,
+    },
+
     mounted() {
-        this.loadInitialTableData();
         this.loadBusinessHours();  // 初始化時加載營業時間數據
         this.loadDiningDurations();
          // 從 LocalStorage 中讀取用餐時間並轉換回數字
@@ -56,179 +53,6 @@ export default {
     },
 
     methods: {
-        //桌號管理方法
-
-        // 加載初始的桌位數據
-        async loadInitialTableData () {
-            try {
-                const response = await axios.get('http://localhost:8080/tableManagement/getAllTables');
-                this.tableList = response.data.map(table => ({
-                    table_number: table.tableNumber,
-                    table_capacity: `${table.tableCapacity}人桌`,
-                    table_status: table.tableStatus,  // 保留桌位狀態
-                }));
-                console.log('桌號加載成功:', this.tableList);
-                this.originalTableList = JSON.parse(JSON.stringify(this.tableList)); // 深拷貝，保存初始數據
-            } catch (error) {
-                console.error('加載桌位數據失敗:', error);
-
-                Swal.fire({
-                    icon: 'error',
-                    title: '加載失敗',
-                    text: '加載桌位數據失敗，請稍後再試。',
-                });
-            }
-        },
-        // 切換選單
-        selectMenu (item) {
-            this.selectedMenu = item;
-        },
-        // 新增輸入欄位
-        addTableRow() {
-            // 在 tableList 中新增一個新的輸入欄位
-            this.tableList.push({
-                table_number: '', // 新桌位的桌號為空
-                table_capacity: '', // 新桌位的容納人數為空
-                table_status: 'AVAILABLE',  // 預設狀態
-            });
-        },
-        // 刪除桌位
-        removeTable (index) {
-            const table = this.tableList[index];
-            
-            // 檢查狀態，如果是 RESERVED 或 ACTIVE，則禁止刪除
-            if (table.table_status === 'RESERVED' || table.table_status === 'ACTIVE') {
-                Swal.fire({
-                    icon: 'error',
-                    title: '無法刪除桌位',
-                    text: `桌位 ${table.table_number} 正在使用或已預訂，無法刪除。`,
-                    confirmButtonText: '確認'
-                });
-                return; // 阻止刪除
-            }
-
-            // 否則，執行刪除
-            this.tableList.splice(index, 1);
-        },
-        // 刪除新增桌號欄位
-        deleteNewTable () {
-            this.showNewTableRow = false;
-        },
-        // 新增、刪除、更新桌號操作
-        async saveChanges() {
-            try {
-                // 確保 originalTableList 不為 undefined
-                if (!this.originalTableList) {
-                    this.originalTableList = [];
-                }
-
-                // 進行所有桌位資料的檢查
-                for (const table of this.tableList) {
-                    // 檢查桌號是否有輸入
-                    if (!table.table_number.trim() || !table.table_capacity) {
-                        Swal.fire({
-                            icon: 'warning',
-                            title: '錯誤',
-                            text: '請輸入桌號並選擇容納人數。',
-                        });
-                        return; // 阻止儲存操作
-                    }
-
-                     // 檢查桌號格式是否正確（大寫字母+兩個數字）
-                    const tableNumberPattern = /^[A-Z]\d{2}$/;
-                    if (!table.table_number.trim().match(tableNumberPattern)) {
-                        Swal.fire({
-                            icon: 'warning',
-                            title: '桌號格式錯誤',
-                            text: '桌號必須是一個大寫字母加兩個數字（如 A01）。',
-                        });
-                        return; // 阻止儲存操作
-                    }
-
-                    // 檢查是否有重複的桌號
-                    const existingTable = this.tableList.filter(t => t.table_number === table.table_number);
-                    if (existingTable.length > 1) { // 如果出現重複桌號
-                        Swal.fire({
-                            icon: 'warning',
-                            title: '錯誤',
-                            text: `桌號 ${table.table_number} 已存在，請選擇其他桌號。`,
-                        });
-                        return; // 阻止儲存操作
-                    }
-                }
-
-                // 處理桌位更新
-                for (const table of this.tableList) {
-                    const originalTable = this.originalTableList.find(orig => orig.table_number === table.table_number);
-
-                    if (originalTable) {
-                        // 如果桌號或容納人數發生變更，則進行更新
-                        if (originalTable.table_number !== table.table_number || originalTable.table_capacity !== table.table_capacity) {
-                            await axios.put('http://localhost:8080/tableManagement/updateTable', null, {
-                                params: {
-                                    oldTableNumber: originalTable.table_number,  // 傳遞舊的桌號
-                                    newTableNumber: table.table_number !== originalTable.table_number ? table.table_number : null,  // 若桌號不同則傳遞新桌號
-                                    newCapacity: table.table_capacity !== originalTable.table_capacity ? parseInt(table.table_capacity) : null,  // 若容量不同則傳遞新容量
-                                }
-                            });
-                        }
-                    } else {
-                        // 若桌位是新的，則發送新增請求
-                        const tableData = this.tableList.map(table => ({
-                            tableNumber: table.table_number,
-                            tableCapacity: parseInt(table.table_capacity),
-                            tableStatus: table.table_status,
-                        }));
-
-                        // 發送批量新增桌位請求
-                        await axios.post('http://localhost:8080/tableManagement/createTable', tableData);
-                    }
-                }
-
-                // 刪除已移除的桌位
-                const deletedTables = this.originalTableList.filter(orig => !this.tableList.some(table => table.table_number === orig.table_number));
-                for (const table of deletedTables) {
-                    await axios.delete(`http://localhost:8080/tableManagement/deleteTable/${table.table_number}`);
-                }
-
-                // 更新成功後，刷新頁面數據
-                this.loadInitialTableData();
-                Swal.fire({
-                    icon: 'success',
-                    title: '儲存成功',
-                    text: '所有變更已成功儲存。',
-                });
-
-            } catch (error) {
-                console.error('儲存桌位變更時發生錯誤:', error);
-                Swal.fire({
-                    icon: 'error',
-                    title: '儲存失敗',
-                    text: '儲存過程中發生錯誤，請稍後再試。',
-                });
-            }
-        },
-        // 取消桌號操作
-        cancelChanges () {
-            Swal.fire({
-                icon: 'warning',
-                title: '取消變更',
-                text: '已取消變更桌位操作。',
-            });
-
-            // 還原 tableList 為原始數據
-            this.tableList = JSON.parse(JSON.stringify(this.originalTableList)); 
-
-            // 隱藏新增桌號行，並重置 newTable
-            this.showNewTableRow = false;
-            this.newTable = { table_number: '', table_capacity: '', table_status: 'AVAILABLE' };
-
-            // 清空所有輸入匡
-            document.querySelectorAll('.tableNumber').forEach(input => input.value = '');
-
-            document.querySelectorAll('.tableCapacity').forEach(select => select.selectedIndex = 0);
-        },
-
         // 訂位時段設定方法
 
         // 新增營業時間、用餐時間
@@ -417,94 +241,7 @@ export default {
 </div>
 
 <!-- 桌號管理內容顯示區域 -->
-<div class="tableManagementContentArea" v-if="selectedMenu === '桌號管理'">
-    <!-- 顯示桌號標題 -->
-    <h2 class="tableNumberTitle">桌號管理</h2>
-
-    <!-- 顯示桌號注意事項 -->
-    <p class="reminderText">桌號必須是一個大寫字母加兩個數字（如 A01）</p>
-
-    <!-- 顯示桌號表格區域 -->
-    <div class="tableArea">
-        <!-- 顯示桌號表格列表 -->
-        <table class="tableList">
-            <!-- 桌號列表頭 -->
-            <thead>
-                <tr>
-                    <th>桌號</th>
-                    <th>容納人數</th>
-                    <th>編輯</th>
-                </tr>
-            </thead>
-
-            <!-- 桌號列表內容 -->
-            <tbody>
-                <!-- 桌號列表行 -->
-                <tr v-for="(table, index) in tableList" :key="index">
-                    <!-- 桌號 -->
-                    <td>
-                        <input class="tableNumber" v-model="table.table_number" type="text" placeholder="輸入桌號" />
-                    </td>
-
-                    <!-- 容納人數 -->
-                    <td>
-                        <select class="tableCapacity" v-model="table.table_capacity" >
-                            <option value="" disabled>選擇容納人數</option>
-                            <option v-for="option in capacityOptions" :key="option" :value="option">
-                                {{ option }}
-                            </option>
-                        </select>
-                    </td>
-
-                    <!-- 刪除 Button -->
-                    <td>
-                        <button class="trashButton" @click="removeTable(index)">
-                            <i class="fa-solid fa-trash"></i>
-                        </button>
-                    </td>
-                </tr>
-    
-                <!-- 新增桌號行 -->
-                <tr v-if="showNewTableRow">
-                    <!-- 桌號 -->
-                    <td>
-                        <input class="tableNumber" v-model="newTable.table_number" type="text" placeholder="輸入桌號" />
-                    </td>
-
-                    <!-- 容納人數 -->
-                    <td>
-                        <select class="tableCapacity" v-model="newTable.table_capacity">
-                            <option value="" disabled>選擇容納人數</option>
-                            <option v-for="option in capacityOptions" :key="option" :value="option">
-                                {{ option }}
-                            </option>
-                        </select>
-                    </td>
-
-                    <!-- 刪除 Button -->
-                    <td>
-                        <button class="trashButton" @click="deleteNewTable">
-                            <i class="fa-solid fa-trash"></i>
-                        </button>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-
-        <!-- 新增 Button -->
-        <div class="addButtonArea">
-            <button class="addButton" @click="addTableRow">
-                <i class="fa-solid fa-circle-plus"></i>
-            </button>
-        </div>
-    </div>
-
-    <!-- 取消、儲存操作按鈕區域 -->
-    <div class="buttonArea">
-        <button class="cancelButton" @click="cancelChanges">取消</button>
-        <button class="saveButton" @click="saveChanges">儲存</button>
-    </div>
-</div>
+<TableManagement v-if="selectedMenu === '桌號管理'" />
 
 <!-- 訂位時段設定內容區域 -->
 <div class="reserveSettingContentArea" v-if="selectedMenu === '訂位時段設定'">
@@ -690,142 +427,6 @@ $soldOut: #e02d11;
                     background-color: #ececec;
                 }
             }
-        }
-    }
-}
-
-.tableManagementContentArea {
-    width: 80%;
-    height: 100%;
-    border-radius: 10px;
-    background-color: $divColor;
-    flex: 1;
-    padding: 20px 35px;
-    position: absolute;
-    top: 0%;
-    right: 0%;
-
-    .tableNumberTitle {
-        font-size: 25px;
-        letter-spacing: 4px;
-        margin-bottom: 10px;
-    }
-
-    .reminderText {
-        margin-bottom: 20px;
-        color: black;
-        opacity: 0.6;
-    }
-
-    .tableArea {
-        width: 100%;
-        height: 85%;
-        border: 2px solid #ccc; /* 表格外框邊線 */
-        padding: 15px 10px;
-        max-height: 650px;
-        overflow-y: auto;
-
-        .tableList {
-            width: 100%;
-            border-collapse: collapse; /* 使用 separate 來啟用 border-spacing */
-            table-layout: fixed; /* 讓表格的列寬固定 */
-
-            thead {
-                height: 55px;
-                background-color: #dde1e680;
-                letter-spacing: 4px;
-            }
-
-            tbody {
-                tr {
-                    height: 65px;
-                    border-bottom: 1px dashed #C1C7CD; /* 設置虛線的底線 */
-                }
-
-                td {
-                    padding: 5px; /* 減少內邊距以減小行高 */
-                    text-align: center;
-                    vertical-align: middle; /* 垂直居中內容 */
-
-                    .tableNumber {
-                        width: 80%;
-                        height: 35px;
-                        border: none;
-                        background-color: transparent;
-                        font-size: 20px;
-                        text-align: center;
-                        outline: none;
-                    }
-
-                    .tableCapacity {
-                        width: 80%;
-                        height: 35px;
-                        border-radius: 10px;
-                        border: 1px solid #C1C7CD;
-                        letter-spacing: 5px;
-                        padding-left: 10px;
-                        appearance: none; /* 隱藏默認的箭頭 */
-                        background: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyLjcxNzUgNi41NDc1QzEzLjE3OTcgNi4xNDcyIDEzLjI4MjIgNS40MTMgMTIuOTg3MiA0LjkzMjVDMTIuNjkzMiA0LjQ1MjUgMTIuMDEwNCA0LjQ1MjUgMTEuNzE3IDQuOTMyNUw4IDkuMzM1NEw0LjI4MjUgNC45MzI1QzMuOTg5NiA0LjQ1MjUgMy4zMDY4IDQuNDUyNSAyLjAxMjggNC45MzI1QzEuNzE4OCA1LjQxMyAxLjgyMTEgNi4xNDcyIDIuMjg0MTIgNi41NDc1TDcuMzE1MTIgMTEuNTA2QzcuNzU4NDEgMTEuOTYxIDguMjQxNiAxMS45NjEgOC42ODY4IDExLjUwNkMxMC4xNzA4IDEwLjI1NyAxMS41OTExIDguOTAzNTggMTIuNzE3NSA3LjY2MjVIMTIuNzE3NVoiIGZpbGw9IiMyMjIyMjIiLz4KPC9zdmc+') no-repeat; /* 使用 base64 格式的箭頭圖標 */
-                        background-position: calc(100% - 15px) center; /* 調整箭頭的位置，讓它距離左邊更近 */
-                        background-size: 15px; /* 調整箭頭大小 */
-                        outline: none;
-                        cursor: pointer;
-                    }
-
-                    .trashButton {
-                        border: none;
-                        background-color: transparent;
-                        font-size: 30px;
-                        cursor: pointer;
-                    }
-                }
-            }
-        }
-
-        .addButtonArea {
-            width: 100%;
-            height: 10%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-
-            .addButton {
-                border: none;
-                background-color: transparent;
-                font-size: 25px;
-                margin-top: 15px;
-                cursor: pointer;
-            }
-        }
-    }
-
-    .buttonArea {
-        margin-top: 25px;
-        display: flex;
-        justify-content: flex-end;
-
-        .cancelButton {
-            width: 15%;
-            border-radius: 10px;
-            border: 2px solid rgb(32, 33, 42);
-            background-color: transparent;
-            font-size: 16px;
-            letter-spacing: 5px;
-            padding: 10px 20px;
-            cursor: pointer;
-        }
-
-        .saveButton {
-            width: 15%;
-            border-radius: 10px;
-            border: none;
-            background-color: rgb(52, 58, 63);
-            color: #f2f4f8;
-            font-size: 16px;
-            letter-spacing: 5px;
-            margin-left: 40px;
-            padding: 10px 20px;
-            cursor: pointer;
         }
     }
 }

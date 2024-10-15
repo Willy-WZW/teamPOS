@@ -341,7 +341,7 @@ input {
 }
 
 .menuList {
-    width: 74%;
+    width: 78%;
     height: 100%;
     border-radius: 10px;
     display: flex;

@@ -43,7 +43,7 @@ export default {
             newReservation: {
                 partySize: 2,  // 人數
                 date: this.formatDate(new Date()), // 預設日期為當前日期
-                time: '',       // 時段
+                time: '11:00', // 預設為11:00的時段
                 name: '',       // 訂位人姓名
                 title: '先生',  // 預設稱謂
                 phone: '',      // 電話號碼
@@ -132,12 +132,16 @@ export default {
         this.currentDate = new Date(); // 初始化為當前系統日期
         this.fetchAvailableTimes();
         this.fetchReservationsByDate(this.currentDate);
+        
     },
 
     watch: {
         'newReservation.date': 'fetchAvailableTimes',  // 監聽日期變化，當變化時調用 fetchAvailableTimes
         'diningDuration': 'fetchAvailableTimes',      // 當用餐時長變化時，也可以自動調用
         'newReservation.partySize': 'fetchAvailableTimes',
+        'newReservation.time': function(newTime) {
+            this.updateTableStatus(); // 更新桌位狀態
+        },
         reservations(newReservations) {
             this.filteredReservations = this.filterReservationsByDate(this.currentDate);
         }
@@ -182,21 +186,63 @@ export default {
 
     methods: {
         // tableArea 功能：
+        // 新增一個方法來根據預訂更新桌位狀態
+        updateTableStatus() {
+    this.tables.forEach(table => {
+        const reservations = table.reservations || []; // 確保有預訂資料
+
+        // 檢查是否有預訂與選擇的時間段重疊
+        const isReserved = reservations.some(reservation => {
+            const reservedStart = reservation.reservationStartTime;
+            const reservedEnd = reservation.reservationEndingTime;
+
+            return (
+                (this.newReservation.time >= reservedStart && this.newReservation.time < reservedEnd) ||
+                (this.newReservation.time + this.diningDuration > reservedStart && this.newReservation.time + this.diningDuration <= reservedEnd) ||
+                (this.newReservation.time < reservedStart && this.newReservation.time + this.diningDuration > reservedEnd)
+            );
+        });
+
+        // 根據預訂狀態更新桌位狀態
+        table.status = isReserved ? 'RESERVED' : 'AVAILABLE';
+    });
+},
+
         // 加載桌位
         async fetchTables() {
             try {
-                const response = await axios.get('http://localhost:8080/tableManagement/getAllTables');
+                // 確保時間不會是空值
+                if (!this.newReservation.time) {
+                    console.error('請選擇一個有效的時間段');
+                    return; // 不進行請求
+                }
+
+                // 設置請求參數
+                const params = {
+                    reservationDate: this.newReservation.date,
+                    diningDuration: this.diningDuration // 確保使用正確的 diningDuration
+                };
+
+                // 發送請求到後端 API
+                const response = await axios.get('http://localhost:8080/tableManagement/getAllTables', { params });
+
                 // 將 API 返回的桌位數據轉換成符合前端顯示的結構
                 this.tables = response.data.map(table => ({
                     id: table.tableNumber,
                     capacity: table.tableCapacity,
-                    status: table.tableStatus,  // 使用原本的狀態
+                    status: table.tableStatus, // 使用原本的狀態
+                    reservations: table.reservations || [] // 確保有預訂資料
                 }));
+
+                // 更新桌位狀態
+                this.updateTableStatus();
+
                 console.log('桌位資料加載成功:', this.tables);
             } catch (error) {
                 console.error('無法獲取桌位資料:', error);
             }
         },
+
         // 刷新
         refresh() {
             // 可在此實作刷新功能
@@ -774,9 +820,21 @@ export default {
                 <!-- 桌位標題、刷新 Button -->
                 <div class="tableHeader">
                     <h1 class="tableTitle">桌位圖</h1>
-                    <button class="refreshButton" @click="refresh">
-                        <i class="fa-solid fa-arrows-rotate"></i>刷新
-                    </button>
+                    <div class="refreshTimeSlotsArea">
+                        <!-- 時段選擇 -->
+                        <div class="timeSlotsArea">
+                            <label for="time">時段</label>
+                            <select class="selectedTime" v-model="newReservation.time" id="time">
+                                <option disabled value="">選擇時段</option>
+                                <option v-for="time in availableTimes" :key="time.startTime" :value="time.startTime">
+                                    {{ time.startTime }}
+                                </option>
+                            </select>
+                        </div>
+                        <button class="refreshButton" @click="refresh">
+                            <i class="fa-solid fa-arrows-rotate"></i>刷新
+                        </button>
+                    </div>
                 </div>
 
                 <!-- 桌位狀態 -->
@@ -1285,24 +1343,61 @@ export default {
                     letter-spacing: 4px;
                 }
 
-                .refreshButton {
-                    width: 13%;
-                    border-radius: 10px;
-                    border: 2px solid #4D5358;
-                    background-color: transparent;
-                    font-size: 18px;
-                    color: #4D5358;
+                .refreshTimeSlotsArea {
+                    width: 40%;
                     display: flex;
-                    justify-content: space-evenly;
                     align-items: center;
-                    padding: 5px 10px;
-                    cursor: pointer;
-                    transition: 0.2s;
+                    justify-content: space-between;
 
-                    &:hover {
-                        scale: 1.05;
+                    .timeSlotsArea {
+                        width: 60%;
+                        display: flex;
+                        align-items: center;
+                        justify-content: space-evenly;
+                        padding: 10px;
+
+                        label {
+                            font-size: 17px;
+                            letter-spacing: 4px;
+                        }
+
+                        .selectedTime {
+                            width: 70%;
+                            height: 35px;
+                            border-radius: 10px;
+                            border: 1px solid #C1C7CD;
+                            letter-spacing: 5px;
+                            padding-left: 10px;
+                            appearance: none; /* 隱藏默認的箭頭 */
+                            background: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyLjcxNzUgNi41NDc1QzEzLjE3OTcgNi4xNDcyIDEzLjI4MjIgNS40MTMgMTIuOTg3MiA0LjkzMjVDMTIuNjkzMiA0LjQ1MjUgMTIuMDEwNCA0LjQ1MjUgMTEuNzE3IDQuOTMyNUw4IDkuMzM1NEw0LjI4MjUgNC45MzI1QzMuOTg5NiA0LjQ1MjUgMy4zMDY4IDQuNDUyNSAyLjAxMjggNC45MzI1QzEuNzE4OCA1LjQxMyAxLjgyMTEgNi4xNDcyIDIuMjg0MTIgNi41NDc1TDcuMzE1MTIgMTEuNTA2QzcuNzU4NDEgMTEuOTYxIDguMjQxNiAxMS45NjEgOC42ODY4IDExLjUwNkMxMC4xNzA4IDEwLjI1NyAxMS41OTExIDguOTAzNTggMTIuNzE3NSA3LjY2MjVIMTIuNzE3NVoiIGZpbGw9IiMyMjIyMjIiLz4KPC9zdmc+') no-repeat; /* 使用 base64 格式的箭頭圖標 */
+                            background-position: calc(100% - 15px) center; /* 調整箭頭的位置，讓它距離左邊更近 */
+                            background-size: 15px; /* 調整箭頭大小 */
+                            outline: none;
+                            cursor: pointer;
+                        }
+                    }
+
+                    .refreshButton {
+                        width: 35%;
+                        border-radius: 10px;
+                        border: 2px solid #4D5358;
+                        background-color: transparent;
+                        font-size: 18px;
+                        color: #4D5358;
+                        display: flex;
+                        justify-content: space-evenly;
+                        align-items: center;
+                        padding: 5px;
+                        cursor: pointer;
+                        transition: 0.2s;
+
+                        &:hover {
+                            scale: 1.05;
+                        }
                     }
                 }
+
+                
             }
 
             .status {
