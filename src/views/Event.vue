@@ -58,7 +58,7 @@ export default {
                 });
         },
         getEvents() {
-            const colorPalette = ['#FF0000', '#0000E3', '#00BB00', '#BF0060'];
+            const colorPalette = ['#7F7F7F', '#F4D800', '#050707','#3A6A59','#A7A88A','#D6C18A','#B9C8BC'];
             const assignedEvents = [];
 
             return this.allAnnouncements.map((announce) => {
@@ -212,13 +212,14 @@ export default {
 
     .mainArea {
         width: 100%;
-        height: 90%;
+        height: 90dvh;
         display: flex;
         justify-content: start;
         overflow: hidden;
 
         .mainbox {
             width: 65%;
+            height: 90dvh;
             background-color: #fff;
             border-radius: 10px;
             margin-left: 1%;
@@ -228,8 +229,8 @@ export default {
 
         .calendar-container {
             width: 90%;
-            height: auto;
             margin-left: 5%;
+            margin-bottom: 2%;
         }
     }
 }
@@ -264,8 +265,8 @@ export default {
 .announcement-item {
     width: 300px;
     height: 300px;
-    margin-top: 4%;
-    margin-bottom: 4%;
+    margin-top: 2%;
+    margin-bottom: 2%;
     cursor: pointer;
 }
 
@@ -342,7 +343,7 @@ th {
 }
 
 .fc .fc-daygrid-day {
-    height: auto;
+    height: 100px;
 
 }
 

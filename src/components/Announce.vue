@@ -154,12 +154,21 @@ export default {
                     return new Date(announce.announceEndTime) < new Date(this.today);
                 }
             });
-            
+
             if (this.filterType === 'upcoming') {
-                filteredAnnouncements.sort((a, b) => new Date(a.announceStartTime) - new Date(b.announceStartTime));
+
+                filteredAnnouncements.sort((a, b) => {
+                    const startDiff = new Date(a.announceStartTime) - new Date(b.announceStartTime);
+                    if (startDiff !== 0) {
+                        return startDiff;
+                    } else {
+                        return new Date(a.announceEndTime) - new Date(b.announceEndTime);
+                    }
+                });
             } else {
                 filteredAnnouncements.sort((a, b) => new Date(b.announceEndTime) - new Date(a.announceEndTime));
             }
+
             this.totalAnnouncements = filteredAnnouncements.length;
             this.displayedAnnouncements = filteredAnnouncements.slice(start, end);
         },
@@ -209,8 +218,8 @@ export default {
                 html: `
             ${imageHtml}
             <h3 style="text-align: left;">${announce.announceTitle}</h3>
-            <p style="text-align: left;">活動時間 ${announce.announceStartTime} ~ ${announce.announceEndTime}</p>
-            <pre style="text-align: left;">${announce.announceContent}</pre>
+            <p style="text-align: left; padding-top: 3%;">活動時間 ${announce.announceStartTime} ~ ${announce.announceEndTime}</p>
+            <pre style="text-align: left; padding-top: 2%;">${announce.announceContent}</pre>
         `,
                 focusConfirm: false,
                 confirmButtonText: '關閉',
@@ -266,20 +275,19 @@ export default {
                     <div @click="triggerFileInput" v-else class="upload-container with-border" style="cursor: pointer;">
                         <div class="upload-placeholder">點擊此處上傳圖片</div>
                     </div>
-                    <div>
-                        <h3>標題:
-                            <input type="text" v-model="announceTitle">
+                    <div style="width: 100%; display: flex; justify-content: space-between; margin-top: 2%;">
+                        <h3>標題
+                            <input type="text" v-model="announceTitle" style="width: 100%;">
                         </h3>
-                    </div>
-                    <div>
-                        <h3>活動時間:
+                        <h3 style="margin-right:12%;">活動時間
                             <input type="date" v-model="announceStartTime" :min="today"> ~
                             <input type="date" v-model="announceEndTime" :min="announceStartTime">
                         </h3>
                     </div>
+                    <div>
+                    </div>
                     <div class="contentArea">
-                        <h3>活動內容:</h3>
-                        <textarea name="" id="" v-model="announceContent"></textarea>
+                        <textarea name="" id="" v-model="announceContent" placeholder="活動內容:"></textarea>
                     </div>
 
                 </div>
@@ -303,8 +311,8 @@ export default {
                             @click="showAnnouncePreview(announce)" />
                         <div class="item-content">
                             <div class="textlistArea">
-                                <h3 @click="showAnnouncePreview(announce)" style="cursor: pointer;">{{
-                                    announce.announceTitle }}</h3>
+                                <h3 @click="showAnnouncePreview(announce)" style="cursor: pointer; text-overflow: ellipsis; overflow: hidden;white-space: nowrap;">
+                                    {{ announce.announceTitle }}</h3>
                                 <span>{{ announce.announceStartTime }}</span> ~
                                 <span>{{ announce.announceEndTime }}</span>
                             </div>
@@ -318,8 +326,9 @@ export default {
                 </div>
                 <div class="pagination">
                     <button :disabled="currentPage === 1" @click="setCurrentPage(currentPage - 1)"><</button>
-                    <button :disabled="currentPage === Math.ceil(totalAnnouncements / itemsPerPage) || totalAnnouncements === 0"
-                        @click="setCurrentPage(currentPage + 1)">></button>
+                            <button
+                                :disabled="currentPage === Math.ceil(totalAnnouncements / itemsPerPage) || totalAnnouncements === 0"
+                                @click="setCurrentPage(currentPage + 1)">></button>
                 </div>
             </div>
             <div v-if="currentView === 'announceUpdate'">
@@ -372,7 +381,7 @@ $addDiv: #343a3f;
 
 .menuCategory {
     width: 15%;
-    height: 100%;
+    height: 89dvh;
     border-radius: 10px;
     display: flex;
     justify-content: start;
@@ -391,14 +400,14 @@ $addDiv: #343a3f;
 
         &.active {
             background-color: rgba(199, 199, 199, 0.5);
-            border-right: 1px solid black;
+            border-right: 5px solid black;
         }
     }
 }
 
 .mainArea {
     width: 83%;
-    height: 100%;
+    height: 89dvh;
     border-radius: 10px;
     position: absolute;
     top: 0%;
@@ -427,11 +436,15 @@ $addDiv: #343a3f;
         .upload-container {
             width: 88%;
             height: 300px;
+            
 
         }
 
         .with-border {
-            border: 1px solid black;
+            border: 1px dashed black;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
         .no-border {
@@ -451,12 +464,14 @@ $addDiv: #343a3f;
 
         .contentArea {
             margin-top: 2%;
-            display: flex;
 
             textarea {
+                width: 88%;
                 resize: none;
-                flex-grow: 0.83;
                 height: 100px;
+                border: 1px solid black;
+                padding-left: 1%;
+                font-size: 16px;
             }
         }
     }
@@ -535,17 +550,23 @@ $addDiv: #343a3f;
     }
 
     .pagination {
+        position: absolute;
+        bottom: 0;
+        width: 100%;
         display: flex;
         justify-content: center;
         align-items: center;
         height: 70px;
-        button{
+        margin-top: 3%;
+
+        button {
             width: 5%;
             font-size: 100%;
             border-radius: 10px;
             background-color: #C1C7CD;
             margin-left: 10px;
             margin-right: 10px;
+
             &:disabled {
                 cursor: not-allowed;
             }
