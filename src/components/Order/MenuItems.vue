@@ -31,7 +31,6 @@ export default {
             // 選擇餐點後觸發事件，將資料傳給主元件
             this.$emit("selectItem", item);
         },
-
     },
 };
 </script>
@@ -44,7 +43,7 @@ export default {
                 <img :src="item.pictureName" class="mealImage" />
             </div>
             <p>{{ item.mealName }}</p>
-            <p style="text-align: end;">${{ item.price }}</p>
+            <p style="text-align: end">${{ item.price }}</p>
         </div>
 
         <!-- 套餐餐點 -->
@@ -74,16 +73,16 @@ export default {
     border: 1px solid rgba(grey, 0.5);
     border-radius: 10px;
     transition: background-color 0.3s;
-    &:hover{
+    &:hover {
         border: 2px solid rgba(grey, 0.8);
     }
 
-    .imgContainer{
+    .imgContainer {
         width: 98%;
         height: 75%;
         border: 0.5px dashed rgba(grey, 0.3);
         margin-bottom: 3px;
-        
+
         img {
             width: 100%;
             height: 100%;
@@ -100,6 +99,20 @@ export default {
     cursor: not-allowed;
     background-color: rgba(grey, 0.3);
     opacity: 0.5;
+    position: relative; /* 讓內部絕對定位的內容相對於此 div */
+    &::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 100px;
+        height: 100px;
+        background-image: url("/public/images/pngwing.com.png"); /* 替換成你的圖片路徑 */
+        background-size: cover;
+        background-position: center;
+        pointer-events: none;
+    }
 }
 
 .mealImage {
