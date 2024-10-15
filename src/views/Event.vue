@@ -58,7 +58,7 @@ export default {
                 });
         },
         getEvents() {
-            const colorPalette = ['#FF0000', '#0000E3', '#00BB00', '#BF0060'];
+            const colorPalette = ['#ECF1F2', '#7F7F7F', '#F4D800', '#050707','#3A6A59','#A7A88A','#D6C18A','#B9C8BC'];
             const assignedEvents = [];
 
             return this.allAnnouncements.map((announce) => {
@@ -342,7 +342,7 @@ th {
 }
 
 .fc .fc-daygrid-day {
-    height: auto;
+    height: 100px;
 
 }
 
