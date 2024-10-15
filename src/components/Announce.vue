@@ -275,11 +275,11 @@ export default {
                     <div @click="triggerFileInput" v-else class="upload-container with-border" style="cursor: pointer;">
                         <div class="upload-placeholder">點擊此處上傳圖片</div>
                     </div>
-                    <div style="width: 100%; display: flex; margin-left: 2%; margin-top: 2%;">
+                    <div style="width: 100%; display: flex; justify-content: space-between; margin-top: 2%;">
                         <h3>標題
-                            <input type="text" v-model="announceTitle">
+                            <input type="text" v-model="announceTitle" style="width: 100%;">
                         </h3>
-                        <h3 style="margin-left: 2%;">活動時間
+                        <h3 style="margin-right:12%;">活動時間
                             <input type="date" v-model="announceStartTime" :min="today"> ~
                             <input type="date" v-model="announceEndTime" :min="announceStartTime">
                         </h3>
@@ -381,7 +381,7 @@ $addDiv: #343a3f;
 
 .menuCategory {
     width: 15%;
-    height: 100%;
+    height: 89dvh;
     border-radius: 10px;
     display: flex;
     justify-content: start;
@@ -407,7 +407,7 @@ $addDiv: #343a3f;
 
 .mainArea {
     width: 83%;
-    height: 100%;
+    height: 89dvh;
     border-radius: 10px;
     position: absolute;
     top: 0%;
@@ -436,11 +436,15 @@ $addDiv: #343a3f;
         .upload-container {
             width: 88%;
             height: 300px;
+            
 
         }
 
         .with-border {
-            border: 1px solid black;
+            border: 1px dashed black;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
         .no-border {
@@ -460,7 +464,6 @@ $addDiv: #343a3f;
 
         .contentArea {
             margin-top: 2%;
-            display: flex;
 
             textarea {
                 width: 88%;

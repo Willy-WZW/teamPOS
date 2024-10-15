@@ -234,7 +234,7 @@ $textColor: #697077;
 
         .mainView {
             width: 96%;
-            height: 87%;
+            height: 87dvh;
             position: absolute;
             left: 2%;
             top: 9.5%;
