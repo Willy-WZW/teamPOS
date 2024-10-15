@@ -32,7 +32,8 @@ export default {
             //searchCombo container 
             comboItemsList: [],
 
-            countCombo: 0
+            countCombo: 0,
+            disabledNames: [], // 需要禁用的 select 的 name 列表
 
         }
     },
@@ -145,7 +146,8 @@ export default {
             this.selectedCategory = []
             for (let i = 0; i < comboItem.comboDetail.length; i++) {
                 this.selectedMeal.push('')
-                this.selectedCategory.push('')
+                let categoryItem = this.categories.find(category=>category.categoryId == comboItem.comboDetail[i].categoryId)
+                this.selectedCategory.push(categoryItem.category)
             }
 
             this.comboDetail = comboItem.comboDetail
@@ -165,7 +167,6 @@ export default {
                         Swal.fire({
                             title: '已成功更新',
                             icon: 'success',
-
                         });
                         this.comboDetail = this.comboDetail.filter(combo => combo.dishes.length != 0)
                         return axios.post("http://localhost:8080/pos/updateCombo", {
@@ -255,25 +256,44 @@ export default {
 
 
         trashMeal(comboName) {
-            axios.post("http://localhost:8080/pos/deleteCombo", {
-                "comboName": comboName,
+            Swal.fire({
+                title: '確定要繼續嗎？',
+                text: "確認是否要刪除套餐",
+                icon: 'warning',
+                showCancelButton: true,  // 顯示取消按鈕
+                confirmButtonText: '是的，繼續',
+                cancelButtonText: '取消',
             })
-                .then(response => {
-                    console.log(response)
-                    return axios.post("http://localhost:8080/pos/searchCombo", {
-                        "comboName": "",
-                    });
-                })
-                .then(response => {
-                    console.log(response)
-                    this.comboItemsList = response.data.comboItemsList
-                    this.comboItemsList.forEach(comboItem => {
-                        comboItem.comboDetail = JSON.parse(comboItem.comboDetail);
-                    });
-                })
-                .catch(error => {
-                    console.error("Error:", error.response ? error.response.data : error.message);
+            .then((result) => {
+                    if (result.isConfirmed) {
+                        axios.post("http://localhost:8080/pos/deleteCombo", {
+                            "comboName": comboName,
+                        })
+                        .then(response => {
+                            console.log(response)
+                            return axios.post("http://localhost:8080/pos/searchCombo", {
+                                "comboName": "",
+                            });
+                        })
+                        .then(response => {
+                            console.log(response)
+                            this.comboItemsList = response.data.comboItemsList
+                            this.comboItemsList.forEach(comboItem => {
+                                comboItem.comboDetail = JSON.parse(comboItem.comboDetail);
+                            });
+                            Swal.fire({
+                                    title: '已成功刪除',
+                                    icon: 'success',
+                                });
+                        })
+                        .catch(error => {
+                            console.error("Error:", error.response ? error.response.data : error.message);
+                        });
+                    }
                 });
+
+
+
         },
 
         addComboContentInner() {
@@ -320,6 +340,7 @@ export default {
                 const category = this.categories.find(category => category.categoryId == selectedMeal.categoryId)
                 this.comboDetail[comboItemIndex].categoryId = category.categoryId
             }
+
         },
         deleteMeal(comboItemIndex, meal) {
             // 獲取指定容器
@@ -384,11 +405,11 @@ export default {
             <!-- <h1>{{ comboDetail }}</h1> -->
             <!-- <h1>{{ selectedCategory }}</h1> -->
             <!-- <h1>{{ selectedMeal }}</h1> -->
-            <!-- <h1>{{ comboDetail }}</h1> -->
+            <h1>{{ comboDetail }}</h1>
             <!-- <h1>{{ comboItemsList }}</h1> -->
             <div class="comboContent">
                 <div class="comboContentInner" v-for="(comboItem, comboItemIndex) in comboDetail">
-
+                    <h1>{{ this.comboDetail }}</h1>
                     <div class="selectionContainer">
                         <select :name="`select${comboItemIndex}`" v-model="selectedCategory[comboItemIndex]">
                             <option value="" disabled selected>選擇餐點分類</option>
@@ -450,6 +471,7 @@ export default {
                     <!-- <div class="saveBtn">儲存</div> -->
                 </div>
             </div>
+            <h1>{{this.categories}}</h1>
             <!-- <h1>{{ mealContainer }}</h1> -->
             <!-- <h1>{{ discountAmount }}</h1> -->
             <!-- <h1 v-if="mealContainer[0].length>0 && mealContainer[1].length>0">{{ totalPrice() }}</h1> -->
@@ -459,6 +481,7 @@ export default {
                 <!-- <h1>{{ comboItemsList[0] }}</h1> -->
                 <div class="createCombo" @click="createMeal">+&nbsp&nbsp新增套餐</div>
                 <div class="comboItem" v-for="(comboItem, comboItemIndex) in comboItemsList">
+                    <h1>{{ comboItem }}</h1>
 
                     <div class="comboName">
                         <!-- <input type="text" placeholder="套餐名稱"> -->
@@ -531,8 +554,8 @@ $addDiv: #343a3f;
     }
 
     .windowArea {
-        width: 30%;
-        height: 100%;
+        width: 40%;
+        height: 80%;
         border-radius: 10px;
         border: 2px solid rgba(0, 0, 0, 1);
         border-radius: 20px;
@@ -546,7 +569,7 @@ $addDiv: #343a3f;
         position: absolute;
 
         .comboName {
-            margin: 0 0 10% 0;
+            margin: 5% 0 10% 0;
 
             h1 {
                 font-size: 20px;
