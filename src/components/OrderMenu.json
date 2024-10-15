@@ -433,78 +433,7 @@ private LocalDateTime orderTime;
 private Boolean checkout = false;
 
 
-//CustomPopup
-//單點 selectedDishes
-{
-    "default": {
-      "categoryId": 2,
-      "mealName": "燻雞堡",
-      "price": 65,
-      "workstationId": 1,
-      "available": 1,
-      "picture": "base64"
-    }
-}
-//單點 selectedOptions
-{
-    "加料": [
-      {
-        "title": "加料",
-        "content": "培根",
-        "price": 20
-      }
-    ],
-    "加蛋": [
-      {
-        "title": "加蛋",
-        "content": "半熟蛋",
-        "price": 15
-      }
-    ]
-  }
-
-//套餐 selectedDishes
-{
-    {"沙拉": {
-      "name": "凱薩沙拉",
-      "price": 70,
-      "categoryId": 5
-    }},
-    "飲料": {
-      "name": "紅茶",
-      "price": 25,
-      "categoryId": 8
-    }
-}
-// 套餐 selectedOptions
-  {
-    "凱薩沙拉": [
-      {
-        "title": "凱薩沙拉",
-        "content": "醬料",
-        "price": "不醬"
-      },
-      {
-        "title": "凱薩沙拉",
-        "content": "加料",
-        "price": "酪梨"
-      }
-    ],
-    "紅茶": [
-      {
-        "title": "紅茶",
-        "content": "冰塊",
-        "price": "正常冰"
-      },
-      {
-        "title": "紅茶",
-        "content": "加料",
-        "price": "珍珠"
-      }
-    ]
-  }
-
-/////////////修改後
+//////// CustomPopup
 // singleDishes
 {
     "mealName": "培根蛋吐司",
@@ -644,33 +573,6 @@ private Boolean checkout = false;
         }
     },
 }
-// comboOptions
-{
-    "歐姆蛋堡": [
-     {
-        "title": "凱薩沙拉",
-        "content": "醬料",
-        "price": "不醬"
-      },
-      {
-        "title": "凱薩沙拉",
-        "content": "加料",
-        "price": "酪梨"
-      }
-    ],
-    "紅茶": [
-      {
-        "title": "紅茶",
-        "content": "冰塊",
-        "price": "正常冰"
-      },
-      {
-        "title": "紅茶",
-        "content": "加料",
-        "price": "珍珠"
-      }
-    ]
-}
 
 
 
@@ -678,32 +580,62 @@ private Boolean checkout = false;
 //comboList
 
 "comboList": [
-// 1.1 套餐總覽
-{
-    "orderMealId":"1b9d6a9b-53e1-4a22-9e74-1c00b6e09b79",
-    "comboName":"二號餐",
-    "mealName":null,
-    "options":null,
-    "workstationId":0,
-    "price":-25(discountAmount),
-},
-// 1.2 套餐單品項
-{
-    "orderMealId":"1b9d6a9b-53e1-4a22-9e74-1c00b6e09b79",
-    "comboName":"二號餐",
-    "mealName":"泰式炒泡麵",
-    "options":"大辣,全熟蛋 (selectedOptions的content如果有值就以逗號合併)",
-    "workstationId":5,
-    "price":85(泰式炒泡麵price+大辣price+全熟蛋price),
-},
-{
-    "orderMealId":"1b9d6a9b-53e1-4a22-9e74-1c00b6e09b79",
-    "comboName":"二號餐",
-    "mealName":"牛肉堡",
-    "options":"培根",
-    "workstationId":1,
-    "price":95(牛肉堡price+培根price),
-},
+  {
+    "orderMealId": "486d3645-11ce-4868-8fa4-3c0e37ade061",
+    "comboName": "3號餐",
+    "mealName": null,
+    "options": null,
+    "workstationId": 0,
+    "price": -5,
+    "comboBasicPrice": 60,
+    "selectedComboPrice": 80
+  },
+  {
+    "orderMealId": "486d3645-11ce-4868-8fa4-3c0e37ade061",
+    "comboName": "3號餐",
+    "mealName": "蔬菜蛋餅",
+    "options": "起司",
+    "optionsPriceTotal": 10,
+    "workstationId": 3,
+    "price": 50,
+    "priceDifference": 0
+  },
+  {
+    "orderMealId": "486d3645-11ce-4868-8fa4-3c0e37ade061",
+    "comboName": "3號餐",
+    "mealName": "綠茶",
+    "options": "微糖, 椰果",
+    "optionsPriceTotal": 10,
+    "workstationId": 7,
+    "price": 35,
+    "priceDifference": 0
+  }
+]
+
+//newComboList
+[
+    //combo
+    {
+        "orderMealId": //comboList[0].orderMealId
+        "comboName": //comboList[0].comboName
+        "comboBasicPrice" // comboList[0].comboBasicPrice
+        "selectedComboPrice" // comboList[0].selectedComboPrice
+        "mealList": [ // 去掉 comboList[0]，取 comboList[1] 之後的所有元素
+            {
+                "mealName": 蔬菜蛋餅
+                "options": 起司
+                "optionsPriceTotal":10
+                "priceDifference": 0
+            },
+            {
+                "mealName":綠茶,
+                "options":"微糖, 椰果",
+                "optionsPriceTotal": 10,
+                "priceDifference": 0
+            }
+        ]
+        
+    }
 ]
 
 // singleList 
@@ -711,9 +643,9 @@ private Boolean checkout = false;
     "orderMealId":"66f0b1e5-10c1-471f-8e11-c70b6e09b23a",
     "comboName":null,
     "mealName":"培根蛋吐司",
+    "mealPice":,
     "options":"蔥花蛋,烤酥(singleOptions的所有content若有值就用逗號組合)",
+    "optionsPrice":,
     "workstationId":3,
     "price":105(豬肉培根蛋吐司price+蔥花蛋price+烤酥price 或直接取this.totalPrice?),
 },
-
-[ {"categoryId": 2,"dishes": ["培根蛋吐司"]}, {"categoryId":6, "dishes": ["薯條","雞塊"]}, {"categoryId":7,"dishes": ["紅茶","綠茶","美式咖啡","鮮奶紅茶","鮮奶綠茶"]}]
