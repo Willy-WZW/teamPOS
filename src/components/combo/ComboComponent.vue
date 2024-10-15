@@ -525,13 +525,13 @@ $addDiv: #343a3f;
             position: absolute
         }
         .windowArea {
-            width: 30%;
+            width: 35%;
             height: 100%;
             border-radius: 10px;
             border: 2px solid rgba(0,0,0,1);
             border-radius: 20px;
             background-color: white;
-            margin: 5% 4% 1% 20%;
+            margin: 5% 30% 1% 0%;
             padding: 2% 1%;
             overflow:hidden;
             overflow-y: auto;
