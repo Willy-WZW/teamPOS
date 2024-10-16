@@ -5,7 +5,7 @@ import OperationSpecificComponent from './OperationSpecificComponent.vue';
 export default{
     data(){
         return{
-            currentHead:'月',
+            currentHead:'日',
             currentTopSelect: '日常統計',
             firstOperationDate:null,
             allDateList:[],
@@ -39,6 +39,62 @@ export default{
 
             joinOrderList:[],
 
+            optionLineDishes:{
+                tooltip: {
+                        trigger: 'axis',  // 當軸上的數據被觸發時顯示 tooltip
+                    },
+                legend: {
+                    data:['餐點銷售量'],
+                    left: 'center',
+                    textStyle: {
+                        fontSize: 18,  // 設置圖例的字體大小
+                        color: '#000'                      
+                    }
+                },      
+                grid: {
+                    top: '15%',
+                    left: '3%',
+                    right: '3%',
+                    bottom: '6%',
+                    containLabel: true
+                },
+                xAxis: {
+                    type: 'category',
+                    data:[],
+                    boundaryGap: true, // 不留白，从原点开始
+                    boundaryGap: ['1%', '1%'] // 左右邊界分別設置為 20%
+                },
+                yAxis: {
+                    type: 'value'
+                },
+                series: [
+                    {
+                        name:'銷售額',
+                        type: 'bar',
+                        label: {
+                                show: false,  // 顯示數據標籤
+                                position: 'top'  // 數值顯示在數據點上方
+                            },
+                        //显示出来折线图的面积
+                        areaStyle: {
+                            normal: {
+                                // 颜色渐变函数 前四个参数分别表示四个位置依次为左、下、右、上
+                                color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{
+                                    offset: 0,
+                                    color: 'rgba(80,141,255,0.39)'
+                                }, {
+                                    offset: 0.25,
+                                    color: 'rgba(56,155,255,0.25)'
+                                }, {
+                                    offset: 1,
+                                    color: 'rgba(38,197,254,0.00)'
+                                }])
+                            }
+                        },
+                        data: [],
+                    }
+                ]
+            },
             optionLine:{
                 tooltip: {
                         trigger: 'axis',  // 當軸上的數據被觸發時顯示 tooltip
@@ -95,7 +151,6 @@ export default{
                     }
                 ]
             },
-
             option:{
                 // title: {
                 //     text: '上月本月比教圖',
@@ -180,7 +235,6 @@ export default{
             this.firstOperationDate = response.data.analysis.revenueGrowth[0].day
             this.dateForDay = this.allDateList[this.allDateList.length - 1]
             this.preDateForDay = this.allDateList[this.allDateList.length - 2]
-
         })
         .then(()=>{
             return Promise.all([
@@ -199,18 +253,18 @@ export default{
             this.analysis.popularDishes = this.analysis.popularDishes.sort((a, b) => b.orders - a.orders);
             this.preAnalysis = response3.data.analysis;
 
-        })   
-        .then(()=>{
             this.optionLine.xAxis.data = this.allDateList[this.allDateList.length-1]
-            this.optionLine.series[0].data = this.analysis.revenueGrowth.map(item=>{
-                return item.revenue
-            })
-        })
+            this.optionLine.series[0].data = this.analysis.revenueGrowth.map(item=>item.revenue)
+
+            this.optionLineDishes.xAxis.data = this.analysis.popularDishes.map(item=>item.name)
+            this.optionLineDishes.series[0].data = this.analysis.popularDishes.map(item=>item.orders)
+        })   
         .catch(error => {
             console.error("Error fetching analysis:", error);
         });
         this.$nextTick(() => {
             this.drawChart();  // 初始化图表
+            this.drawDishesChart()
         });
     },
     computed:{
@@ -254,7 +308,7 @@ export default{
         nextDay() {
             const index = this.allDateList.indexOf(this.dateForDay)
             this.dateForDay = this.allDateList[index+1]
-            this.preDateForDay = this.allDateList[index+2]
+            this.preDateForDay = this.allDateList[index]
 
             // const newDate = new Date(this.dateForDay); // 先複製當前日期
             // newDate.setDate(newDate.getDate() + 1); // 修改新日期的值
@@ -506,13 +560,13 @@ export default{
     },
     methods:{
         postEveryMonthOfYearDishes(mealName){
-
-            
+            //這是年在用的
+            this.analysisMealVoList = []
             this.analysis12Month = []
             this.lastYearAnalysis12Month = []
             let result = this.getFirstAndLastDaysOfYear(this.dateForYear.getFullYear())
-            //為了bar的統計圖
-            // 當前年當月
+            //為了bar的統計圖 x軸應該是月份
+            //當前年當月
             let currentDate = result[1]
             let promisesCurrrDate = [];
             for (let month=0; month<12; month++){
@@ -538,7 +592,8 @@ export default{
                 .catch(error => {
                     console.error("Error in one or more requests:", error);
                 });    
-                
+
+            //這是年在用的    x軸應該是月份
             //為了bar的統計圖
             //去年同月    
             let lastYearDate = result[2]
@@ -566,8 +621,14 @@ export default{
                 });    
 
 
-            //點擊商品時計算折線圖顯示販賣的商品數量
+            //點擊商品時計算折線圖顯示販賣的商品數量 
+            //optionLine就是echat1負責，用來顯示x軸是日期y軸是餐點銷售數量
+            //給月使用
             let promisesAnalysisMealVoList = [];
+            this.optionLine.legend.data[0] = '商品銷售量'
+            this.optionLine.series[0].name = '商品銷售量'
+            this.optionLine.series[0].type = 'bar'
+            console.log(this.optionLine)
             for (let i=0; i<this.optionLine.series[0].data.length; i++){
                 let promise = axios.post("http://localhost:8080/pos/analysis", {   
                             "startDate":this.optionLine.xAxis.data[i],
@@ -584,20 +645,13 @@ export default{
                     });
                 })
                 .then(()=>{
-                    this.optionLine.series[0].data = this.analysisMealVoList.map(item=>{
-                            return item.analysisMealVo.mealTotalOrders
-                    })
-                    
+                    let list = this.analysisMealVoList.map(item=>item.analysisMealVo.mealTotalOrders)
+                    this.optionLine.series[0].data = list
+                    this.drawChart()
                 })
                 .catch(error => {
                     console.error("Error in one or more requests:", error);
                 }); 
-
-                this.$nextTick(() => {
-                    this.drawChart();  // 初始化图表
-                });
-
-
         },
         getFirstAndLastDaysOfSeason(year){
             const currentDates = [];
@@ -830,10 +884,19 @@ export default{
             }
             return false;
         },
+        drawDishesChart(){
+            const myChart0 = echarts.init(document.getElementById("echart0"));
+            if (myChart0) {
+                myChart0.setOption(this.optionLineDishes);  
+            } else {
+                console.error("Invalid DOM: chart container not found");
+            }
+        },
         drawChart() {
-            const myChart = echarts.init(document.getElementById("echart1"));
-            if (myChart) {
-                myChart.setOption(this.optionLine);  
+
+            const myChart1 = echarts.init(document.getElementById("echart1"));
+            if (myChart1) {
+                myChart1.setOption(this.optionLine);  
             } else {
                 console.error("Invalid DOM: chart container not found");
             }
@@ -849,12 +912,12 @@ export default{
             this.currentHead = type
         },
         calRevenueGrowth(){
-            let revenueUpRate = (this.analysis.totalRevenue-this.preAnalysis.totalRevenue)/(this.preAnalysis.totalRevenue) * 100
+            let revenueUpRate = (this.analysis.totalRevenue - this.preAnalysis.totalRevenue) / (this.preAnalysis.totalRevenue) * 100
             revenueUpRate = Math.round(revenueUpRate)
             return revenueUpRate
         },
         calOrdersGrowth(){
-            let ordersUpRate = (this.analysis.totalOrders - this.preAnalysis.totalOrders)/ (this.preAnalysis.totalOrders) * 100
+            let ordersUpRate = (this.analysis.totalOrders - this.preAnalysis.totalOrders) / (this.preAnalysis.totalOrders) * 100
             ordersUpRate = Math.round(ordersUpRate)
             return ordersUpRate
         },
@@ -867,19 +930,22 @@ export default{
             .then(response=>{
                 this.analysis = response.data.analysis
                 this.analysis.popularDishes.sort((a,b)=>{return b.orders-a.orders})
+            
+                this.optionLine.xAxis.data = this.analysis.revenueGrowth.map(item=>item.day)
+                this.optionLine.series[0].data = this.analysis.revenueGrowth.map(item=>item.revenue)
+                this.optionLineDishes.xAxis.data = this.analysis.popularDishes.map(item=>item.name)
+                this.optionLineDishes.series[0].data = this.analysis.popularDishes.map(item=>item.orders)
+                console.log(this.optionLineDishes.series[0].data)
             })
             .then(()=>{
-                this.optionLine.xAxis.data = this.analysis.revenueGrowth.map(item=>{
-                    return item.day
-                })
-                this.optionLine.series[0].data = this.analysis.revenueGrowth.map(item=>{
-                    return item.revenue
-                })
+                this.drawDishesChart();  // 初始化图表
             })
-            .then(()=>{
-                this.drawChart()
+            .catch(()=>{
+                console.error("Error fetching analysis:", error);
             })
         },
+
+        
         postPreStartDateAndPreEndDate(startDate, endDate){
             axios.post("http://localhost:8080/pos/analysis", {   
                             "startDate":startDate,
@@ -933,20 +999,26 @@ export default{
 <template>
 
 <div class="container" v-if="analysis">
-    <div class="innerContainer0">
+    <!-- <div class="innerContainer0">
         <p class="topStyle" :class="{topStyleClick: currentTopSelect == '日常統計'}" @click="currentTopSelect = '日常統計'">日常統計</p>
-        <!-- <p class="topStyle" :class="{topStyleClick: currentTopSelect == '活動統計'}"  @click="currentTopSelect = '活動統計'">活動統計</p> -->
-    </div>
-    <!-- <h1>{{ allDateList }}</h1>
-    <h1 >{{ dateForDay }}</h1>
-    <h1 >{{ preDateForDay }}</h1>
-    <h1 v-if="analysis">{{ analysis.totalRevenue }}</h1>
-    <h1 v-if="preAnalysis">{{ preAnalysis.totalRevenue }}</h1> -->
+        <p class="topStyle" :class="{topStyleClick: currentTopSelect == '活動統計'}"  @click="currentTopSelect = '活動統計'">活動統計</p>
+    </div> -->
+    <!-- <h1>{{ allDateList }}</h1> -->
+    <!-- <h1 >{{ dateForDay }}</h1> -->
+    <!-- <h1 >{{ preDateForDay }}</h1> -->
+    <!-- <h1 v-if="analysis">{{ analysis}}</h1> -->
+    <!-- <h1 v-if="preAnalysis">{{ preAnalysis}}</h1> -->
+    <!-- <h1>{{ this.dateForDay.toISOString().split('T')[0] }}</h1>  -->
+    <!-- <h1>{{ this.allDateList[this.allDateList.length - 1].toISOString().split('T')[0] }}</h1>  -->
+    <!-- <h1>{{ this.startDate }}</h1>  -->
+    <!-- <h1>{{ this.endDate  }}</h1>  -->
+    <!-- <h1>{{ this.analysisMealVoList }}</h1> -->
+    <!-- <h1>{{ this.optionLine.series[0].data }}</h1> -->
+    <!-- <h1>{{ this.optionLine.xAxis.data }}</h1> -->
     <div class="innerContainer" v-if="currentTopSelect == '日常統計'">
         <div class="dashboardLeft">
             <div class="navHead">
-
-                <!-- <h1 class="headStyle" :class="{headStyleClick: currentHead == '日'}" @click="selectPeriod('日')">日</h1> -->
+                <h1 class="headStyle" :class="{headStyleClick: currentHead == '日'}" @click="selectPeriod('日')">日</h1>
                 <h1 class="headStyle" :class="{headStyleClick: currentHead == '月'}" @click="selectPeriod('月')">月</h1>
                 <!-- <h1 class="headStyle" :class="{headStyleClick: currentHead == '季'}" @click="selectPeriod('季')">季</h1> -->
                 <h1 class="headStyle" :class="{headStyleClick: currentHead == '年'}" @click="selectPeriod('年')">年</h1>
@@ -955,9 +1027,13 @@ export default{
 
             <div class="echartContainer" v-if="currentHead=='日'">
                 <div class="leftRightContainer">
-                    <i class='bx bx-chevron-left' @click="previousDay" v-if="new Date(firstOperationDate).toISOString().split('T')[0] < dateForDay.toISOString().split('T')[0]"></i>
+                    <i class='bx bx-chevron-left' @click="previousDay" 
+                    v-if="new Date(firstOperationDate).toISOString().split('T')[0] < 
+                    dateForDay.toISOString().split('T')[0]"></i>
                     <p>{{ currentDay }}</p>
-                    <i class='bx bx-chevron-right' @click="nextDay" v-if="dateForDay.toISOString().split('T')[0] < new Date().toISOString().split('T')[0]"></i>
+                    <i class='bx bx-chevron-right' @click="nextDay" 
+                    v-if="this.dateForDay.toISOString().split('T')[0] != 
+                    this.allDateList[this.allDateList.length - 1].toISOString().split('T')[0]"></i>
                 </div>
             </div>
             <div class="echartContainer" v-if="currentHead=='月'">
@@ -999,6 +1075,7 @@ export default{
     <div class="innerContainer2" v-if="currentTopSelect == '日常統計'">
             <div class="innerContainer2-Left">
                 <div class="compareContainer">
+
                     <div class="compareItem">
                         <p class="title">總銷售額</p>
                         <div class="content">
@@ -1006,6 +1083,23 @@ export default{
                             <!-- <p class="contentNumber">{{ preAnalysis.totalRevenue }}</p> -->
                         </div>
                         <div class="foot">
+                            <!-- <div class="contentRateUp" v-if="analysis && analysis.totalRevenue !== null && preAnalysis && preAnalysis.totalRevenue !== null && calRevenueGrowth()>=0">
+                                <i class='bx bx-up-arrow-alt'></i>
+                                <p>{{calRevenueGrowth()}}%</p>
+                            </div>
+                            <div class="contentRateDown" v-if="analysis && analysis.totalRevenue !== null && preAnalysis && preAnalysis.totalRevenue !== null && calRevenueGrowth()<0">
+                                <i class='bx bx-down-arrow-alt'></i>
+                                <p>{{calRevenueGrowth()}}%</p>
+                            </div>
+                            <p class="compareWhat" v-if="currentHead=='日'">vs 上個營業日</p>
+                            <p class="compareWhat" v-if="currentHead=='月'">vs 前一月</p>
+                            <p class="compareWhat" v-if="currentHead=='季'">vs 前一季</p>
+                            <p class="compareWhat" v-if="currentHead=='年'">vs 前一年</p> -->
+                        </div>    
+                    </div>
+                    <div class="compareItem">
+                        <p class="title">總銷售額上升/下降</p>
+                        <div class="content">
                             <div class="contentRateUp" v-if="analysis && analysis.totalRevenue !== null && preAnalysis && preAnalysis.totalRevenue !== null && calRevenueGrowth()>=0">
                                 <i class='bx bx-up-arrow-alt'></i>
                                 <p>{{calRevenueGrowth()}}%</p>
@@ -1014,6 +1108,16 @@ export default{
                                 <i class='bx bx-down-arrow-alt'></i>
                                 <p>{{calRevenueGrowth()}}%</p>
                             </div>
+                        </div>
+                        <div class="foot">
+                            <!-- <div class="contentRateUp" v-if="analysis && analysis.totalRevenue !== null && preAnalysis && preAnalysis.totalRevenue !== null && calRevenueGrowth()>=0">
+                                <i class='bx bx-up-arrow-alt'></i>
+                                <p>{{calOrdersGrowth()}}%</p>
+                            </div>
+                            <div class="contentRateDown" v-if="analysis && analysis.totalRevenue !== null && preAnalysis && preAnalysis.totalRevenue !== null && calRevenueGrowth()<0">
+                                <i class='bx bx-down-arrow-alt'></i>
+                                <p>{{calOrdersGrowth()}}%</p>
+                            </div> -->
                             <p class="compareWhat" v-if="currentHead=='日'">vs 上個營業日</p>
                             <p class="compareWhat" v-if="currentHead=='月'">vs 前一月</p>
                             <p class="compareWhat" v-if="currentHead=='季'">vs 前一季</p>
@@ -1041,13 +1145,18 @@ export default{
                         </div>    
                     </div> -->
                 </div>
-                <div class="chartArea">
+                <div class="chartArea" >
+                    <div class="chartContainer0" v-show="currentHead=='日'">
+                        <h1>日餐點銷售數量</h1>
+                        <div id="echart0">
+                        </div>
+                    </div>
                     <div class="chartContainer1" v-show="currentHead=='月'">
-                        <h1>每日營業額</h1>
+                        <h1>月每日營業額</h1>
                         <div id="echart1" >
                         </div>
                     </div>
-                    <div class="chartContainer2">
+                    <div class="chartContainer2" v-if="currentHead=='年'">
                         <h1>每月比較圖</h1>
                         <div id="echart2" >
                         </div>
@@ -1080,12 +1189,9 @@ export default{
                 </div>
             </div>
     </div>
-
     <div class="innerContainerSpecific" v-if="currentTopSelect == '活動統計'">
         <OperationSpecificComponent/>
     </div>
-
-
 </div>
 
 </template>
@@ -1114,44 +1220,44 @@ $down-font: #388e3c;
     align-items: flex-start;
     justify-content: flex-start;
     padding: 2% 0 4% 0;
-    .innerContainer0{
-        width: 100%;
-        height: 10%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background-color: white;
-        border-radius: 12px;
-        border: 2px solid rgba(0, 0, 0, 0.25);
-        margin: 0 0 1% 0;
+    // .innerContainer0{
+    //     width: 100%;
+    //     height: 10%;
+    //     display: flex;
+    //     align-items: center;
+    //     justify-content: center;
+    //     background-color: white;
+    //     border-radius: 12px;
+    //     border: 2px solid rgba(0, 0, 0, 0.25);
+    //     margin: 0 0 1% 0;
 
-        .topStyle{
-            width: 8%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            font-weight: 600;
-            color: rgba(0, 0, 0, 0.7);
-            cursor: pointer;
+    //     .topStyle{
+    //         width: 8%;
+    //         height: 100%;
+    //         display: flex;
+    //         align-items: center;
+    //         justify-content: center;
+    //         font-size: 20px;
+    //         font-weight: 600;
+    //         color: rgba(0, 0, 0, 0.7);
+    //         cursor: pointer;
             
-        }
-        .topStyleClick{
-            color: black;
-            position: relative;
-            &::before{
-                position: absolute;
-                content: "";
-                width: 100%;
-                height: 2px;
-                left: 0;
-                bottom: 0;
-                color: black;
-                background-color: black;
-            }
-        }
-    }
+    //     }
+    //     .topStyleClick{
+    //         color: black;
+    //         position: relative;
+    //         &::before{
+    //             position: absolute;
+    //             content: "";
+    //             width: 100%;
+    //             height: 2px;
+    //             left: 0;
+    //             bottom: 0;
+    //             color: black;
+    //             background-color: black;
+    //         }
+    //     }
+    // }
     .innerContainer{
         width: 100%;
         height: 10%;
@@ -1264,10 +1370,11 @@ $down-font: #388e3c;
     }
     .innerContainer2{
         width: 100%;
-        height: 80%;
+        height: 90%;
         display: flex;
         align-items: flex-start;
         justify-content: flex-start;
+        margin: 0% 0 0 0;
         .innerContainer2-Left{
             width: 75%;
             height: 100%;
@@ -1278,19 +1385,18 @@ $down-font: #388e3c;
             border-radius: 12px;
             margin: 0 1% 0 0;
             .compareContainer{
-                width: 40%;
+                width: 100%;
                 height: 25%;
                 display: flex;
                 align-items: center;
-                justify-content: flex-start;
+                justify-content: center;
                 border-radius: 12px;
                 background-color: white;
                 border: 2px solid rgba(0, 0, 0, 0.25);
-                padding: 0 5%;
                 margin: 0 0 2% 0;
 
                 .compareItem{
-                    width: 100%;
+                    width: 50%;
                     height: 100%;
                     padding: 20px 20px;
                     display: flex;
@@ -1314,16 +1420,55 @@ $down-font: #388e3c;
                         font-weight: 600;
                     }
                     .content{
+                        width: 100%;
+                        height: 100%;
                         display: flex;
                         align-items: center;
-                        justify-content: center;
+                        justify-content: flex-start;
                         .contentNumber{
                             font-size: 50px;
                             margin: 0 15px 0 0;
                         }
+                        .contentRateUp{
+                            width: 80px;
+                            height: 100%;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            text-align: center;
+                            border-radius: 12px;
+                            background-color: $up-background;
+                            margin: 5px 10px 0 0;
+                            p{
+                                color: $up-font;
+                                font-size: 25px;
+                            }
+                            i{
+                                color: $up-font;
+                            }
+                        }
+                        .contentRateDown{
+                            width: 80px;
+                            height: 100%;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            text-align: center;
+                            border-radius: 12px;
+                            margin: 5px 10px 0 0;
+                            background-color: $down-background;
+                            p{
+                                color: $down-font;
+                                font-size: 25px;
+                            }
+                            i{
+                                color: $down-font;
+                            }
+                        }
                     }
                     .foot{
                         width: 100%;
+                        height: 100%;
                         display: flex;
                         align-items: center;
                         justify-content: flex-start;
@@ -1361,6 +1506,7 @@ $down-font: #388e3c;
                         }
                         .compareWhat{
                             color: #5D6165;
+                            margin: 10px 0 0 0;
                         }
                     }
                 }
@@ -1371,8 +1517,33 @@ $down-font: #388e3c;
                 display: flex;
                 align-items: center;
                 justify-content: center;
+                .chartContainer0{
+                    width: 100%;
+                    height: 100%;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: flex-start;
+                    justify-content: flex-start;
+                    border-radius: 12px;
+                    background-color: white;
+                    border: 2px solid rgba(0, 0, 0, 0.25);
+                    padding: 2% 2%;
+                    margin: 0 2% 0 0;
+                    h1{
+                        font-size: 25px;
+                        margin: 0 0 20px 0;
+                    }
+                    #echart0{
+                        width: 100%;
+                        height: 100%;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        border: 1px solid rgba(0, 0, 0, 0.25);
+                    }
+                }
                 .chartContainer1{
-                    width: 50%;
+                    width: 100%;
                     height: 100%;
                     display: flex;
                     flex-direction: column;
@@ -1407,7 +1578,7 @@ $down-font: #388e3c;
                     background-color: white;
                     border: 2px solid rgba(0, 0, 0, 0.25);
                     padding: 2% 2%;
-                    margin: 0 2% 0 0;
+                    // margin: 0 2% 0 0;
                     h1{
                         font-size: 25px;
                         margin: 0 0 20px 0;

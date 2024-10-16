@@ -241,6 +241,7 @@ export default{
                 border-radius: 12px;
                 padding: 1% 1%;
                 overflow-y: auto;
+                scrollbar-width: none;
                 h1{
                     font-size: 30px;
                 }
