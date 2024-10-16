@@ -37,9 +37,12 @@ export default {
             currentDate: new Date(), // 初始化為當前系統日期
             filteredReservations: [], // 根據日期篩選後的訂位資訊
             reservations: [], // 初始化為空陣列
+            waitlist: [],
             selectedDate: new Date(), // 當前選擇的日期
-            isSearching: false, // 控制搜尋框的顯示
-            searchNumber: '',    // 儲存輸入的查詢
+            isSearchingForReservation: false,
+            isSearchingForWaitlist: false,
+            reservationSearchNumber: '',
+            waitlistSearchNumber: '',
             
             // 訂位 modal
             showReservationModal: false,
@@ -59,7 +62,7 @@ export default {
             maxWaitlistOrder: 0, // 用來儲存最大候位順序
             newWaitlist: {
                 people: 2,  // 預設人數為 2
-                date: new Date().toISOString().split('T')[0],  // 預設為當前日期
+                date: this.formatDate(new Date()), // 預設為當前日期
                 time: this.getCurrentTime(), // 設定為當前時間
                 name: '', 
                 title: '先生', 
@@ -129,6 +132,8 @@ export default {
         this.fetchReservationsByDate(this.currentDate);
         this.fetchAvailableTimes();
         this.fetchMaxWaitlistOrder(); 
+        this.fetchAllWaitlists(); // 組件加載時自動調用
+        this.fetchAllWaitlists();
     },
 
     watch: {
@@ -175,7 +180,7 @@ export default {
     },
 
     methods: {
-        // tableArea 功能：
+        // 桌位圖功能：
         // 加載桌位
         async fetchTables() {
             try {
@@ -271,7 +276,7 @@ export default {
             }
         },
 
-        // ReservationArea 功能：
+        // 訂位功能：
         // 日期變化時更新訂位資訊
         changeDate(dayChange) {
             const newDate = new Date(this.currentDate);
@@ -331,34 +336,45 @@ export default {
         },
 
         // 開啟電話搜尋欄
-        toggleSearch() {
-            this.isSearching = !this.isSearching;
-            if (!this.isSearching) {
-                this.searchNumber = ''; // 如果關閉搜尋，清空輸入框
-                this.filteredReservations = []; // 清空結果
+        toggleSearch(type) {
+            if (type === 'reservation') {
+                this.isSearchingForReservation = !this.isSearchingForReservation;
+                this.isSearchingForWaitlist = false; // 確保候位搜尋不顯示
+                if (!this.isSearchingForReservation) {
+                    this.reservationSearchNumber = ''; // 清空訂位搜尋輸入框
+                    this.filteredReservations = []; // 清空訂位結果
+                }
+            } else if (type === 'waitlist') {
+                this.isSearchingForWaitlist = !this.isSearchingForWaitlist;
+                this.isSearchingForReservation = false; // 確保訂位搜尋不顯示
+                if (!this.isSearchingForWaitlist) {
+                    this.waitlistSearchNumber = ''; // 清空候位搜尋輸入框
+                    this.waitlist = []; // 清空候位結果
+                }
             }
         },
 
         // 自動關閉電話搜尋欄
-        handleBlur() {
-            // 當輸入框失去焦點時，檢查輸入框的值
-            if (this.searchNumber.trim() === '') {
-                // 如果輸入框為空，則呼叫日期篩選 API
-                this.fetchReservationsByDate(this.currentDate);
-                this.isSearching = false; // 隱藏輸入框
+        handleBlur(type) {
+            if (type === 'reservation' && this.reservationSearchNumber.trim() === '') {
+                this.fetchReservationsByDate(this.currentDate); // 加載訂位
+                this.isSearchingForReservation = false; // 隱藏訂位搜尋輸入框
+            } else if (type === 'waitlist' && this.waitlistSearchNumber.trim() === '') {
+                this.fetchAllWaitlists(); // 加載所有候位
+                this.isSearchingForWaitlist = false; // 隱藏候位搜尋輸入框
             }
         },
 
         // 根據電話號碼搜尋訂位資訊 API
         async searchReservations() {
-            if (this.searchNumber.trim() === '') {
+            if (this.reservationSearchNumber.trim() === '') { // 使用新的變數名稱
                 // 當搜尋欄位為空時，呼叫日期篩選的 API 方法
                 await this.fetchReservationsByDate(this.currentDate);
             } else {
                 // 如果有輸入，則使用手機號碼搜尋
                 try {
                     const response = await axios.get(`http://localhost:8080/reservation/findReservationsByPhoneNumber`, {
-                        params: { phoneNumber: this.searchNumber }
+                        params: { phoneNumber: this.reservationSearchNumber } // 使用新的變數名稱
                     });
 
                     let reservations = response.data.reservations;
@@ -374,15 +390,15 @@ export default {
                         name: reservation.customerName,
                         phone: reservation.customerPhoneNumber,
                         partySize: reservation.reservationPeople,
-                        tables: reservation.tableNumbers || [], // 這裡要確保有 tableNumbers
-                        date: reservation.reservationDate, // 確保有日期字段
-                        time: this.formatTime(reservation.reservationStartTime) // 格式化時間
+                        tables: reservation.tableNumbers || [],
+                        date: reservation.reservationDate,
+                        time: this.formatTime(reservation.reservationStartTime)
                     }));
 
                     console.log('已成功加載搜尋結果:', this.reservations);
                 } catch (error) {
                     console.error('無法獲取搜尋結果:', error);
-                    Swal.fire('查詢失敗', error.response.data.message || '請稍後再試', 'error');
+                    Swal.fire('查詢失敗', '查詢訂位時發生錯誤，請稍後重試！', 'error');
                     this.reservations = [];
                 }
             }
@@ -419,14 +435,19 @@ export default {
             } catch (error) {
                 console.error('無法獲取訂位資料:', error);
                 this.reservations = [];
+                Swal.fire({
+                    icon: 'error',
+                    title: '錯誤',
+                    text: '無法獲取訂位資料！',
+                });
             }
         },
 
         // 確認報到視窗
         confirmCheckIn(tableNumber, reservationId) {
             Swal.fire({
-                title: '請確認客人是否報到！',
-                text: `桌號 ${tableNumber} 的報到操作將不可撤銷`,
+                title: '請確認客人是否到齊！',
+                text: `此訂位報到操作將不可撤銷`,
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#3085d6',
@@ -467,7 +488,7 @@ export default {
 
                 // 顯示錯誤提示
                 Swal.fire(
-                    '報到失敗',
+                    '報到失敗！',
                     '報到時發生錯誤，請稍後重試。',
                     'error'
                 );
@@ -478,7 +499,7 @@ export default {
         confirmCancellation(reservationId) {
             Swal.fire({
                 title: '你確定要取消這個訂位嗎？',
-                text: '這個操作無法撤銷',
+                text: '這個操作無法撤銷！',
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#3085d6',
@@ -503,7 +524,7 @@ export default {
                 // 成功提示
                 Swal.fire(
                     '取消成功！',
-                    '該訂位已被成功取消。',
+                    '該訂位已被成功取消',
                     'success'
                 );
 
@@ -516,8 +537,163 @@ export default {
 
                 // 顯示錯誤提示
                 Swal.fire(
-                    '取消失敗',
-                    '取消訂位時發生錯誤，請稍後重試。',
+                    '取消失敗！',
+                    '取消訂位時發生錯誤，請稍後再試',
+                    'error'
+                );
+            }
+        },
+
+        // 候位功能：
+        // 根據電話號碼搜尋候位資訊 API
+        async searchWaitlist() {
+            if (this.waitlistSearchNumber.trim() === '') { // 使用新的變數名稱
+                // 當搜尋欄位為空時，呼叫日期獲取候位資訊 API
+                await this.fetchAllWaitlists(); // 如果需要，可以傳遞其他參數
+            } else {
+                try {
+                    const response = await axios.get('http://localhost:8080/waitlist/findWaitlistByPhoneNumber', {
+                        params: { phoneNumber: this.waitlistSearchNumber } // 使用新的變數名稱
+                    });
+
+                    let waitlistData = response.data.waitlist;
+
+                    // 確保 waitlistData 是陣列
+                    if (!Array.isArray(waitlistData)) {
+                        waitlistData = waitlistData ? [waitlistData] : [];
+                    }
+
+                    // 更新候位資料
+                    this.waitlist = waitlistData.map(wait => ({
+                        waitlistId: wait.waitlistId,
+                        customerName: wait.customerName,
+                        customerPhoneNumber: wait.customerPhoneNumber,
+                        waitListPeople: wait.waitListPeople,
+                        waitingDate: wait.waitingDate,
+                        waitTime: this.formatTime(wait.waitTime),
+                        waitPosition: wait.waitlistOrder,
+                    }));
+
+                    console.log('已成功加載候位搜尋結果:', this.waitlist);
+                } catch (error) {
+                    console.error('查詢候位失敗:', error);
+                    Swal.fire('查詢失敗', '查詢候位時發生錯誤，請稍後重試！', 'error');
+                    this.waitlist = []; // 清空候位列表
+                }
+            }
+        },
+
+        // 根據日期獲取候位資訊 API
+        async fetchAllWaitlists() {
+            try {
+                const response = await axios.get('http://localhost:8080/waitlist/findAllWaitlist');
+
+                let waitlists = response.data.waitlist; // 假設返回的資料結構包含 waitlist
+
+                // 確保 waitlists 是陣列
+                if (!Array.isArray(waitlists)) {
+                    waitlists = waitlists ? [waitlists] : [];
+                }
+
+                // 更新 waitlists
+                this.waitlist = waitlists.map(wait => ({
+                    waitlistId: wait.waitlistId,
+                    customerName: wait.customerName,
+                    customerPhoneNumber: wait.customerPhoneNumber,
+                    waitListPeople: wait.waitListPeople,
+                    waitingDate: wait.waitingDate,
+                    waitTime: this.formatTime(wait.waitTime),
+                    waitPosition: wait.waitlistOrder, // 如果有對應的候位順序
+                }));
+
+                console.log('已成功加載候位資料:', this.waitlist);
+            } catch (error) {
+                console.error('無法獲取候位資料:', error);
+                this.waitlist = []; // 清空候位列表
+                Swal.fire({
+                    icon: 'error',
+                    title: '錯誤',
+                    text: '無法獲取候位資料！',
+                });
+            }
+        },
+
+        // 確認取消候位視窗
+        confirmCancelWait(waitlistId) {
+            Swal.fire({
+                title: '你確定要取消這個候位嗎？',
+                text: `這個操作無法撤銷！`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: '是的，我要取消！',
+                cancelButtonText: '取消'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    this.cancelWaitlist(waitlistId); // 如果用戶確認取消，調用取消候位方法
+                }
+            });
+        },
+
+        // 取消候位 API
+        async cancelWaitlist(waitlistId) {
+            try {
+                const response = await axios.delete(`http://localhost:8080/waitlist/cancelWaitlist`, {
+                    params: { waitlistId: waitlistId }
+                });
+
+                Swal.fire('取消成功！', '候位已成功取消', 'success');
+                // 刷新候位列表
+                await this.fetchAllWaitlists();
+            } catch (error) {
+                console.error('取消候位失敗', error);
+                Swal.fire('取消失敗！', '取消候位時發生錯誤，請稍後再試', 'error');
+            }
+        },
+
+        // 確認報到視窗
+        confirmCheckInWait(waitlistId) {
+            Swal.fire({
+                title: '請確認客人是否到齊！',
+                text: `此候位報到操作將不可撤銷`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: '是的，我要報到！',
+                cancelButtonText: '取消'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // 如果用戶確認報到，調用報到 API
+                    this.manualCheckInWait(waitlistId);
+                }
+            });
+        },
+
+        // 執行手動報到的 API
+        async manualCheckInWait(waitlistId) {
+            try {
+                const response = await axios.post(`http://localhost:8080/waitlist/manualCheckIn`, null, {
+                    params: { waitlistId } // 傳遞候位ID
+                });
+
+                // 成功提示
+                Swal.fire(
+                    '報到成功！',
+                    response.data.message,
+                    'success'
+                );
+
+                // 刷新候位列表或更新狀態
+                await this.fetchAllWaitlists(); // 確保有最新的候位資料
+                this.fetchTables(); // 添加這行以刷新桌位
+            } catch (error) {
+                // 處理錯誤情況
+                console.error('報到失敗', error);
+                Swal.fire(
+                    '報到失敗！',
+                    '報到時發生錯誤，請稍後重試。',
                     'error'
                 );
             }
@@ -593,8 +769,6 @@ export default {
                 payType = "現金";
             }
 
-
-
             const confirmPaymentData = {
                 orderId: ordersId,
                 tableNumber: this.selectedTable.id,
@@ -603,7 +777,6 @@ export default {
                 checkout: 1,
                 checkoutTime: checkoutTime
             };
-
 
             fetch("http://localhost:8080/api/checkout/confirmPayment", {
                 method: 'POST',
@@ -628,6 +801,8 @@ export default {
                             newWindow.document.write(data.message); // 將 API 返回的 HTML 內容寫入窗口
                             newWindow.document.close(); // 關閉文件流
                         }
+
+                        this.fetchTables(); // 添加這行以刷新桌位
 
                         Swal.fire({
                             title: "付款成功", // 假設 API 返回的訊息
@@ -661,8 +836,6 @@ export default {
                         confirmButtonText: '確定',
                     });
                 });
-
-
         },
 
         // 關閉結帳側邊欄
@@ -777,6 +950,7 @@ export default {
                     });
                     this.closeReservationModal();
                     this.fetchReservationsByDate(this.currentDate);
+                    this.fetchTables(); // 添加這行以刷新桌位
                 } else {
                     Swal.fire({
                         title: '訂位失敗',
@@ -816,7 +990,7 @@ export default {
         async fetchMaxWaitlistOrder() {
             try {
                 const response = await axios.get('http://localhost:8080/waitlist/getMaxWaitlistOrder'); // 使用你的 API 路徑
-                this.maxWaitlistOrder = response.data; // 更新最大候位順序
+                this.maxWaitlistOrder = response.data+1; // 更新最大候位順序
             } catch (error) {
                 console.error('獲取最大候位順序失敗:', error);
                 Swal.fire({
@@ -850,6 +1024,7 @@ export default {
                     confirmButtonText: '確定'
                 });
                 this.closeWaitlistModal();
+                this.fetchAllWaitlists();
             } catch (error) {
                 console.error('候位提交失敗:', error);
                 Swal.fire({
@@ -1048,7 +1223,7 @@ export default {
             </div>
         </div>
 
-        <!-- 訂位資訊 -->
+        <!-- 訂、候位資訊 -->
         <div class="reservationArea">
             <!-- 切換 訂位/現場候位 -->
             <div class="reservationHeader">
@@ -1062,11 +1237,11 @@ export default {
 
             <!-- 日期選擇 -->
             <div class="datePicker">
-                <button @click="changeDate(-1)">
+                <button class="leftButton" @click="changeDate(-1)" v-if="viewType === 'reservation'">
                     <i class="fa-solid fa-angle-left"></i>
                 </button>
                 <span>{{ formattedDate }} 週{{ dayOfWeek }}</span>
-                <button @click="changeDate(1)">
+                <button class="rightButton" @click="changeDate(1)" v-if="viewType === 'reservation'">
                     <i class="fa-solid fa-angle-right"></i>
                 </button>
             </div>
@@ -1076,13 +1251,13 @@ export default {
                 <!-- 注意事項與搜尋欄 -->
                 <div class="reminderAndSearchArea">
                     <p class="reminderText">時間為訂位時間</p>
-                    <button class="phoneSearch" @click="toggleSearch" v-if="!isSearching">
+                    <button class="phoneSearch" @click="toggleSearch('reservation')" v-if="!isSearchingForReservation">
                         <i class="fa-solid fa-magnifying-glass"></i>
                     </button>
-                    <input v-if="isSearching" type="search" v-model="searchNumber" placeholder="請輸入電話號碼 (末三碼)" 
-                        @input="searchReservations" @blur="handleBlur" class="searchInput" ref="searchInput"/>
+                    <input v-if="isSearchingForReservation" type="search" v-model="reservationSearchNumber" placeholder="請輸入電話號碼 (末三碼)" 
+                        @input="searchReservations" @blur="handleBlur('reservation')" class="searchInput" ref="reservationSearchInput"/>
                 </div>
-                
+
                 <div v-for="reservation in filteredReservations" :key="reservation.id" class="reservationItem">
                     <!-- 顧客名字 -->
                     <div class="customerName">{{ reservation.name }}</div>
@@ -1131,46 +1306,44 @@ export default {
                 <!-- 注意事項與搜尋欄 -->
                 <div class="reminderAndSearchArea">
                     <p class="reminderText">時間為登記時間</p>
-                    <button class="phoneSearch" @click="toggleSearch" v-if="!isSearching">
+                    <button class="phoneSearch" @click="toggleSearch('waitlist')" v-if="!isSearchingForWaitlist">
                         <i class="fa-solid fa-magnifying-glass"></i>
                     </button>
-                    <input v-if="isSearching" type="search" v-model="searchNumber" placeholder="請輸入電話號碼 (末三碼)" 
-                        @input="searchReservations" @blur="handleBlur" class="searchInput" ref="searchInput"/>
+                    <input v-if="isSearchingForWaitlist" type="search" v-model="waitlistSearchNumber" placeholder="請輸入電話號碼 (末三碼)" 
+                        @input="searchWaitlist" @blur="handleBlur('waitlist')" class="searchInput" ref="waitlistSearchInput"/>
                 </div>
 
-                <div v-for="wait in waitlist" :key="wait.id" class="waitlistItem">
+                <div v-for="wait in waitlist" :key="wait.waitlistId" class="waitlistItem">
                     <!-- 顧客名字 -->
-                    <div class="customerName">{{ wait.name }}</div>
+                    <div class="customerName">{{ wait.customerName }}</div>
 
                     <!-- 顧客手機與候位人數 -->
                     <div class="customerPhoneAndParty">
                         <div class="customerPhone">
                             <i class="fa-solid fa-phone"></i>
-                            {{ wait.phone }}
+                            {{ wait.customerPhoneNumber }}
                         </div>
                         <div class="customerPartySize">
                             <i class="fa-solid fa-user-group"></i>
-                            {{ wait.partySize }}位
+                            {{ wait.waitListPeople }}位
                         </div>
                     </div>
 
                     <!-- 桌號與登記時間 -->
                     <div class="tableNumberAndTime">
-                        <div class="tableNumbers">{{ wait.table }}</div>
-                        <div class="registrationTime">{{ wait.registrationTime }}</div>
+                        <div class="waitPosition">候位{{ wait.waitPosition }}</div>
+                        <div class="registrationTime">{{ wait.waitTime }}</div>
                     </div>
 
-                    <!-- 候位順序 -->
-                    <div class="waitPositionAndTime">
-                        <div class="waitPosition">候位 {{ wait.position }}</div>
+                    <!-- 報到與取消 -->
+                    <div class="waitlistActions">
                         <div class="checkinArea">
-                            <input type="checkbox" id="checkin_{{ reservation.id }}" name="checkin" @click="confirmCheckIn(reservation.tables[0])" />
-                            <label for="checkin_{{ reservation.id }}">報到</label>
+                            <input type="checkbox" id="checkin_{{ wait.waitlistId }}" name="checkin" @click="confirmCheckInWait(wait.waitlistId)" />
+                            <label for="checkin_{{ wait.waitlistId }}">報到</label>
                         </div>
                         <div class="cancelArea">
-                            <!-- 當取消勾選時調用 confirmCancellation 方法 -->
-                            <input type="checkbox" id="cancel_{{ reservation.id }}" name="cancel" @click="confirmCancellation(reservation.id)" />
-                            <label for="cancel_{{ reservation.id }}">取消</label>
+                            <input type="checkbox" id="cancel_{{ wait.waitlistId }}" name="cancel" @click="confirmCancelWait(wait.waitlistId)" />
+                            <label for="cancel_{{ wait.waitlistId }}">取消</label>
                         </div>
                     </div>
                 </div>
@@ -1304,7 +1477,7 @@ export default {
 
                         <!-- 候位順序 -->
                         <div class="orderArea">
-                            <label for="order">前方候位組數</label>
+                            <label for="order">候位順序</label>
                             <input type="text" :value="maxWaitlistOrder" readonly />
                         </div>
                     </div>
@@ -1317,7 +1490,7 @@ export default {
                     <div class="nameAndTitleArea">
                         <!-- 訂位人姓名 -->
                         <div class="nameArea">
-                            <label for="name">訂位人姓名</label>
+                            <label for="name">候位人姓名</label>
                             <input type="text" v-model="newWaitlist.name" />
                         </div>
                         <!-- 稱謂選擇 -->
@@ -1916,17 +2089,31 @@ export default {
                 font-size: 20px;
                 color: #343A3F;
                 display: flex;
-                justify-content: space-between;
+                justify-content: center;
                 align-items: center;
                 margin-bottom: 10px;
+                position: relative;
 
-                button {
+                .leftButton {
                     background: none;
                     border: none;
                     font-size: 25px;
                     color: #697077;
                     cursor: pointer;
                     padding: 10px;
+                    position: absolute;
+                    left: 0%;
+                }
+
+                .rightButton {
+                    background: none;
+                    border: none;
+                    font-size: 25px;
+                    color: #697077;
+                    cursor: pointer;
+                    padding: 10px;
+                    position: absolute;
+                    right: 0%;
                 }
             }
 
@@ -2193,10 +2380,10 @@ export default {
                         align-items: center;
                         padding: 10px;
 
-                        .tableNumbers {
+                        .waitPosition {
                             font-size: 18px;
+                            letter-spacing: 3px;
                             font-weight: bold;
-                            letter-spacing: 2px;
                             margin-bottom: 20px;
                         }
 
@@ -2207,21 +2394,14 @@ export default {
                         }
                     }
 
-                    .waitPositionAndTime {
+                    .waitlistActions {
                         display: flex;
                         flex-direction: column;
 
-                        .waitPosition {
-                            color: #697077;
-                            font-size: 20px;
-                            font-weight: bold;
-                            margin-bottom: 10px;
-                        }
-
                         .checkinArea {
                             color: #697077;
-                            font-size: 18px;
-                            margin-bottom: 10px;
+                            font-size: 20px;
+                            margin-bottom: 15px;
 
                             input[type="checkbox"] {
                                 margin-right: 5px;
@@ -2230,7 +2410,7 @@ export default {
 
                         .cancelArea {
                             color: #697077;
-                            font-size: 18px;
+                            font-size: 20px;
 
                             input[type="checkbox"] {
                                 margin-right: 5px;
