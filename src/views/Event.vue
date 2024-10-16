@@ -32,9 +32,6 @@ export default {
                     left: 'title',
                     right: 'prev,next'
                 },
-                eventLimit: 4,
-                eventLimitText: "更多",
-                eventLimitClick: 'popover',
             }
         };
     },
@@ -58,7 +55,7 @@ export default {
                 });
         },
         getEvents() {
-            const colorPalette = ['#7F7F7F', '#F4D800', '#050707','#3A6A59','#A7A88A','#D6C18A','#B9C8BC'];
+            const colorPalette = ['#7F7F7F', '#F4D800', '#050707', '#3A6A59', '#A7A88A', '#D6C18A', '#B9C8BC'];
             const assignedEvents = [];
 
             return this.allAnnouncements.map((announce) => {
@@ -104,17 +101,33 @@ export default {
             const currentMonth = new Date().getMonth();
             const currentYear = new Date().getFullYear();
 
-            this.displayedAnnouncements = this.allAnnouncements.filter(announce => {
-                const startDate = new Date(announce.announceStartTime);
-                const endDate = new Date(announce.announceEndTime);
-                const startMonth = startDate.getMonth();
-                const endMonth = endDate.getMonth();
-                const startYear = startDate.getFullYear();
-                const endYear = endDate.getFullYear();
+            this.displayedAnnouncements = this.allAnnouncements
+                .filter(announce => {
+                    const startDate = new Date(announce.announceStartTime);
+                    const endDate = new Date(announce.announceEndTime);
+                    const startMonth = startDate.getMonth();
+                    const endMonth = endDate.getMonth();
+                    const startYear = startDate.getFullYear();
+                    const endYear = endDate.getFullYear();
 
-                return (startMonth === currentMonth || endMonth === currentMonth) &&
-                    (startYear === currentYear || endYear === currentYear);
-            });
+                    return (startMonth === currentMonth || endMonth === currentMonth) &&
+                        (startYear === currentYear || endYear === currentYear);
+                })
+                .sort((a, b) => {
+                    const aStartDate = new Date(a.announceStartTime);
+                    const aEndDate = new Date(a.announceEndTime);
+                    const bStartDate = new Date(b.announceStartTime);
+                    const bEndDate = new Date(b.announceEndTime);
+
+
+                    const aDuration = aEndDate - aStartDate;
+                    const bDuration = bEndDate - bStartDate;
+
+                    if (aStartDate.getTime() !== bStartDate.getTime()) {
+                        return aStartDate - bStartDate;
+                    }
+                    return aDuration - bDuration;
+                });
         },
 
         handleDateClick(info) {
@@ -134,6 +147,18 @@ export default {
                 const endDate = new Date(announce.announceEndTime).toISOString().split("T")[0];
                 return this.selectDate >= startDate && this.selectDate <= endDate;
             });
+            this.displayedAnnouncements.sort((a, b) => {
+                const aStartDate = new Date(a.announceStartTime);
+                const aEndDate = new Date(a.announceEndTime);
+                const bStartDate = new Date(b.announceStartTime);
+                const bEndDate = new Date(b.announceEndTime);
+
+                if (aStartDate.getTime() !== bStartDate.getTime()) {
+                    return aStartDate - bStartDate;
+                }
+
+                return aEndDate - bEndDate;
+            });
         },
         showAnnouncePreview(announce) {
             const imageHtml = announce.announcePictureName
@@ -144,7 +169,7 @@ export default {
             ${imageHtml}
             <h3 style="text-align: left;">${announce.announceTitle}</h3>
             <p style="text-align: left; padding-top: 3%;">活動時間 ${announce.announceStartTime} ~ ${announce.announceEndTime}</p>
-            <pre style="text-align: left; padding-top: 2%;">${announce.announceContent}</pre>
+            <pre style="text-align: left; padding-top: 2%; white-space: pre-wrap; word-break: break-word; overflow-y: auto;">${announce.announceContent}</pre>
         `,
                 focusConfirm: false,
                 confirmButtonText: '關閉',
@@ -180,9 +205,11 @@ export default {
                                 class="preview-image" />
                             <img v-else src="/images/Logo.jpg" class="preview-image" />
                             <div class="announcetext">
-                                <h3>{{ announce.announceTitle }}</h3>
-                                <span>活動時間{{ announce.announceStartTime }}~</span>
-                                <span>{{ announce.announceEndTime }}</span>
+                                <h3
+                                    style="text-overflow: ellipsis; overflow: hidden; white-space: nowrap; margin-bottom: 2%;">
+                                    {{ announce.announceTitle }}</h3>
+                                <span style="letter-spacing: 0.2dvw;">{{ announce.announceStartTime }}~</span>
+                                <span style="letter-spacing: 0.2dvw;">{{ announce.announceEndTime }}</span>
                             </div>
                         </div>
                     </div>
@@ -193,6 +220,10 @@ export default {
 </template>
 
 <style scoped lang="scss">
+* {
+    letter-spacing: 0.2dvw;
+}
+
 .big {
     width: 100%;
     height: 100dvh;
@@ -212,19 +243,20 @@ export default {
 
     .mainArea {
         width: 100%;
-        height: 90dvh;
+        height: 95dvh;
         display: flex;
         justify-content: start;
         overflow: hidden;
 
         .mainbox {
             width: 65%;
-            height: 90dvh;
+            height: 100%;
             background-color: #fff;
             border-radius: 10px;
-            margin-left: 1%;
+            margin-left: 2%;
             overflow-y: scroll;
             scrollbar-width: none;
+            border: 1px solid rgba($color: gray, $alpha: 0.6);
         }
 
         .calendar-container {
@@ -236,10 +268,10 @@ export default {
 }
 
 .announcebox {
-    width: 350px;
+    width: 400px;
     height: 100%;
-    margin-left: 15%;
-    border: 1px solid;
+    margin-left: 8%;
+    border: 1px solid rgba($color: gray, $alpha: 0.6);
     border-radius: 10px;
     display: flex;
     flex-direction: column;
@@ -248,8 +280,11 @@ export default {
 }
 
 .announcetitle {
-    margin-top: 2%;
+    width: 90%;
+    margin-top: 5%;
     margin-bottom: 2%;
+    padding-bottom: 2%;
+    border-bottom: 1px solid rgba($color: gray, $alpha: 0.8);
 }
 
 .announcebox-content {
@@ -263,15 +298,17 @@ export default {
 }
 
 .announcement-item {
-    width: 300px;
+    width: 290px;
     height: 300px;
     margin-top: 2%;
     margin-bottom: 2%;
     cursor: pointer;
+    border: 1px solid rgba($color: gray, $alpha: 0.8);
+    border-radius: 10px;
 }
 
 .preview-image {
-    width: 300px;
+    width: 288px;
     height: 200px;
     object-fit: fill;
     border-top-right-radius: 10px;
@@ -281,12 +318,10 @@ export default {
 .announcetext {
     height: 70px;
     padding-left: 5%;
+    padding-right: 5%;
     padding-top: 4%;
-    margin-top: -2%;
-    border: 1px solid black;
-    border-top: none;
-    border-bottom-right-radius: 10px;
-    border-bottom-left-radius: 10px;
+    margin-bottom: 2%;
+    border-top: 1px solid rgba($color: gray, $alpha: 0.8);
 }
 
 pre {
@@ -347,6 +382,12 @@ th {
 
 }
 
+.fc-event-title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
 
 
 .fc .fc-button-group>.fc-button {
@@ -376,5 +417,7 @@ th {
     top: 100px;
     z-index: 50;
     background-color: #DDE1E6;
+    padding: 0.5%;
+    border-radius: 10px;
 }
 </style>
