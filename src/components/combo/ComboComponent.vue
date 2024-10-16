@@ -389,9 +389,6 @@ export default {
             return menuWithSelectedCategory
         },
 
-
-
-
     }
 }
 </script>

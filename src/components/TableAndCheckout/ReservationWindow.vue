@@ -5,7 +5,7 @@ import Swal from 'sweetalert2';
 export default {
     data() {
         return {
-            viewType: 'waitlist',
+            viewType: 'reservation',
             showReservationModal: false,
             newReservation: {
                 people: 2,  // 預設人數為 2
@@ -16,7 +16,19 @@ export default {
                 phone: '', 
                 email: ''
             },
+            availableTimes: [],  // 可用的時間段
         };
+    },
+
+    mounted() {
+        // 頁面載入時自動調用 API，載入當前日期和人數的可用時間段
+        this.fetchAvailableTimes();
+    },
+
+    watch: {
+        // 當人數或日期變動時，自動調用 API
+        'newReservation.people': 'fetchAvailableTimes',
+        'newReservation.date': 'fetchAvailableTimes'
     },
 
     methods: {
@@ -146,6 +158,61 @@ export default {
         </button>
     </div>
     
+    <!-- 訂位顯示區域 -->
+    <div v-if="viewType === 'reservation'" class="reservations">
+        <!-- 注意事項與搜尋欄 -->
+        <div class="reminderAndSearchArea">
+            <p class="reminderText">時間為訂位時間</p>
+            <button class="phoneSearch" @click="toggleSearch" v-if="!isSearching">
+                <i class="fa-solid fa-magnifying-glass"></i>
+            </button>
+            <input v-if="isSearching" type="search" v-model="searchNumber" placeholder="請輸入電話號碼 (末三碼)" 
+                @input="searchReservations" @blur="handleBlur" class="searchInput" ref="searchInput"/>
+        </div>
+        
+        <div v-for="reservation in filteredReservations" :key="reservation.id" class="reservationItem">
+            <!-- 顧客名字 -->
+            <div class="customerName">{{ reservation.name }}</div>
+    
+                <!-- 顧客手機與訂位人數 -->
+                <div class="customerPhoneAndParty">
+                    <div class="customerPhone">
+                        <i class="fa-solid fa-phone"></i>
+                        {{ reservation.phone }}
+                    </div>
+                    <div class="customerPartySize">
+                        <i class="fa-solid fa-user-group"></i>
+                        {{ reservation.partySize }}位
+                    </div>
+                </div>
+    
+            <!-- 桌號與訂位時間 -->
+            <div class="tableNumberAndTime">
+                <div class="tableNumbers">{{ reservation.tables.join(', ') }}</div> <!-- 顯示所有桌號 -->
+                <div class="reservationTime">{{ reservation.time }}</div>
+            </div>
+    
+            <!-- 報到與取消 -->
+            <div class="reservationActions">
+                <div class="checkinArea">
+                    <input type="checkbox" id="checkin_{{ reservation.id }}" name="checkin" @click="confirmCheckIn(reservation.tables[0])" />
+                    <label for="checkin_{{ reservation.id }}">報到</label>
+                </div>
+                <div class="cancelArea">
+                    <!-- 當取消勾選時調用 confirmCancellation 方法 -->
+                    <input type="checkbox" id="cancel_{{ reservation.id }}" name="cancel" @click="confirmCancellation(reservation.id)" />
+                    <label for="cancel_{{ reservation.id }}">取消</label>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 開啟訂位 model 視窗 button -->
+    <button v-if="viewType === 'reservation'" class="newReservation" @click="showReservationModal = true">
+        <i class="fa-solid fa-plus"></i>
+        新增訂位
+    </button>
+    
     <!-- 現場候位顯示區域 -->
     <div v-if="viewType === 'waitlist'" class="waitlist">
         <!-- 注意事項與搜尋欄 -->
@@ -203,8 +270,8 @@ export default {
     </button>
 </div>
 
-<!-- 新增候位 Modal -->
-<div v-if="showWaitlistModal" class="waitlistModal" @click="closeWaitlistModal">
+<!-- 新增訂位 Modal -->
+<div v-if="showReservationModal" class="reservationModal" @click="closeReservationModal">
     <div class="modalContent" @click.stop>
         <!-- 訂位區域 -->
         <div class="reserveInfoArea">
@@ -214,7 +281,7 @@ export default {
                 <!-- 人數選擇 -->
                 <div class="partySizeArea">
                     <label for="partySize">人數</label>
-                    <select v-model="newReservation.partySize">
+                    <select v-model="newReservation.people">
                         <option disabled value="">選擇人數</option>
                         <option v-for="n in 20" :key="n" :value="n">{{ n }}</option>
                     </select>
@@ -225,26 +292,30 @@ export default {
                         <label for="date">日期</label>
                         <input type="date" v-model="newReservation.date" />
                     </div>
-                </div>
+            </div>
     
     
-                <!-- 時段選擇 -->
-                <div class="timeSlotsArea">
-                    <label for="time">時段</label>
-                    <div class="timeButtonArea">
-                        <button v-for="time in availableTimes" :key="time.startTime"
-                            :class="{ selected: newReservation.time === time.startTime }"
-                            @click="newReservation.time = time.startTime">
-                            {{ time.startTime }}
-                        </button>
-                    </div>
+            <!-- 時段選擇 -->
+            <div class="timeSlotsArea">
+                <label for="time">時段</label>
+                <div class="timeButtonArea">
+                    <!-- 根據 available 狀態來顯示可用的時段 -->
+                    <button 
+                        v-for="time in availableTimes" 
+                        :key="time.startTime" 
+                        :class="{ selected: newReservation.time === time.startTime, disabled: !time.available }" 
+                        @click="newReservation.time = time.startTime" 
+                        :disabled="!time.available">
+                        {{ time.startTime }}
+                    </button>
                 </div>
+            </div>
         </div>
     
         <!-- 聯絡資料 -->
         <div class="contactInfoArea">
             <h3 class="contactInfoTitle">聯絡資料</h3>
-
+    
             <div class="nameAndTitleArea">
                 <!-- 訂位人姓名 -->
                 <div class="nameArea">
@@ -264,14 +335,14 @@ export default {
                     </label>
                 </div>
             </div>
-
-
+    
+    
             <!-- 電話號碼 -->
             <div class="phoneArea">
                 <label for="phone">電話號碼</label>
                 <input type="text" v-model="newReservation.phone" />
             </div>
-
+    
             <!-- 電子郵件 -->
             <div class="mailArea">
                 <label for="email">電子郵件Email</label>

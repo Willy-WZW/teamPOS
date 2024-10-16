@@ -168,18 +168,23 @@ export default {
         // 確認刪除單點訂單
         confirmDeleteOrder(index, type) {
             Swal.fire({
-                title: "確定要刪除這筆訂單嗎？",
-                text: "刪除後無法復原！",
+                title: "確定要刪除餐點嗎？",
                 icon: "warning",
                 showCancelButton: true,
-                confirmButtonColor: "#d33",
+                confirmButtonColor: "#d33 ",
                 cancelButtonColor: "#3085d6",
                 confirmButtonText: "是的，刪除！",
                 cancelButtonText: "取消",
             }).then((result) => {
                 if (result.isConfirmed) {
                     this.deleteOrder(index, type);
-                    Swal.fire("已刪除！", "該筆訂單已成功刪除。", "success");
+                    Swal.fire({
+                        title: "已刪除！",
+                        text: "餐點已成功刪除。",
+                        icon: "success",
+                        timer: 1500, // 設定自動關閉時間
+                        showConfirmButton: false, // 不顯示確認按鈕
+                    });
                 }
             });
         },
@@ -202,8 +207,7 @@ export default {
         // 確認刪除套餐訂單
         confirmDeleteComboOrder(orderMealId) {
             Swal.fire({
-                title: "確定要刪除這筆套餐訂單嗎？",
-                text: "刪除後無法復原！",
+                title: "確定要刪除餐點嗎？",
                 icon: "warning",
                 showCancelButton: true,
                 confirmButtonColor: "#d33",
@@ -213,7 +217,13 @@ export default {
             }).then((result) => {
                 if (result.isConfirmed) {
                     this.deleteComboOrder(orderMealId);
-                    Swal.fire("已刪除！", "該筆套餐訂單已成功刪除。", "success");
+                    Swal.fire({
+                        title: "已刪除！",
+                        text: "餐點已成功刪除。",
+                        icon: "success",
+                        timer: 1500, // 設定自動關閉時間
+                        showConfirmButton: false, // 不顯示確認按鈕
+                    });
                 }
             });
         },
@@ -223,7 +233,8 @@ export default {
                     icon: "error",
                     title: "錯誤",
                     text: "請選擇桌號！",
-                    confirmButtonText: "確認",
+                    showConfirmButton: false, // 隱藏確認按鈕
+                    timer: 1500, // 1.5 秒後自動關閉
                 });
                 return; // 中止送出訂單
             }
@@ -235,7 +246,8 @@ export default {
                     icon: "error",
                     title: "錯誤",
                     text: "請至少選擇一個餐點！",
-                    confirmButtonText: "確認",
+                    showConfirmButton: false, // 隱藏確認按鈕
+                    timer: 1500, // 1.5 秒後自動關閉
                 });
                 return; // 中止送出訂單
             }
@@ -286,7 +298,8 @@ export default {
                         icon: "success",
                         title: "成功",
                         text: "訂單已送出！",
-                        confirmButtonText: "確認",
+                        showConfirmButton: false, // 隱藏確認按鈕
+                        timer: 1500, // 1.5 秒後自動關閉
                     });
 
                     this.resetOrder();
@@ -350,7 +363,7 @@ export default {
 
                 <!-- 餐點明細：顯示從CustomPopup傳來的資料 -->
                 <div class="orderSummary">
-                    <h3>訂單明細</h3>
+                    <h3>餐點明細</h3>
 
                     <!-- 單點訂單 -->
                     <div v-if="singleList.length > 0">
@@ -453,8 +466,6 @@ export default {
             border-radius: 10px;
             background-color: white;
         }
-
-
     }
 }
 

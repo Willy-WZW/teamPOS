@@ -62,11 +62,17 @@ export default {
     mounted() {
         if (this.isCombo) {
             // 預設選擇每個分類的第一個菜品
-            this.comboDishes.selectedDishes = this.groupedComboDishes.map((group) => ({
-                ...group.dishes[0], // 選擇第一個菜品
-                workstationId: this.getWorkstationId(group.categoryId), // 取得對應的 workstationId
-                selectedOptions: {}, // 初始化選項
-            }));
+            this.comboDishes.selectedDishes = this.groupedComboDishes.map((group) => {
+                // ...group.dishes[0], // 選擇第一個菜品
+                // workstationId: this.getWorkstationId(group.categoryId), // 取得對應的 workstationId
+                // selectedOptions: {}, // 初始化選項
+                const firstDish = group.dishes[0]; // 預設選擇第一個菜品
+                return {
+                    ...firstDish,
+                    selectedOptions: {}, // 初始化選項
+                    workstationId: this.getWorkstationId(group.categoryId), // 根據 categoryId 獲取 workstationId
+                };
+            });
             this.totalPrice = this.comboDishes.comboBasicPrice;
         } else {
             this.singleDishes = this.item;
@@ -137,8 +143,8 @@ export default {
         },
 
         // 套餐
-        selectComboDish(categoryName, dish) {
-            const existingDishIndex = this.comboDishes.selectedDishes.findIndex((d) => d.categoryId === dish.categoryId);
+        selectComboDish(dish) {
+            const existingDishIndex = this.comboDishes.selectedDishes.findIndex((d) => d.name === dish.name && d.categoryId === dish.categoryId);
 
             if (existingDishIndex !== -1) {
                 this.comboDishes.selectedDishes[existingDishIndex] = {
@@ -151,11 +157,10 @@ export default {
                     selectedOptions: {},
                 });
             }
-
             this.calculateTotal();
         },
         toggleComboOption(categoryName, optionTitle, optionContent, extraPrice, optionType) {
-            // 根據 categoryName 精準找到對應的菜品
+            // 根據 categoryName 找到對應的菜品
             const dish = this.comboDishes.selectedDishes.find((d) => d.categoryId === this.getCategoryIdByName(categoryName));
 
             if (!dish) return; // 若找不到菜品則直接返回
@@ -178,6 +183,33 @@ export default {
             dish.selectedOptions[optionTitle] = options;
             this.calculateTotal();
         },
+        // selectComboDish(categoryId, dish, index) {
+        //     // 確保每個菜品都有自己的索引位置
+        //     this.comboDishes.selectedDishes[index] = {
+        //         ...dish,
+        //         selectedOptions: {},
+        //     };
+        //     this.calculateTotal();
+        // },
+        // toggleComboOption(index, optionTitle, optionContent, extraPrice, optionType) {
+        //     // 根據菜品的索引處理選項邏輯
+        //     const dish = this.comboDishes.selectedDishes[index];
+        //     if (!dish) return;
+
+        //     let options = dish.selectedOptions[optionTitle] || [];
+        //     if (optionType === "radio") {
+        //         options = [{ content: optionContent, price: extraPrice }];
+        //     } else {
+        //         const optIndex = options.findIndex((opt) => opt.content === optionContent);
+        //         if (optIndex !== -1) {
+        //             options.splice(optIndex, 1);
+        //         } else {
+        //             options.push({ content: optionContent, price: extraPrice });
+        //         }
+        //     }
+        //     dish.selectedOptions[optionTitle] = options;
+        //     this.calculateTotal();
+        // },
         getOptionsForDish(dish) {
             return this.optionsList.filter((option) => option.categoryId === dish.categoryId);
         },
@@ -248,7 +280,7 @@ export default {
             this.closePopup();
         },
 
-        // 共用：套餐計算待修正
+        // 共用
         calculateTotal() {
             let total = 0;
 
@@ -316,7 +348,7 @@ export default {
 
         <div class="totalPriceBlock">合計 &nbsp;&nbsp;&nbsp; $ {{ totalPrice }}</div>
 
-        <button @click="assembleSingleOrder">加入訂單</button>
+        <button @click="assembleSingleOrder" class="submit">加入訂單</button>
     </div>
 
     <!-- 套餐 -->
@@ -338,19 +370,22 @@ export default {
         <!-- 套餐選擇區 -->
         <div class="comboDetail">
             <div v-for="(group, index) in groupedComboDishes" :key="index" class="comboGroup">
-                <h4># {{ group.categoryName }}</h4>
+                <h4>{{ group.categoryName }}</h4>
 
                 <!-- 菜品選擇區 -->
                 <div class="dishRadioGroup">
                     <div v-for="dish in group.dishes" :key="dish.name">
-                        <label>
-                            <input
-                                type="radio"
-                                :name="group.categoryName"
-                                :value="dish"
-                                :checked="comboDishes.selectedDishes.some((d) => d.name === dish.name)"
-                                @change="selectComboDish(group.categoryName, dish)" />
-                            {{ dish.name }} + ${{ dish.priceDifference }}
+                        <label class="dishLabel">
+                            <span class="dishInputName">
+                                <input
+                                    type="radio"
+                                    :name="`${group.categoryName}-${group.index}`"
+                                    :value="dish"
+                                    :checked="comboDishes.selectedDishes.some((d) => d.name === dish.name)"
+                                    @change="selectComboDish(group.categoryName, dish)" />
+                                {{ dish.name }}
+                            </span>
+                            <span class="dishPrice">${{ dish.priceDifference }}</span>
                         </label>
                     </div>
                 </div>
@@ -360,25 +395,48 @@ export default {
                     <div v-for="option in getOptionsForDish(comboDishes.selectedDishes.find((d) => d.categoryId === group.categoryId))" :key="option.optionTitle" class="customOption">
                         <h5>{{ option.optionTitle }}</h5>
                         <div v-for="item in option.optionItems" :key="item.optionContent">
-                            <label>
-                                <input
-                                    :type="option.optionType"
-                                    :name="`${group.categoryName}-${option.optionTitle}`"
-                                    @change="toggleComboOption(group.categoryName, option.optionTitle, item.optionContent, item.extraPrice, option.optionType)" />
-                                {{ item.optionContent }} + ${{ item.extraPrice }}
+                            <label class="optionLabel">
+                                <span class="optionInputName">
+                                    <input
+                                        :type="option.optionType"
+                                        :name="`${group.categoryName}-${option.optionTitle}`"
+                                        @change="toggleComboOption(group.categoryName, option.optionTitle, item.optionContent, item.extraPrice, option.optionType)" />
+                                    {{ item.optionContent }}
+                                </span>
+                                <span class="optionPrice">+${{ item.extraPrice }}</span>
                             </label>
                         </div>
                     </div>
-                </div>
+                </div> 
+
+                <!-- <div v-for="dish in group.dishes" :key="dish.name" class="dishRadioGroup">
+                    <label class="dishLabel">
+                        <input
+                            type="radio"
+                            :name="`dish-${group.categoryId}-${index}`"
+                            :value="dish"
+                            @change="selectComboDish(group.categoryId, dish, index)"
+                            :checked="comboDishes.selectedDishes[index].name === dish.name" />
+                        {{ dish.name }}
+                    </label>
+                </div> -->
+
+                <!-- 客製化選項區
+                <div v-if="comboDishes.selectedDishes[index]">
+                    <div v-for="option in getOptionsForDish(comboDishes.selectedDishes[index])" :key="option.optionTitle">
+                        <label v-for="item in option.optionItems" :key="item.optionContent">
+                            <input :type="option.optionType" @change="toggleComboOption(index, option.optionTitle, item.optionContent, item.extraPrice, option.optionType)" />
+                            {{ item.optionContent }} (+${{ item.extraPrice }})
+                        </label>
+                    </div>
+                </div> -->
             </div>
         </div>
 
         <!-- 合計金額區塊  -->
-        <div class="totalPriceBlock">
-            <h3>合計 ${{ totalPrice }}</h3>
-        </div>
+        <div class="totalPriceBlock">合計 &nbsp;&nbsp;&nbsp; $ {{ totalPrice }}</div>
 
-        <button @click="assembleComboOrder">加入訂單</button>
+        <button @click="assembleComboOrder" class="submit">加入訂單</button>
     </div>
 
     <!-- <pre>{{ singleDishes }}</pre>
@@ -400,8 +458,6 @@ export default {
     padding: 20px;
     border: 1px solid #ccc;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    max-width: 50dvw;
-    width: 100%;
     z-index: 1000; /* 保證在 overlay 之上 */
     transition: all 0.3s ease-in-out; /* 平滑過渡效果 */
 }
@@ -428,7 +484,27 @@ export default {
     }
 }
 
+.totalPriceBlock {
+    padding: 2%;
+    text-align: right;
+    font-weight: 500;
+    font-size: 1.2rem;
+}
+
+button.submit {
+    width: 100%;
+    padding: 1.5%;
+    color: white;
+    font-size: 1rem;
+    background-color: rgba(black, 0.8);
+    border: none;
+    border-radius: 10px;
+}
+
 .popup {
+    min-width: 25dvw;
+    max-width: 50dvw;
+
     .mealNamePrice {
         padding: 3%;
         display: flex;
@@ -465,28 +541,13 @@ export default {
             }
         }
     }
-
-    .totalPriceBlock {
-        padding: 2%;
-        text-align: right;
-        font-weight: 500;
-        font-size: 1.2rem;
-    }
-
-    button {
-        width: 100%;
-        padding: 2%;
-        color: white;
-        font-size: 1rem;
-        background-color: rgba(black, 0.8);
-        border: none;
-        border-radius: 10px;
-    }
 }
 
 .popup2 {
+    min-width: 50dvw;
+    max-width: 60dvw;
     .comboNamePrice {
-        padding: 3%;
+        padding: 2%;
         display: flex;
         justify-content: space-between;
         background-color: rgba(grey, 0.2);
@@ -496,25 +557,46 @@ export default {
 
     .comboDetail {
         display: flex;
-        gap: 20px; 
+        gap: 20px;
         justify-content: space-around;
         border-bottom: 1px solid rgba(grey, 0.8);
 
         .comboGroup {
             flex: 1 1 30%; /* 每個 comboGroup 占用 30% 寬度並自動調整 */
             min-width: 200px;
-            border-radius: 10px;
+            padding-bottom: 2%;
 
             h4 {
+                color: white;
+                width: 40%;
+                text-align: center;
                 font-size: 1.2rem;
                 margin-bottom: 10px;
+                background-color: rgba(grey, 0.8);
+                padding: 5px;
+                border-radius: 20px;
             }
 
             .dishRadioGroup {
-                label {
+                margin-bottom: 4%;
+
+                .dishLabel {
                     display: flex;
-                    justify-content: space-start;
-                    margin-bottom: 10px;
+                    justify-content: space-between;
+                    align-items: center;
+                    width: 100%;
+                    margin-bottom: 5px;
+                }
+
+                .dishInputName {
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                }
+
+                .dishPrice {
+                    flex-shrink: 0; /* 保證價格不被壓縮 */
+                    white-space: nowrap; /* 價格不換行 */
                 }
             }
 
@@ -522,21 +604,38 @@ export default {
                 padding: 3% 5%;
                 border: 1px solid rgba(grey, 0.8);
                 border-radius: 10px;
-                margin-top: 10px;
 
                 .customOption {
                     border-bottom: 1px solid rgba(grey, 0.8);
-                    margin-bottom: 2%;
+                    margin-bottom: 3%;
+
+                    &:last-child {
+                        border-bottom: none; /* 最後一個選項不顯示 border-bottom */
+                    }
 
                     h5 {
                         margin-bottom: 5px;
                         font-size: 1rem;
                     }
 
-                    label {
+                    .optionLabel {
                         display: flex;
-                        justify-content: space-start;
-                        margin-bottom: 2%;
+                        justify-content: space-between;
+                        align-items: center;
+                        width: 100%;
+                        margin-bottom: 1%;
+
+                        .optionInputName {
+                            display: flex;
+                            align-items: center;
+                            gap: 10px;
+                            flex-grow: 1;
+                        }
+
+                        .optionPrice {
+                            flex-shrink: 0;
+                            white-space: nowrap;
+                        }
                     }
                 }
             }
