@@ -171,17 +171,38 @@ export default {
                 try {
                     const response = await fetch(`http://localhost:8080/api/authorization/delete/${permissionId}`, {
                         method: 'DELETE',
-                    });
+                    }).then(response => {
+                        if (response.ok) {
+                            return response.json();
+                        } else {
+                            throw new Error('刪除權限時發生錯誤');
+                        }
+                    })
+                        .then(data => {
+                            this.fetchPermissions();
 
-                    if (response.ok) {
-                        this.fetchPermissions();
-                        Swal.fire('刪除成功', '權限已被刪除', 'success');
-                    } else {
-                        Swal.fire('錯誤', '刪除權限時發生錯誤', 'error');
-                    }
+                            if (data.code == "200") {
+                                Swal.fire({
+                                    title: data.message,
+                                    icon: 'success',
+                                    confirmButtonText: '確定',
+                                });
+                                this.resetNewPermission();
+                            } else {
+                                Swal.fire({
+                                    title: data.message,
+                                    icon: 'error',
+                                    confirmButtonText: '確定',
+                                });
+                            }
+                        })
                 } catch (error) {
                     console.error('刪除權限時發生錯誤:', error);
-                    Swal.fire('錯誤', '刪除權限時發生錯誤', 'error');
+                    Swal.fire({
+                        title: '刪除權限時發生錯誤',
+                        icon: 'error',
+                        confirmButtonText: '確定',
+                    });
                 }
             }
         },
