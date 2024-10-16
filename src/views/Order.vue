@@ -299,6 +299,7 @@ export default {
             this.orderList = [];
             this.singleList = [];
             this.comboList = [];
+            this.newComboList = [];
             this.selectedTableNumber = null;
             console.log("訂單已重置");
         },
@@ -321,6 +322,11 @@ export default {
                     :combos="combosList"
                     @selectItem="handleItemSelect"
                     :currentCategory="categoriesList.find((cat) => cat.categoryId === activeCategoryId)?.category" />
+
+                <!-- Overlay 遮罩 -->
+                <div v-if="showPopup" class="overlay" @click="closePopup"></div>
+
+                <!-- 客製化彈跳視窗 -->
                 <CustomPopup v-if="showPopup" :item="selectedItem" :optionsList="optionsList" :categoriesList="categoriesList" @close="showPopup = false" @addToOrder="handleAddToOrder" />
             </div>
 
@@ -356,7 +362,7 @@ export default {
                             </div>
                             <div class="singleOptions">
                                 <p>{{ single.options }}</p>
-                                <p>${{ single.optionsPrice }}</p>
+                                <p>+ ${{ single.optionsPrice }}</p>
                             </div>
                             <div class="singleBottom">
                                 <!-- <button @click="editOrder(single, 'single')">編輯</button> -->
@@ -375,20 +381,20 @@ export default {
                                 <p>{{ combo.comboName }}</p>
                                 <p>${{ combo.comboBasicPrice }}</p>
                             </div>
-                            
+
                             <div class="comboDetail">
                                 <ul>
-                                    <li v-for="(meal, i) in combo.mealList" :key="i">{{ meal.mealName }} ({{ meal.options }}) + ${{ meal.optionsPriceTotal + meal.priceDifference }}</li>
+                                    <li v-for="(meal, i) in combo.mealList" :key="i">{{ meal.mealName }} ({{ meal.options }})</li>
+                                </ul>
+                                <ul>
+                                    <li v-for="(meal, i) in combo.mealList" :key="i">+ ${{ meal.optionsPriceTotal + meal.priceDifference }}</li>
                                 </ul>
                             </div>
-                            
+
                             <div class="comboBottom">
-                                
+                                <button @click="confirmDeleteComboOrder(combo.orderMealId)"><i class="bi bi-trash3-fill"></i></button>
                                 <p>${{ combo.selectedComboPrice }}</p>
                             </div>
-
-
-                            <button @click="confirmDeleteComboOrder(combo.orderMealId)">刪除套餐</button>
                         </div>
                     </div>
                 </div>
@@ -404,9 +410,6 @@ export default {
 </template>
 
 <style scoped lang="scss">
-* {
-    letter-spacing: 0.2dvw;
-}
 .big {
     width: 100%;
     height: 100dvh;
@@ -425,6 +428,7 @@ export default {
     }
 
     .mainArea {
+        letter-spacing: 0.2dvw;
         width: 100%;
         height: 100%;
         display: flex;
@@ -447,7 +451,19 @@ export default {
             border-radius: 10px;
             background-color: white;
         }
+
+
     }
+}
+
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5); /* 黑色半透明 */
+    z-index: 999; /* 保證在最上層 */
 }
 
 h2 {
@@ -522,6 +538,58 @@ h3 {
     }
 
     .singleBottom {
+        padding-top: 2%;
+        display: flex;
+        justify-content: space-between;
+        p {
+            font-weight: 500;
+        }
+        button {
+            background-color: rgba(grey, 0.2);
+            padding: 0.8% 1.8%;
+            border-radius: 5px;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+
+            i {
+                color: black;
+            }
+        }
+    }
+}
+
+.comboBlock {
+    border: 1px solid #ccc;
+    padding: 10px;
+    border-radius: 5px;
+    position: relative;
+    margin-bottom: 10px;
+
+    .comboHeader {
+        display: flex;
+        justify-content: space-between;
+        p {
+            font-weight: 500;
+        }
+    }
+
+    .comboDetail {
+        display: flex;
+        justify-content: space-between;
+        padding: 3% 0;
+        border-bottom: 1px dashed rgba(grey, 0.8);
+
+        ul {
+            list-style-type: none;
+        }
+
+        li {
+            margin-bottom: 1% 0;
+        }
+    }
+
+    .comboBottom {
         padding-top: 2%;
         display: flex;
         justify-content: space-between;
