@@ -72,6 +72,9 @@ export default {
 
     },
     methods: {
+        isDisabled(name) {
+            return this.disabledNames.includes(name);
+        },
         createMeal() {
             this.editeMode = true
             this.createMode = true
@@ -124,7 +127,6 @@ export default {
 
 
         },
-
         cancelIcon() {
             this.editeMode = false
             this.createMode = false
@@ -135,7 +137,6 @@ export default {
                 this.comboContentInnerQuantity = 0,
                 this.discountAmount = 0
         },
-
         editeMeal(comboItem, comboItemIndex) {
             this.editeMode = true
             this.comboItemIndex = comboItemIndex
@@ -253,8 +254,6 @@ export default {
             // this.discountAmount = 0
 
         },
-
-
         trashMeal(comboName) {
             Swal.fire({
                 title: '確定要繼續嗎？',
@@ -295,7 +294,6 @@ export default {
 
 
         },
-
         addComboContentInner() {
             this.comboDetail.push({ "categoryId": 1, "dishes": [] })
             this.selectedMeal.push('')
@@ -343,20 +341,22 @@ export default {
 
             const disabledName = this.disabledNames.some(disabledName => disabledName == `select${comboItemIndex}`);
             if (!disabledName){
-                this.disabledNames.push(`select${comboItemIndex}`)
+                this.disabledNames.push(`select${comboItemIndex}`);
             }
         },
         deleteMeal(comboItemIndex, meal) {
             // 獲取指定容器
             const subContainer = this.comboDetail[comboItemIndex];
-
             // 使用filter刪除指定的餐點
             this.comboDetail[comboItemIndex].dishes = subContainer.dishes.filter(subContainerMeal => subContainerMeal != meal);
+            if (this.comboDetail[comboItemIndex].dishes.length == 0){
+                this.disabledNames = this.disabledNames.filter(name => name !== `select${comboItemIndex}`);
+            }
+         
         },
         deleteSelection(comboItemIndex) {
             this.comboDetail = this.comboDetail.filter((_, index) => index != comboItemIndex);
         },
-
         searchMealPrice(meal) {
             const mealItem = this.menus.find(menu => menu.mealName == meal)
             return mealItem ? mealItem.price : 0; // 或者你可以返回其他值，例如 '未找到' 等
@@ -415,7 +415,7 @@ export default {
                 <div class="comboContentInner" v-for="(comboItem, comboItemIndex) in comboDetail">
                     <!-- <h1>{{ this.comboDetail }}</h1> -->
                     <div class="selectionContainer">
-                        <select :name="`select${comboItemIndex}`" v-model="selectedCategory[comboItemIndex]">
+                        <select :disabled="isDisabled(`select${comboItemIndex}`)" :name="`select${comboItemIndex}`" v-model="selectedCategory[comboItemIndex]">
                             <option value="" disabled selected>選擇餐點分類</option>
                             <option v-for="(category, index) in categories" :key="index" :value="category.category">{{
                                 category.category }}</option>
