@@ -1,14 +1,21 @@
 <script>
 import LeftBar from "@/components/LeftBar.vue";
 import Table from "../components/TableAndCheckout/Table.vue";
-import ReservationWindow from "../components/TableAndCheckout/ReservationWindow.vue";
+import Reservation from "../components/TableAndCheckout/Reservation.vue";
 
 
 export default {
+    data() {
+        return {
+            viewType: 'reservation',
+
+        };
+    },
+
     components: {
         LeftBar,
         Table,
-        ReservationWindow,
+        Reservation,
     },
 };
 </script>
@@ -23,7 +30,7 @@ export default {
         <!-- 桌位、訂位顯示區域 -->
         <div class="tableReservationArea">
             <Table />
-            <ReservationWindow />
+            <Reservation />
         </div>
     </div>
 </template>
