@@ -1012,9 +1012,9 @@ export default{
     <!-- <h1>{{ this.allDateList[this.allDateList.length - 1].toISOString().split('T')[0] }}</h1>  -->
     <!-- <h1>{{ this.startDate }}</h1>  -->
     <!-- <h1>{{ this.endDate  }}</h1>  -->
-    <h1>{{ this.analysisMealVoList }}</h1>
-    <h1>{{ this.optionLine.series[0].data }}</h1>
-    <h1>{{ this.optionLine.xAxis.data }}</h1>
+    <!-- <h1>{{ this.analysisMealVoList }}</h1> -->
+    <!-- <h1>{{ this.optionLine.series[0].data }}</h1> -->
+    <!-- <h1>{{ this.optionLine.xAxis.data }}</h1> -->
     <div class="innerContainer" v-if="currentTopSelect == '日常統計'">
         <div class="dashboardLeft">
             <div class="navHead">
