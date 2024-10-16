@@ -341,6 +341,10 @@ export default {
                 this.comboDetail[comboItemIndex].categoryId = category.categoryId
             }
 
+            const disabledName = this.disabledNames.some(disabledName => disabledName == `select${comboItemIndex}`);
+            if (!disabledName){
+                this.disabledNames.push(`select${comboItemIndex}`)
+            }
         },
         deleteMeal(comboItemIndex, meal) {
             // 獲取指定容器
@@ -405,11 +409,11 @@ export default {
             <!-- <h1>{{ comboDetail }}</h1> -->
             <!-- <h1>{{ selectedCategory }}</h1> -->
             <!-- <h1>{{ selectedMeal }}</h1> -->
-            <h1>{{ comboDetail }}</h1>
+            <!-- <h1>{{ comboDetail }}</h1> -->
             <!-- <h1>{{ comboItemsList }}</h1> -->
             <div class="comboContent">
                 <div class="comboContentInner" v-for="(comboItem, comboItemIndex) in comboDetail">
-                    <h1>{{ this.comboDetail }}</h1>
+                    <!-- <h1>{{ this.comboDetail }}</h1> -->
                     <div class="selectionContainer">
                         <select :name="`select${comboItemIndex}`" v-model="selectedCategory[comboItemIndex]">
                             <option value="" disabled selected>選擇餐點分類</option>
@@ -425,13 +429,11 @@ export default {
                         </select>
                         <i class="fa-solid fa-circle-xmark" @click="deleteSelection(comboItemIndex)"></i>
                     </div>
-
                     <div class="comboDetail" v-for="(meal, mealIndex) in comboDetail[comboItemIndex].dishes">
                         <p>• {{ meal }}</p>
                         <p>$ {{ searchMealPrice(meal) }}</p>
                         <i class="fa-solid fa-circle-xmark" @click="deleteMeal(comboItemIndex, meal)"></i>
                     </div>
-
                 </div>
             </div>
             <div class="plusIcon" @click="addComboContentInner">
@@ -471,7 +473,7 @@ export default {
                     <!-- <div class="saveBtn">儲存</div> -->
                 </div>
             </div>
-            <h1>{{this.categories}}</h1>
+            <!-- <h1>{{this.categories}}</h1> -->
             <!-- <h1>{{ mealContainer }}</h1> -->
             <!-- <h1>{{ discountAmount }}</h1> -->
             <!-- <h1 v-if="mealContainer[0].length>0 && mealContainer[1].length>0">{{ totalPrice() }}</h1> -->
@@ -481,7 +483,7 @@ export default {
                 <!-- <h1>{{ comboItemsList[0] }}</h1> -->
                 <div class="createCombo" @click="createMeal">+&nbsp&nbsp新增套餐</div>
                 <div class="comboItem" v-for="(comboItem, comboItemIndex) in comboItemsList">
-                    <h1>{{ comboItem }}</h1>
+                    <!-- <h1>{{ comboItem }}</h1> -->
 
                     <div class="comboName">
                         <!-- <input type="text" placeholder="套餐名稱"> -->
