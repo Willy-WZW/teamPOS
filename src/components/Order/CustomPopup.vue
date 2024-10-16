@@ -336,36 +336,38 @@ export default {
         </div>
 
         <!-- 套餐選擇區 -->
-        <div v-for="(group, index) in groupedComboDishes" :key="index" style="border: 1px solid black;">
-            <h4># {{ group.categoryName }}</h4>
+        <div class="comboDetail">
+            <div v-for="(group, index) in groupedComboDishes" :key="index" class="comboGroup">
+                <h4># {{ group.categoryName }}</h4>
 
-            <!-- 菜品選擇區 -->
-            <div class="dishRadioGroup">
-                <div v-for="dish in group.dishes" :key="dish.name">
-                    <label>
-                        <input
-                            type="radio"
-                            :name="group.categoryName"
-                            :value="dish"
-                            :checked="comboDishes.selectedDishes.some((d) => d.name === dish.name)"
-                            @change="selectComboDish(group.categoryName, dish)" />
-                        {{ dish.name }} + ${{ dish.priceDifference }}
-                    </label>
-                </div>
-            </div>
-
-            <!-- 該分類下的客製化區塊 -->
-            <div v-if="comboDishes.selectedDishes.some((d) => d.categoryId === group.categoryId)">
-                <div v-for="option in getOptionsForDish(comboDishes.selectedDishes.find((d) => d.categoryId === group.categoryId))" :key="option.optionTitle">
-                    <h5>{{ option.optionTitle }}</h5>
-                    <div v-for="item in option.optionItems" :key="item.optionContent">
+                <!-- 菜品選擇區 -->
+                <div class="dishRadioGroup">
+                    <div v-for="dish in group.dishes" :key="dish.name">
                         <label>
                             <input
-                                :type="option.optionType"
-                                :name="`${group.categoryName}-${option.optionTitle}`"
-                                @change="toggleComboOption(group.categoryName, option.optionTitle, item.optionContent, item.extraPrice, option.optionType)" />
-                            {{ item.optionContent }} (+${{ item.extraPrice }})
+                                type="radio"
+                                :name="group.categoryName"
+                                :value="dish"
+                                :checked="comboDishes.selectedDishes.some((d) => d.name === dish.name)"
+                                @change="selectComboDish(group.categoryName, dish)" />
+                            {{ dish.name }} + ${{ dish.priceDifference }}
                         </label>
+                    </div>
+                </div>
+
+                <!-- 該分類下的客製化區塊 -->
+                <div v-if="comboDishes.selectedDishes.some((d) => d.categoryId === group.categoryId)" class="customOptions">
+                    <div v-for="option in getOptionsForDish(comboDishes.selectedDishes.find((d) => d.categoryId === group.categoryId))" :key="option.optionTitle" class="customOption">
+                        <h5>{{ option.optionTitle }}</h5>
+                        <div v-for="item in option.optionItems" :key="item.optionContent">
+                            <label>
+                                <input
+                                    :type="option.optionType"
+                                    :name="`${group.categoryName}-${option.optionTitle}`"
+                                    @change="toggleComboOption(group.categoryName, option.optionTitle, item.optionContent, item.extraPrice, option.optionType)" />
+                                {{ item.optionContent }} + ${{ item.extraPrice }}
+                            </label>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -398,7 +400,7 @@ export default {
     padding: 20px;
     border: 1px solid #ccc;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    max-width: 400px;
+    max-width: 50dvw;
     width: 100%;
     z-index: 1000; /* 保證在 overlay 之上 */
     transition: all 0.3s ease-in-out; /* 平滑過渡效果 */
@@ -427,7 +429,6 @@ export default {
 }
 
 .popup {
-
     .mealNamePrice {
         padding: 3%;
         display: flex;
@@ -451,7 +452,7 @@ export default {
 
             .optionLabel {
                 display: flex;
-                align-items: center; 
+                align-items: center;
                 gap: 10px; /* 控制 input 和文字之間的間距 */
             }
 
@@ -484,7 +485,7 @@ export default {
 }
 
 .popup2 {
-    .comboNamePrice{
+    .comboNamePrice {
         padding: 3%;
         display: flex;
         justify-content: space-between;
@@ -492,11 +493,54 @@ export default {
         margin: 2% 0;
         border-radius: 5px;
     }
-}
 
-.comboItemOptions {
-    display: flex;
-    border: 1px solid gray;
-    padding: 0 10px;
+    .comboDetail {
+        display: flex;
+        gap: 20px; 
+        justify-content: space-around;
+        border-bottom: 1px solid rgba(grey, 0.8);
+
+        .comboGroup {
+            flex: 1 1 30%; /* 每個 comboGroup 占用 30% 寬度並自動調整 */
+            min-width: 200px;
+            border-radius: 10px;
+
+            h4 {
+                font-size: 1.2rem;
+                margin-bottom: 10px;
+            }
+
+            .dishRadioGroup {
+                label {
+                    display: flex;
+                    justify-content: space-start;
+                    margin-bottom: 10px;
+                }
+            }
+
+            .customOptions {
+                padding: 3% 5%;
+                border: 1px solid rgba(grey, 0.8);
+                border-radius: 10px;
+                margin-top: 10px;
+
+                .customOption {
+                    border-bottom: 1px solid rgba(grey, 0.8);
+                    margin-bottom: 2%;
+
+                    h5 {
+                        margin-bottom: 5px;
+                        font-size: 1rem;
+                    }
+
+                    label {
+                        display: flex;
+                        justify-content: space-start;
+                        margin-bottom: 2%;
+                    }
+                }
+            }
+        }
+    }
 }
 </style>

@@ -1115,7 +1115,7 @@ export default {
             <div class="optionArea">
                 <!-- 已存在的菜單分類 -->
                 <div class="cOption" v-for="(category, cIndex) in categories" :key="cIndex"
-                    :style="{ transform: `translate(${39 + category.translateX}px)` }"
+                    :style="{ transform: `translate(${32 + category.translateX}px)` }"
                     @touchstart="startTouch($event, cIndex)" @touchmove="moveTouch($event, cIndex)"
                     @touchend="endTouch(cIndex)">
                     <div class="opContent" :class="{ cateSelc: category.category == this.selectedCategory }"
@@ -1348,6 +1348,7 @@ $subColor: #000000;
         width: 21.7%;
         height: 100%;
         border-radius: 10px;
+        border: 1px solid;
         display: flex;
         justify-content: start;
         align-items: center;
@@ -1403,7 +1404,7 @@ $subColor: #000000;
                     span {
                         font-weight: bold;
                         font-family: "Noto Sans TC", sans-serif;
-                        margin-left: 2.5%;
+                        margin-left: 3.5%;
                     }
 
                     .editInputCategory {
@@ -1544,6 +1545,7 @@ $subColor: #000000;
             // min-height: 457px; //71%
             height: 100%;
             border-radius: 10px;
+            border: 1px solid;
             display: flex;
             justify-content: start;
             align-items: center;
@@ -1849,6 +1851,7 @@ $subColor: #000000;
             min-height: 31%;
             margin-top: 1.5%;
             border-radius: 10px;
+            border: 1px solid;
             display: flex;
             justify-content: start;
             align-items: center;
