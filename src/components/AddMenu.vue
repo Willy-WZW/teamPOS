@@ -1115,7 +1115,7 @@ export default {
             <div class="optionArea">
                 <!-- 已存在的菜單分類 -->
                 <div class="cOption" v-for="(category, cIndex) in categories" :key="cIndex"
-                    :style="{ transform: `translate(${39 + category.translateX}px)` }"
+                    :style="{ transform: `translate(${32 + category.translateX}px)` }"
                     @touchstart="startTouch($event, cIndex)" @touchmove="moveTouch($event, cIndex)"
                     @touchend="endTouch(cIndex)">
                     <div class="opContent" :class="{ cateSelc: category.category == this.selectedCategory }"
@@ -1403,7 +1403,7 @@ $subColor: #000000;
                     span {
                         font-weight: bold;
                         font-family: "Noto Sans TC", sans-serif;
-                        margin-left: 2.5%;
+                        margin-left: 3.5%;
                     }
 
                     .editInputCategory {
