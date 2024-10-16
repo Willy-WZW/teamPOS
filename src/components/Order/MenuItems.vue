@@ -1,5 +1,12 @@
 <script>
+import defaultMenuImage from "@/assets/default-menu-img.png";
+
 export default {
+    data(){
+        return {
+            defaultMenuImage, // 將圖片變數放入 data，使模板可訪問
+        }
+    },
     props: {
         menuItems: Array,
         combos: Array,
@@ -40,7 +47,7 @@ export default {
         <!-- 單點餐點 -->
         <div v-for="item in menuItems" :key="item.mealName" @click="selectItem(item)" :class="{ disabled: !item.available }" class="singleItem">
             <div class="imgContainer">
-                <img :src="item.pictureName" class="mealImage" />
+                <img :src="item.pictureName ? item.pictureName : defaultMenuImage" class="mealImage" />
             </div>
             <p>{{ item.mealName }}</p>
             <p style="text-align: end">${{ item.price }}</p>
@@ -98,7 +105,7 @@ export default {
 .menuItems div.disabled {
     cursor: not-allowed;
     background-color: rgba(grey, 0.3);
-    opacity: 0.5;
+    opacity: 0.9;
     position: relative; /* 讓內部絕對定位的內容相對於此 div */
     &::after {
         content: "";
@@ -106,12 +113,17 @@ export default {
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        width: 100px;
-        height: 100px;
-        background-image: url("/public/images/pngwing.com.png"); /* 替換成你的圖片路徑 */
+        width: 160px;
+        height: 160px;
+        background-image: url("@/assets/sold-out-img.png"); /* 替換成你的圖片路徑 */
         background-size: cover;
         background-position: center;
         pointer-events: none;
+        // opacity: 1;
+    }
+
+    p , img{
+        opacity: 0.3;
     }
 }
 

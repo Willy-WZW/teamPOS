@@ -21,8 +21,9 @@ export default {
             orderItems: [], // 儲存所有選擇的訂單項目
             activeCategoryId: null, // 追蹤當前選中的分類
 
-            singleList: [], // 單點訂單
-            comboList: [], // 套餐訂單
+            singleList: [], // 蒐集單點訂單
+            comboList: [], // 蒐集套餐訂單
+            newComboList: [], // 存放整理後的套餐訂單資料，前端顯示用
             orderList: [], // 存放所有從子元件傳來的訂單資料
             selectedTableNumber: null, // 被選中的桌號
             customerCount: 1, // 預設人數為1
@@ -35,9 +36,10 @@ export default {
         CustomPopup,
     },
     computed: {
-        // 計算所有訂單的總金額
+        // 計算所有訂單項目的合計金額
         totalAmount() {
-            return this.orderList.reduce((sum, item) => sum + item.price, 0);
+            const orderList = [...this.singleList, ...this.comboList]; // 合併訂單
+            return orderList.reduce((total, item) => total + item.price, 0); // 計算總金額
         },
     },
     mounted() {
@@ -81,11 +83,6 @@ export default {
                 const firstCategoryId = this.categoriesList[0].categoryId;
                 this.filterMenuItems(firstCategoryId);
             }
-
-            // 設定預設選中的桌號
-            if (this.tablesList.length > 0) {
-                this.selectedTableNumber = this.tablesList[0];
-            }
         },
         addAvailableToCombos(combos) {
             return combos.map((combo) => {
@@ -120,20 +117,55 @@ export default {
         handleAddToOrder(order) {
             if (order.length > 1) {
                 this.comboList.push(...order);
+                // 每次新增套餐後更新 newComboList
+                this.generateNewComboList();
             } else {
                 this.singleList.push(...order);
             }
         },
-        // 編輯訂單
-        editOrder(order, type) {
-            if (type === "single") {
-                this.selectedItem = { ...order }; // 複製訂單內容
-            } else if (type === "combo") {
-                this.selectedItem = { ...order };
-            }
-            this.showPopup = true; // 顯示彈窗進行編輯
+        // 將 comboList 整理成 newComboList 格式
+        generateNewComboList() {
+            const groupedCombos = {};
+
+            // 將 comboList 的資料按 orderMealId 分組
+            this.comboList.forEach((item) => {
+                const { orderMealId, comboName, comboBasicPrice, selectedComboPrice } = item;
+
+                // 若此 orderMealId 尚未建立，則初始化結構
+                if (!groupedCombos[orderMealId]) {
+                    groupedCombos[orderMealId] = {
+                        orderMealId,
+                        comboName,
+                        comboBasicPrice,
+                        selectedComboPrice,
+                        mealList: [],
+                    };
+                }
+
+                // 如果該項有餐點名稱，則加入 mealList
+                if (item.mealName) {
+                    groupedCombos[orderMealId].mealList.push({
+                        mealName: item.mealName,
+                        options: item.options,
+                        optionsPriceTotal: item.optionsPriceTotal || 0,
+                        priceDifference: item.priceDifference || 0,
+                    });
+                }
+            });
+
+            // 將物件轉為陣列形式，存入 newComboList
+            this.newComboList = Object.values(groupedCombos);
         },
-        // 確認是否刪除該筆訂單
+        // 編輯訂單
+        // editOrder(order, type) {
+        //     if (type === "single") {
+        //         this.selectedItem = { ...order }; // 複製訂單內容
+        //     } else if (type === "combo") {
+        //         this.selectedItem = { ...order };
+        //     }
+        //     this.showPopup = true; // 顯示彈窗進行編輯
+        // },
+        // 確認刪除單點訂單
         confirmDeleteOrder(index, type) {
             Swal.fire({
                 title: "確定要刪除這筆訂單嗎？",
@@ -151,13 +183,39 @@ export default {
                 }
             });
         },
-        // 刪除該筆訂單
+        // 刪除單點訂單
         deleteOrder(index, type) {
             if (type === "single") {
                 this.singleList.splice(index, 1);
             } else if (type === "combo") {
                 this.comboList.splice(index, 1);
             }
+        },
+        // 刪除套餐訂單
+        deleteComboOrder(orderMealId) {
+            // 刪除 newComboList 中的對應項目
+            this.newComboList = this.newComboList.filter((combo) => combo.orderMealId !== orderMealId);
+
+            // 刪除 comboList 中所有符合該 orderMealId 的項目
+            this.comboList = this.comboList.filter((item) => item.orderMealId !== orderMealId);
+        },
+        // 確認刪除套餐訂單
+        confirmDeleteComboOrder(orderMealId) {
+            Swal.fire({
+                title: "確定要刪除這筆套餐訂單嗎？",
+                text: "刪除後無法復原！",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#d33",
+                cancelButtonColor: "#3085d6",
+                confirmButtonText: "是的，刪除！",
+                cancelButtonText: "取消",
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    this.deleteComboOrder(orderMealId);
+                    Swal.fire("已刪除！", "該筆套餐訂單已成功刪除。", "success");
+                }
+            });
         },
         submitOrder() {
             if (!this.selectedTableNumber) {
@@ -308,16 +366,31 @@ export default {
                         </div>
                     </div>
 
-                    <pre> {{ comboList }} </pre>
                     <!-- 套餐訂單 -->
-                    <!-- <div v-if="processedComboData">
-                        <h3>套餐名稱：{{ processedComboData.overview.comboName }}</h3>
-                        <p>套餐基本價格：${{ processedComboData.overview.comboBasicPrice }}</p>
-                        <ul>
-                            <li v-for="(item, index) in processedComboData.items" :key="index">{{ item.mealName }} ({{ item.options }}) + ${{ item.totalItemPrice }}</li>
-                        </ul>
-                        <p>套餐總價：${{ processedComboData.overview.selectedComboPrice }}</p>
-                    </div> -->
+                    <div v-if="newComboList.length > 0">
+                        <!-- <pre> {{ newComboList }} </pre>
+                        <pre> {{ comboList }}</pre> -->
+                        <div v-for="(combo, index) in newComboList" :key="combo.orderMealId" class="comboBlock">
+                            <div class="comboHeader">
+                                <p>{{ combo.comboName }}</p>
+                                <p>${{ combo.comboBasicPrice }}</p>
+                            </div>
+                            
+                            <div class="comboDetail">
+                                <ul>
+                                    <li v-for="(meal, i) in combo.mealList" :key="i">{{ meal.mealName }} ({{ meal.options }}) + ${{ meal.optionsPriceTotal + meal.priceDifference }}</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="comboBottom">
+                                
+                                <p>${{ combo.selectedComboPrice }}</p>
+                            </div>
+
+
+                            <button @click="confirmDeleteComboOrder(combo.orderMealId)">刪除套餐</button>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- 送出訂單按鈕：將訂單明細包裝成完整req格式接上 api 存入資料庫 -->
