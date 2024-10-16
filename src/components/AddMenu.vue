@@ -4,9 +4,11 @@ import axios from 'axios';
 import { number } from 'echarts';
 import ComboComponent from './combo/ComboComponent.vue';
 import { ref } from 'vue';
+import defaultMenuImage from "@/assets/default-menu-img.png";
 export default {
     data() {
         return {
+            defaultMenuImage,
             startX: 0,
             optionType: 'checkbox',
             showEditPen: false,
@@ -1185,9 +1187,9 @@ export default {
                             <div class="prePicture"
                                 @click="editIndexList.includes(item.mealName) ? selectFileFromDB(item.mealName) : null"
                                 :style="{ cursor: editIndexList.includes(item.mealName) ? 'pointer' : 'default' }">
-                                <img v-if="item.pictureName" :src="item.pictureName" alt="Image Preview"
+                                <img :src="item.pictureName ? item.pictureName : defaultMenuImage" alt="Image Preview"
                                     style="width: 100%; height: 100%;" />
-                                <i v-else class="fa-solid fa-upload"></i>
+                                <!-- <i v-else class="fa-solid fa-upload"></i> -->
                             </div>
                         </div>
                         <div class="itemName">
@@ -1200,10 +1202,10 @@ export default {
                         <div class="itemWorksta">
                             <div class="itemStatus" v-if="!editIndexList.includes(item.mealName)"
                                 :class="{ soldOut: item.available == false }">
-                                <span>{{ item.available ? "供應中" : "售完" }}</span>
+                                <span>{{ item.available ? "供應" : "售完" }}</span>
                             </div>
                             <div v-else class="itemStatus" :class="{ flip: !item.available }" @click="switchSta(item)">
-                                <span>{{ item.available ? "供應中" : "售完" }}</span>
+                                <span>{{ item.available ? "供應" : "售完" }}</span>
                             </div>
                         </div>
                         <div class="itemBot">
@@ -1234,7 +1236,7 @@ export default {
                         </div>
                         <div class="itemWorksta">
                             <div class="itemStatus" :class="{ flip: !menu.available }" @click="switchSta(menu)">
-                                <span>{{ menu.available ? "供應中" : "售完" }}</span>
+                                <span>{{ menu.available ? "供應" : "售完" }}</span>
                             </div>
                         </div>
                         <div class="itemBot">
@@ -1334,6 +1336,8 @@ $suppliable: #28A745;
 $soldOut: #e02d11;
 $borderBot: #697077;
 $editColor: #e6b800;
+$selectedColor: #FFC90E;
+$subColor: #000000;
 
 .addMenu {
     width: 100%;
@@ -1381,8 +1385,8 @@ $editColor: #e6b800;
                 background-color: #f2f4f8;
 
                 .cateSelc {
-                    color: #fff;
-                    background-color: #697077;
+                    color: $subColor;
+                    background-color: $selectedColor;
                 }
 
                 .opContent {
@@ -1427,8 +1431,8 @@ $editColor: #e6b800;
                             align-items: center;
                             margin-right: 6.5%;
                             border-radius: 30px;
-                            color: white;
-                            background-color: gray;
+                            color: $divColor;
+                            background-color: $subColor;
 
                             span {
                                 font-weight: normal;
@@ -1495,13 +1499,15 @@ $editColor: #e6b800;
             width: 90%;
             height: 37px;
             border-radius: 10px;
+            border: 1px solid black;
             margin-bottom: 3%;
             cursor: pointer;
             display: flex;
             justify-content: center;
             align-items: center;
-            color: white;
-            background-color: #343a3f;
+            font-weight: bold;
+            color: $subColor;
+            background-color: $selectedColor;
             font-family: "Noto Sans TC", sans-serif;
         }
 
@@ -1509,13 +1515,15 @@ $editColor: #e6b800;
             width: 90%;
             height: 37px;
             border-radius: 10px;
+            border: 1px solid black;
+            font-weight: bold;
             margin-bottom: 3%;
             cursor: pointer;
             display: flex;
             justify-content: center;
             align-items: center;
             color: black;
-            background-color: #dde1e6;
+            background-color: $divColor;
             font-family: "Noto Sans TC", sans-serif;
         }
     }
@@ -1533,7 +1541,7 @@ $editColor: #e6b800;
 
         .menuArea {
             width: 100%;
-            // Smin-height: 457px; //71%
+            // min-height: 457px; //71%
             height: 100%;
             border-radius: 10px;
             display: flex;
@@ -1546,8 +1554,8 @@ $editColor: #e6b800;
 
             .menuTop {
                 width: 97%;
-                height: 7%;
-                margin: 2% 0 1% 0;
+                height: 10%;
+                margin: 1% 0 1% 0;
                 border-bottom: 1px solid #343a3f;
                 display: flex;
                 justify-content: space-between;
@@ -1557,9 +1565,10 @@ $editColor: #e6b800;
                     width: 30%;
                     font-size: 30px;
                     font-weight: bold;
+                    display: flex;
+                    align-items: end;
                     letter-spacing: 3px;
                     margin-left: 1%;
-                    margin-bottom: 1%;
                     font-family: "Noto Sans TC", sans-serif;
                 }
 
@@ -1600,6 +1609,7 @@ $editColor: #e6b800;
 
                 .mtRight {
                     width: 20%;
+                    height: 80%;
                     display: flex;
                     justify-content: end;
                     align-items: center;
@@ -1635,8 +1645,10 @@ $editColor: #e6b800;
                         width: 43.4%;
                         height: 91%;
                         border-radius: 5px;
-                        color: white;
-                        background-color: black;
+                        border: 1px solid black;
+                        font-weight: bold;
+                        color: $subColor;
+                        background-color: $selectedColor;
                         display: flex;
                         justify-content: center;
                         align-items: center;
@@ -1686,7 +1698,7 @@ $editColor: #e6b800;
                     border: 1px solid black;
 
                     .itemPic {
-                        grid-area: 1 / 1 / 5 / 7;
+                        grid-area: 1 / 1 / 6 / 7;
                         display: flex;
                         justify-content: center;
                         align-items: center;
@@ -1714,47 +1726,47 @@ $editColor: #e6b800;
                     }
 
                     .itemName {
-                        grid-area: 5 / 1 / 6 / 7;
+                        grid-area: 6 / 1 / 7 / 5;
                         display: flex;
                         align-items: center;
                         font-weight: bold;
                         letter-spacing: 3px;
                         font-family: "Noto Sans TC", sans-serif;
-                        margin: 0 4%;
+                        margin: 0 10%;
 
                         input {
                             max-width: 100%;
-                            font-size: 20px;
+                            font-size: 18px;
                             font-family: "Noto Sans TC", sans-serif;
                         }
                     }
 
                     .itemPrice {
-                        grid-area: 6 / 1 / 7 / 7;
+                        grid-area: 7 / 1 / 8 / 5;
                         display: flex;
                         align-items: center;
                         font-weight: bold;
                         font-family: "Noto Sans TC", sans-serif;
-                        margin: 0 4%;
+                        margin: 0 10%;
 
                         input {
-                            max-width: 60%;
+                            max-width: 70%;
                             font-size: 15px;
                             font-family: "Noto Sans TC", sans-serif;
                         }
                     }
 
                     .itemWorksta {
-                        grid-area: 7 / 1 / 8 / 7;
+                        grid-area: 6 / 5 / 8 / 7;
                         display: flex;
                         justify-content: center;
                         align-items: center;
-                        border-bottom: 1px solid $borderBot;
                         margin: 0 4%;
 
                         .itemStatus {
-                            width: 50%;
-                            margin-bottom: 2%;
+                            width: 100%;
+                            height: 80%;
+                            margin-right: 10%;
                             border-radius: 5px;
                             letter-spacing: 3px;
                             cursor: pointer;
@@ -1768,6 +1780,7 @@ $editColor: #e6b800;
                             justify-content: center;
                             align-items: center;
                             transition: transform 0.7s, background-color 0.5s;
+                            writing-mode: vertical-lr;
                         }
 
                         .soldOut {
@@ -1787,6 +1800,7 @@ $editColor: #e6b800;
                     .itemBot {
                         grid-area: 8 / 1 / 9 / 7;
                         margin: 0 4%;
+                        border-top: 1px solid $borderBot;
                         display: flex;
 
                         .itemIcon {
@@ -1796,6 +1810,7 @@ $editColor: #e6b800;
                             display: flex;
                             justify-content: space-between;
                             align-items: center;
+                            padding: 3% 0;
 
                             .fa-solid {
                                 cursor: pointer;
@@ -1861,6 +1876,7 @@ $editColor: #e6b800;
 
                 .cuRight {
                     width: 50%;
+                    height: 87.5%;
                     display: flex;
                     justify-content: end;
                     align-items: center;
@@ -1868,6 +1884,7 @@ $editColor: #e6b800;
 
                     .selCate {
                         width: 48%;
+                        height: 100%;
                         margin-right: 3%;
                         display: flex;
                         justify-content: end;
@@ -1884,7 +1901,7 @@ $editColor: #e6b800;
                             margin-right: 7%;
                             font-weight: 500;
                             color: white;
-                            background-color: gray;
+                            background-color: black;
                             border-radius: 30px;
                             display: flex;
                             justify-content: center;
@@ -1894,11 +1911,13 @@ $editColor: #e6b800;
 
                     .saveBtn {
                         width: 17.4%;
-                        height: 91%;
+                        height: 100%;
                         border-radius: 5px;
+                        border: 1px solid black;
+                        font-weight: bold;
                         cursor: pointer;
-                        color: white;
-                        background-color: black;
+                        color: $subColor;
+                        background-color: $selectedColor;
                         display: flex;
                         justify-content: center;
                         align-items: center;
