@@ -219,7 +219,7 @@ export default {
             ${imageHtml}
             <h3 style="text-align: left;">${announce.announceTitle}</h3>
             <p style="text-align: left; padding-top: 3%;">活動時間 ${announce.announceStartTime} ~ ${announce.announceEndTime}</p>
-            <pre style="text-align: left; padding-top: 2%;">${announce.announceContent}</pre>
+            <pre style="text-align: left; padding-top: 2%; white-space: pre-wrap; word-break: break-word; overflow-y: auto;">${announce.announceContent}</pre>
         `,
                 focusConfirm: false,
                 confirmButtonText: '關閉',
@@ -311,7 +311,8 @@ export default {
                             @click="showAnnouncePreview(announce)" />
                         <div class="item-content">
                             <div class="textlistArea">
-                                <h3 @click="showAnnouncePreview(announce)" style="cursor: pointer; text-overflow: ellipsis; overflow: hidden;white-space: nowrap;">
+                                <h3 @click="showAnnouncePreview(announce)"
+                                    style="cursor: pointer; text-overflow: ellipsis; overflow: hidden;white-space: nowrap; padding-bottom: 2%;">
                                     {{ announce.announceTitle }}</h3>
                                 <span>{{ announce.announceStartTime }}</span> ~
                                 <span>{{ announce.announceEndTime }}</span>
@@ -435,7 +436,7 @@ $addDiv: #343a3f;
         .upload-container {
             width: 88%;
             height: 300px;
-            
+
 
         }
 
@@ -530,11 +531,12 @@ $addDiv: #343a3f;
             width: 96%;
             margin-left: 2%;
             border-bottom: 1px solid;
+            padding: 3%;
         }
 
         .item-content {
             width: 250px;
-            height: 90px;
+            height: 110px;
             border: 1px solid;
             border-top: none;
             border-bottom-right-radius: 10px;
@@ -543,15 +545,15 @@ $addDiv: #343a3f;
 
         .icon {
             display: flex;
-            justify-content: end;
-            padding-right: 3%;
+            justify-content: space-between;
+            padding-right: 10%;
             padding-top: 5%;
         }
     }
 
     .pagination {
         position: absolute;
-        bottom: 0;
+        bottom: -20px;
         width: 100%;
         display: flex;
         justify-content: center;
@@ -594,13 +596,5 @@ $addDiv: #343a3f;
 
 button {
     cursor: pointer;
-}
-</style>
-
-<style>
-pre {
-    white-space: pre-wrap;
-    word-break: break-word;
-    overflow-y: auto;
 }
 </style>
