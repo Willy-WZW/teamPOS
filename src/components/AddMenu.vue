@@ -695,15 +695,23 @@ export default {
         // 儲存客製化選項
         saveCust() {
             if (this.originalOptions.length > 0) {
-                const updateRequests = this.originalOptions.map((option, index) => ({
-                    categoryId: option.categoryId,
-                    optionTitle: Object.keys(this.groupedOptions)[index],
-                    optionType: option.optionType,
-                    options: option.optionContent.map((content, opIndex) => ({
-                        optionContent: content,
-                        extraPrice: option.extraPrice[opIndex]
-                    }))
-                }));
+                // 過濾掉空的 originalOptions，僅處理已編輯的項目
+                const updateRequests = this.originalOptions
+                    .map((option, index) => {
+                        if (option) {  // 只處理非空的項目
+                            return {
+                                categoryId: option.categoryId,
+                                optionTitle: Object.keys(this.groupedOptions)[index],
+                                optionType: option.optionType,
+                                options: option.optionContent.map((content, opIndex) => ({
+                                    optionContent: content,
+                                    extraPrice: option.extraPrice[opIndex]
+                                }))
+                            };
+                        }
+                        return null;  // 對於未編輯的項目，返回 null
+                    })
+                    .filter(req => req !== null);  // 過濾掉 null 的項目
                 console.log(updateRequests);
 
                 // 發送更新請求
@@ -1105,7 +1113,7 @@ export default {
             <div class="optionArea">
                 <!-- 已存在的菜單分類 -->
                 <div class="cOption" v-for="(category, cIndex) in categories" :key="cIndex"
-                    :style="{ transform: `translate(${37 + category.translateX}px)` }"
+                    :style="{ transform: `translate(${39 + category.translateX}px)` }"
                     @touchstart="startTouch($event, cIndex)" @touchmove="moveTouch($event, cIndex)"
                     @touchend="endTouch(cIndex)">
                     <div class="opContent" :class="{ cateSelc: category.category == this.selectedCategory }"
@@ -1421,7 +1429,8 @@ $editColor: #e6b800;
                             border-radius: 30px;
                             color: white;
                             background-color: gray;
-                            span{
+
+                            span {
                                 font-weight: normal;
                                 font-family: "Noto Sans TC", sans-serif;
                             }
