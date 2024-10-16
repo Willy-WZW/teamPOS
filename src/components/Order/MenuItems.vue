@@ -72,9 +72,8 @@ export default {
 .menuItems {
     display: flex;
     flex-wrap: wrap;
-    gap: 50px;
+    gap: 35px;
     padding: 2% 0;
-    overflow-y: scroll;
 }
 
 .singleItem {

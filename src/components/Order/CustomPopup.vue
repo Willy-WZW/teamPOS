@@ -62,11 +62,17 @@ export default {
     mounted() {
         if (this.isCombo) {
             // 預設選擇每個分類的第一個菜品
-            this.comboDishes.selectedDishes = this.groupedComboDishes.map((group) => ({
-                ...group.dishes[0], // 選擇第一個菜品
-                workstationId: this.getWorkstationId(group.categoryId), // 取得對應的 workstationId
-                selectedOptions: {}, // 初始化選項
-            }));
+            this.comboDishes.selectedDishes = this.groupedComboDishes.map((group) => {
+                // ...group.dishes[0], // 選擇第一個菜品
+                // workstationId: this.getWorkstationId(group.categoryId), // 取得對應的 workstationId
+                // selectedOptions: {}, // 初始化選項
+                const firstDish = group.dishes[0]; // 預設選擇第一個菜品
+                return {
+                    ...firstDish,
+                    selectedOptions: {}, // 初始化選項
+                    workstationId: this.getWorkstationId(group.categoryId), // 根據 categoryId 獲取 workstationId
+                };
+            });
             this.totalPrice = this.comboDishes.comboBasicPrice;
         } else {
             this.singleDishes = this.item;
@@ -137,8 +143,8 @@ export default {
         },
 
         // 套餐
-        selectComboDish(categoryName, dish) {
-            const existingDishIndex = this.comboDishes.selectedDishes.findIndex((d) => d.categoryId === dish.categoryId);
+        selectComboDish(dish) {
+            const existingDishIndex = this.comboDishes.selectedDishes.findIndex((d) => d.name === dish.name && d.categoryId === dish.categoryId);
 
             if (existingDishIndex !== -1) {
                 this.comboDishes.selectedDishes[existingDishIndex] = {
@@ -151,11 +157,10 @@ export default {
                     selectedOptions: {},
                 });
             }
-
             this.calculateTotal();
         },
         toggleComboOption(categoryName, optionTitle, optionContent, extraPrice, optionType) {
-            // 根據 categoryName 精準找到對應的菜品
+            // 根據 categoryName 找到對應的菜品
             const dish = this.comboDishes.selectedDishes.find((d) => d.categoryId === this.getCategoryIdByName(categoryName));
 
             if (!dish) return; // 若找不到菜品則直接返回
@@ -178,6 +183,33 @@ export default {
             dish.selectedOptions[optionTitle] = options;
             this.calculateTotal();
         },
+        // selectComboDish(categoryId, dish, index) {
+        //     // 確保每個菜品都有自己的索引位置
+        //     this.comboDishes.selectedDishes[index] = {
+        //         ...dish,
+        //         selectedOptions: {},
+        //     };
+        //     this.calculateTotal();
+        // },
+        // toggleComboOption(index, optionTitle, optionContent, extraPrice, optionType) {
+        //     // 根據菜品的索引處理選項邏輯
+        //     const dish = this.comboDishes.selectedDishes[index];
+        //     if (!dish) return;
+
+        //     let options = dish.selectedOptions[optionTitle] || [];
+        //     if (optionType === "radio") {
+        //         options = [{ content: optionContent, price: extraPrice }];
+        //     } else {
+        //         const optIndex = options.findIndex((opt) => opt.content === optionContent);
+        //         if (optIndex !== -1) {
+        //             options.splice(optIndex, 1);
+        //         } else {
+        //             options.push({ content: optionContent, price: extraPrice });
+        //         }
+        //     }
+        //     dish.selectedOptions[optionTitle] = options;
+        //     this.calculateTotal();
+        // },
         getOptionsForDish(dish) {
             return this.optionsList.filter((option) => option.categoryId === dish.categoryId);
         },
@@ -248,7 +280,7 @@ export default {
             this.closePopup();
         },
 
-        // 共用：套餐計算待修正
+        // 共用
         calculateTotal() {
             let total = 0;
 
@@ -347,7 +379,7 @@ export default {
                             <span class="dishInputName">
                                 <input
                                     type="radio"
-                                    :name="group.categoryName"
+                                    :name="`${group.categoryName}-${group.index}`"
                                     :value="dish"
                                     :checked="comboDishes.selectedDishes.some((d) => d.name === dish.name)"
                                     @change="selectComboDish(group.categoryName, dish)" />
@@ -375,7 +407,29 @@ export default {
                             </label>
                         </div>
                     </div>
-                </div>
+                </div> 
+
+                <!-- <div v-for="dish in group.dishes" :key="dish.name" class="dishRadioGroup">
+                    <label class="dishLabel">
+                        <input
+                            type="radio"
+                            :name="`dish-${group.categoryId}-${index}`"
+                            :value="dish"
+                            @change="selectComboDish(group.categoryId, dish, index)"
+                            :checked="comboDishes.selectedDishes[index].name === dish.name" />
+                        {{ dish.name }}
+                    </label>
+                </div> -->
+
+                <!-- 客製化選項區
+                <div v-if="comboDishes.selectedDishes[index]">
+                    <div v-for="option in getOptionsForDish(comboDishes.selectedDishes[index])" :key="option.optionTitle">
+                        <label v-for="item in option.optionItems" :key="item.optionContent">
+                            <input :type="option.optionType" @change="toggleComboOption(index, option.optionTitle, item.optionContent, item.extraPrice, option.optionType)" />
+                            {{ item.optionContent }} (+${{ item.extraPrice }})
+                        </label>
+                    </div>
+                </div> -->
             </div>
         </div>
 
