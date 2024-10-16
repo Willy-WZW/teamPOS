@@ -309,13 +309,16 @@ $black-color: #1E1E1E;
 $gray-color: #DDE1E6;
 
 .lefter {
-    width: 100%;
+    width: 90%;
     height: 100%;
     background-color: $background-color;
     display: flex;
     flex-direction: column;
     align-items: center;
     padding: 0.625rem;
+    border-radius: 10px;
+    border: 1px solid;
+    box-shadow: -3px 3px 4px black;
 
     .timeCode {
         width: 100%;
@@ -325,6 +328,7 @@ $gray-color: #DDE1E6;
         justify-content: center;
         align-items: center;
         flex-direction: column;
+        cursor: pointer;
 
         .timeStyle {
             margin: 0.025rem auto;
@@ -345,7 +349,7 @@ $gray-color: #DDE1E6;
 
         // 新增通用按鈕樣式
         .button-common {
-            width: 85%;
+            width: 90%;
             height: 4.6875rem; // 原本的 75px 轉換為 4.6875rem
             border-radius: 0.625rem; // 原本的 10px 轉換為 0.625rem
             box-shadow: -0.175rem 0.2125rem 0.1625rem $boxShadow; // 原本的 -6px 5px 1px $boxShadow 轉換為 rem

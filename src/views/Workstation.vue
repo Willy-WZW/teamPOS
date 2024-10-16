@@ -164,10 +164,10 @@ $textColor: #697077;
 
     .leftBar {
         width: 10%;
-        height: 100vh;
+        height: 96.4vh;
         position: fixed;
-        top: 0;
-        left: 0;
+        top: 2%;
+        left: 1.4%;
         display: flex;
         align-items: center;
     }
