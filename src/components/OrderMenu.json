@@ -580,6 +580,7 @@ private Boolean checkout = false;
 //comboList
 
 "comboList": [
+    //order
   {
     "orderMealId": "486d3645-11ce-4868-8fa4-3c0e37ade061",
     "comboName": "3號餐",
@@ -616,11 +617,11 @@ private Boolean checkout = false;
 [
     //combo
     {
-        "orderMealId": //comboList[0].orderMealId
-        "comboName": //comboList[0].comboName
-        "comboBasicPrice" // comboList[0].comboBasicPrice
-        "selectedComboPrice" // comboList[0].selectedComboPrice
-        "mealList": [ // 去掉 comboList[0]，取 comboList[1] 之後的所有元素
+        "orderMealId": 
+        "comboName": 
+        "comboBasicPrice" 
+        "selectedComboPrice" 
+        "mealList": [ 
             {
                 "mealName": 蔬菜蛋餅
                 "options": 起司
