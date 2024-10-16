@@ -292,7 +292,6 @@ export default {
         </div>
         <div class="userAndlogoutArea">
             <div class="Permissions" @click="goUserInfo()" :class="{ 'selected': this.$route.path == '/userInfo' }">
-                <i class="fa-regular fa-circle-user"></i>
                 <h3>{{ this.userName }}</h3>
                 <p>{{ this.role }}</p>
             </div>
@@ -303,7 +302,7 @@ export default {
 
 <style scoped lang="scss">
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@100..900&display=swap');
-$boxShadow: #F2F4F8;
+$boxShadow: #2d2d2d;
 $background-color: #FFFFFF;
 $black-color: #1E1E1E;
 $gray-color: #DDE1E6;
@@ -319,7 +318,7 @@ $gray-color: #DDE1E6;
 
     .timeCode {
         width: 100%;
-        height: 10%;
+        height: 8%;
         border-bottom: 0.0625rem solid $gray-color; // 原本的 1px 轉換為 0.0625rem
         display: flex;
         justify-content: center;
@@ -327,7 +326,7 @@ $gray-color: #DDE1E6;
         flex-direction: column;
 
         .timeStyle {
-            margin: 0.625rem auto;
+            margin: 0.025rem auto;
             font-size: 1.125rem;
         }
     }
@@ -336,18 +335,19 @@ $gray-color: #DDE1E6;
         width: 80%;
         height: 90%;
         display: flex;
-        justify-content: space-evenly;
+        justify-content: start;
         align-items: center;
         flex-direction: column;
         color: $black-color;
-        margin: 15% 0;
+        margin-top: 6%;
+        gap: 1.5%;
 
         // 新增通用按鈕樣式
         .button-common {
             width: 97%;
             height: 4.6875rem; // 原本的 75px 轉換為 4.6875rem
             border-radius: 0.625rem; // 原本的 10px 轉換為 0.625rem
-            box-shadow: -0.375rem 0.3125rem 0.0625rem $boxShadow; // 原本的 -6px 5px 1px $boxShadow 轉換為 rem
+            box-shadow: -0.175rem 0.2125rem 0.1625rem $boxShadow; // 原本的 -6px 5px 1px $boxShadow 轉換為 rem
             display: flex;
             flex-direction: column;
             justify-content: space-evenly;
@@ -379,6 +379,7 @@ $gray-color: #DDE1E6;
         .history,
         .staffInfo {
             height: 10%;
+            padding: 6% auto;
             @extend .button-common;
         }
 
