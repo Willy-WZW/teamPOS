@@ -290,44 +290,53 @@ export default {
 </script>
 
 <template>
-    <!-- 單點客製化視窗 -->
+    <!-- 單點 -->
     <div class="popup" v-if="!isCombo">
-        <button @click="closePopup">Close</button>
-        <img v-if="item.picture" :src="item.picture" class="popupMenuImage" />
-        <h3>{{ singleDishes.mealName }}</h3>
-        <p>價格：${{ singleDishes.price }}</p>
+        <div class="popupHeader">
+            <h3>餐點內容</h3>
+            <button @click="closePopup"><i class="fa-regular fa-circle-xmark"></i></button>
+        </div>
 
-        <div v-for="option in filteredOptions" :key="option.optionTitle">
+        <div class="mealNamePrice">
+            <!-- <img v-if="item.picture" :src="item.picture" class="popupMenuImage" /> -->
+            <h4>{{ singleDishes.mealName }}</h4>
+            <p>${{ singleDishes.price }}</p>
+        </div>
+
+        <div v-for="option in filteredOptions" :key="option.optionTitle" class="option">
             <h4>{{ option.optionTitle }}</h4>
-            <div v-for="item in option.optionItems" :key="item.optionContent">
-                <label>
+            <div v-for="item in option.optionItems" :key="item.optionContent" class="optionItem">
+                <label class="optionLabel">
                     <input :type="option.optionType" :name="option.optionTitle" @change="toggleSingleOption(option.optionTitle, item.optionContent, item.extraPrice, option.optionType)" />
-                    {{ item.optionContent }} (+${{ item.extraPrice }})
+                    <span class="optionContent">{{ item.optionContent }}</span>
                 </label>
+                <span class="optionPrice">+ ${{ item.extraPrice }}</span>
             </div>
         </div>
 
-        <div class="totalPriceBlock">
-            <h3>合計：${{ totalPrice }}</h3>
-        </div>
+        <div class="totalPriceBlock">合計 &nbsp;&nbsp;&nbsp; $ {{ totalPrice }}</div>
 
         <button @click="assembleSingleOrder">加入訂單</button>
     </div>
 
-    <!-- 套餐客製化視窗 -->
+    <!-- 套餐 -->
     <div class="popup2" v-if="isCombo">
-        <button @click="closePopup">Close</button>
-        <h3>{{ item.comboName }}</h3>
-        <!-- 顯示每個分類的第一個菜品名稱 -->
-        <p v-if="isCombo">
-            內容：
-            <span v-for="(group, index) in groupedComboDishes" :key="index"> | {{ group.dishes[0].name }} </span>
-        </p>
-        <p>價格：${{ item.comboPrice }}</p>
+        <div class="popupHeader">
+            <h3>餐點內容</h3>
+            <button @click="closePopup"><i class="fa-regular fa-circle-xmark"></i></button>
+        </div>
+
+        <div class="comboNamePrice">
+            <h3>{{ item.comboName }}</h3>
+            <p>${{ item.comboPrice }}</p>
+            <!-- 顯示每個分類的第一個菜品名稱 -->
+            <!-- <p v-if="isCombo">
+                <span v-for="(group, index) in groupedComboDishes" :key="index"> | {{ group.dishes[0].name }} </span>
+            </p> -->
+        </div>
 
         <!-- 套餐選擇區 -->
-
-        <div v-for="(group, index) in groupedComboDishes" :key="index">
+        <div v-for="(group, index) in groupedComboDishes" :key="index" style="border: 1px solid black;">
             <h4># {{ group.categoryName }}</h4>
 
             <!-- 菜品選擇區 -->
@@ -364,7 +373,7 @@ export default {
 
         <!-- 合計金額區塊  -->
         <div class="totalPriceBlock">
-            <h3>合計：${{ totalPrice }}</h3>
+            <h3>合計 ${{ totalPrice }}</h3>
         </div>
 
         <button @click="assembleComboOrder">加入訂單</button>
@@ -385,18 +394,106 @@ export default {
     left: 50%;
     transform: translate(-50%, -50%);
     background-color: white;
+    border-radius: 10px;
     padding: 20px;
     border: 1px solid #ccc;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     max-width: 400px;
     width: 100%;
+    z-index: 1000; /* 保證在 overlay 之上 */
+    transition: all 0.3s ease-in-out; /* 平滑過渡效果 */
 }
-.popupMenuImage {
-    width: 200px;
-    height: 200px;
-    object-fit: cover;
-    margin-bottom: 10px;
+
+.popupHeader {
+    display: flex;
+    justify-content: space-between;
+    padding-bottom: 1%;
+    border-bottom: 1px solid rgba(grey, 0.6);
+
+    h3 {
+        padding: 1%;
+        width: 50%;
+    }
+    button {
+        background-color: transparent;
+        border: none;
+        font-size: 1.2rem;
+        width: 10%;
+
+        i {
+            color: black;
+        }
+    }
 }
+
+.popup {
+
+    .mealNamePrice {
+        padding: 3%;
+        display: flex;
+        justify-content: space-between;
+        background-color: rgba(grey, 0.2);
+        margin: 2% 0;
+        border-radius: 5px;
+    }
+
+    .option {
+        margin: 2% 0;
+        padding: 3%;
+        border: 1px solid rgba(grey, 0.4);
+        border-radius: 5px;
+
+        .optionItem {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1px 0;
+
+            .optionLabel {
+                display: flex;
+                align-items: center; 
+                gap: 10px; /* 控制 input 和文字之間的間距 */
+            }
+
+            .optionContent {
+                margin-right: auto; /* 讓文字和價格之間自動撐開距離 */
+            }
+
+            .optionPrice {
+                white-space: nowrap; /* 確保價格不換行 */
+            }
+        }
+    }
+
+    .totalPriceBlock {
+        padding: 2%;
+        text-align: right;
+        font-weight: 500;
+        font-size: 1.2rem;
+    }
+
+    button {
+        width: 100%;
+        padding: 2%;
+        color: white;
+        font-size: 1rem;
+        background-color: rgba(black, 0.8);
+        border: none;
+        border-radius: 10px;
+    }
+}
+
+.popup2 {
+    .comboNamePrice{
+        padding: 3%;
+        display: flex;
+        justify-content: space-between;
+        background-color: rgba(grey, 0.2);
+        margin: 2% 0;
+        border-radius: 5px;
+    }
+}
+
 .comboItemOptions {
     display: flex;
     border: 1px solid gray;
