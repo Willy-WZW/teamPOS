@@ -303,6 +303,7 @@ export default {
 <style scoped lang="scss">
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@100..900&display=swap');
 $boxShadow: #2d2d2d;
+$selectedColor: #FFC90E;
 $background-color: #FFFFFF;
 $black-color: #1E1E1E;
 $gray-color: #DDE1E6;
@@ -344,7 +345,7 @@ $gray-color: #DDE1E6;
 
         // 新增通用按鈕樣式
         .button-common {
-            width: 97%;
+            width: 85%;
             height: 4.6875rem; // 原本的 75px 轉換為 4.6875rem
             border-radius: 0.625rem; // 原本的 10px 轉換為 0.625rem
             box-shadow: -0.175rem 0.2125rem 0.1625rem $boxShadow; // 原本的 -6px 5px 1px $boxShadow 轉換為 rem
@@ -354,7 +355,8 @@ $gray-color: #DDE1E6;
             align-items: center;
             font-family: "Noto Sans TC", sans-serif;
             cursor: pointer;
-            padding: 0.3125rem; // 原本的 5px 轉換為 0.3125rem
+            padding: 6% 0; // 原本的 5px 轉換為 0.3125rem
+            border: 1px solid gray;
 
             i,
             .material-symbols-outlined {
@@ -379,12 +381,11 @@ $gray-color: #DDE1E6;
         .history,
         .staffInfo {
             height: 10%;
-            padding: 6% auto;
             @extend .button-common;
         }
 
         .selected {
-            background-color: $gray-color;
+            background-color: $selectedColor;
             box-shadow: none;
         }
     }
@@ -424,13 +425,12 @@ $gray-color: #DDE1E6;
 
         .logout-button {
             border: none;
-            background-color: none;
             text-decoration: none;
             color: $black-color;
             font-weight: bold;
             letter-spacing: 0.25rem; // 原本的 4px 轉換為 0.25rem
             font-size: 1.25rem; // 原本的 20px 轉換為 1.25rem
-            padding: 0.625rem; // 原本的 10px 轉換為 0.625rem
+            padding: 0.25rem; // 原本的 10px 轉換為 0.625rem
             cursor: pointer;
         }
     }
