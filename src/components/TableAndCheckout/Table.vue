@@ -184,7 +184,7 @@ export default {
     <!-- 桌位狀態 -->
     <div class="status">
         <span class="activeDot"></span> 用餐中
-        <span class="reservedDot"></span> 已訂位
+        <span class="reservedDot"></span> 訂位中
         <span class="availableDot"></span> 可使用
     </div>
 
@@ -315,17 +315,17 @@ export default {
                 flex-direction: column;
                 cursor: pointer;
 
-                &.ACTIVE {
+                &.用餐中 {
                     background-color: #878d96 !important;
                     /* 用餐中狀態 */
                 }
 
-                &.RESERVED {
+                &.訂位中 {
                     background-color: #c1c7cd !important;
                     /* 已訂位狀態 */
                 }
 
-                &.AVAILABLE {
+                &.可使用 {
                     background-color: #f2f4f8 !important;
                     /* 可使用狀態，預設為淺色 */
                 }

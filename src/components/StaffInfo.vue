@@ -503,7 +503,11 @@ export default {
         padding: 30px;
         background-color: #fff;
         border-radius: 12px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        border: 1px solid;
+        box-shadow: 0 0 5px rgba(0, 0, 0, 0.2),
+                    0 0 10px rgba(0, 0, 0, 0.15),
+                    0 0 15px rgba(0, 0, 0, 0.1),
+                    0 0 20px rgba(0, 0, 0, 0.05); // 0 4px 6px rgba(0, 0, 0, 0.1);
 
         h2 {
             color: #333;

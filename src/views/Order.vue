@@ -432,13 +432,15 @@ export default {
 
     .leftBar {
         width: 10%;
-        height: 100vh;
+        height: 96.4vh;
         position: fixed;
-        top: 0;
-        left: 0;
+        top: 2%;
+        left: 1.4%;
         display: flex;
         align-items: center;
     }
+
+
 
     .mainArea {
         letter-spacing: 0.2dvw;
@@ -446,7 +448,7 @@ export default {
         height: 100%;
         display: flex;
         justify-content: space-between;
-        padding: 20px;
+        padding: 16px; //20px
         letter-spacing: 0.2dvw;
 
         .menuArea {
@@ -454,6 +456,7 @@ export default {
             border: 1px solid rgba(grey, 0.5);
             padding: 2%;
             border-radius: 10px;
+            border: 1px solid;
             background-color: white;
         }
 
@@ -462,7 +465,9 @@ export default {
             border: 1px solid rgba(grey, 0.5);
             padding: 2%;
             border-radius: 10px;
+            border: 1px solid;
             background-color: white;
+            margin-left: 0.5%;
         }
     }
 }
