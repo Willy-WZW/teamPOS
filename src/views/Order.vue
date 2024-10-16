@@ -39,7 +39,7 @@ export default {
         // 計算所有訂單項目的合計金額
         totalAmount() {
             const orderList = [...this.singleList, ...this.comboList]; // 合併訂單
-            return orderList.reduce((total, item) => total + item.price, 0); // 計算總金額
+            return orderList.reduce((total, item) => total + (item.price || 0), 0); // 如果 price 為 null 則視為 0
         },
     },
     mounted() {
