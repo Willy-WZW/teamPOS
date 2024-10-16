@@ -1113,7 +1113,7 @@ export default {
             <div class="optionArea">
                 <!-- 已存在的菜單分類 -->
                 <div class="cOption" v-for="(category, cIndex) in categories" :key="cIndex"
-                    :style="{ transform: `translate(${37 + category.translateX}px)` }"
+                    :style="{ transform: `translate(${39 + category.translateX}px)` }"
                     @touchstart="startTouch($event, cIndex)" @touchmove="moveTouch($event, cIndex)"
                     @touchend="endTouch(cIndex)">
                     <div class="opContent" :class="{ cateSelc: category.category == this.selectedCategory }"
