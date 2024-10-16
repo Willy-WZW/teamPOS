@@ -350,7 +350,7 @@ export default {
 
                 <!-- 餐點明細：顯示從CustomPopup傳來的資料 -->
                 <div class="orderSummary">
-                    <h3>訂單明細</h3>
+                    <h3>餐點明細</h3>
 
                     <!-- 單點訂單 -->
                     <div v-if="singleList.length > 0">

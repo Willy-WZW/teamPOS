@@ -1403,7 +1403,7 @@ $subColor: #000000;
                     span {
                         font-weight: bold;
                         font-family: "Noto Sans TC", sans-serif;
-                        margin-left: 3.5%;
+                        margin-left: 4.5%;
                     }
 
                     .editInputCategory {
