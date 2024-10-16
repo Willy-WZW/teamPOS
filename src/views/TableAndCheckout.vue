@@ -277,25 +277,11 @@ export default {
             const newDate = new Date(this.currentDate);
             newDate.setDate(newDate.getDate() + dayChange);
             this.currentDate = newDate; // 更新當前日期
-
             // 確保在更新日期後重新加載訂位資料
             this.fetchReservationsByDate(newDate); // 傳入更新後的 Date 物件
         },
 
-        filterReservationsByDate(date) {
-            const formatted = this.formatDate(date); // 格式化當前日期
-            console.log('篩選的日期:', formatted);
-
-            const filtered = this.reservations.filter(reservation => {
-                const reservationDate = new Date(reservation.date).toISOString().split('T')[0]; // 格式化訂位日期
-                console.log('檢查訂位日期:', reservationDate, ' vs 篩選日期:', formatted);
-                return reservationDate === formatted; // 比較格式化後的日期
-            });
-
-            console.log('篩選後的訂位資料:', filtered);
-            return filtered;
-        },
-
+        // 格式化日期
         formatDate(date) {
             if (!(date instanceof Date)) {
                 date = new Date(date);
@@ -306,6 +292,7 @@ export default {
             return `${year}-${month}-${day}`; // 格式化為 YYYY-MM-DD
         },
 
+        // 格式化時間
         formatTime(time) {
             if (!time) {
                 console.error('無效的時間:', time);
@@ -326,6 +313,21 @@ export default {
             const formattedHours = String(formattedDateTime.getHours()).padStart(2, '0'); // 小時
             const formattedMinutes = String(formattedDateTime.getMinutes()).padStart(2, '0'); // 分鐘
             return `${formattedHours}:${formattedMinutes}`; // 返回 HH:mm 格式
+        },
+
+        // 篩選的訂位日期
+        filterReservationsByDate(date) {
+            const formatted = this.formatDate(date); // 格式化當前日期
+            console.log('篩選的日期:', formatted);
+
+            const filtered = this.reservations.filter(reservation => {
+                const reservationDate = new Date(reservation.date).toISOString().split('T')[0]; // 格式化訂位日期
+                console.log('檢查訂位日期:', reservationDate, ' vs 篩選日期:', formatted);
+                return reservationDate === formatted; // 比較格式化後的日期
+            });
+
+            console.log('篩選後的訂位資料:', filtered);
+            return filtered;
         },
 
         // 開啟電話搜尋欄
@@ -421,7 +423,7 @@ export default {
         },
 
         // 確認報到視窗
-        confirmCheckIn(tableNumber) {
+        confirmCheckIn(tableNumber, reservationId) {
             Swal.fire({
                 title: '請確認客人是否報到！',
                 text: `桌號 ${tableNumber} 的報到操作將不可撤銷`,
@@ -434,16 +436,19 @@ export default {
             }).then((result) => {
                 if (result.isConfirmed) {
                     // 如果用戶確認了報到，調用報到 API
-                    this.manualCheckIn(tableNumber);
+                    this.manualCheckIn(tableNumber, reservationId); // 傳遞 reservationId
                 }
             });
         },
 
         // 執行報到API
-        async manualCheckIn(tableNumber) {
+        async manualCheckIn(tableNumber, reservationId) {
             try {
                 const response = await axios.post(`http://localhost:8080/reservation/manualCheckIn`, null, {
-                    params: { tableNumber }
+                    params: { 
+                        tableNumber, 
+                        reservationId 
+                    }
                 });
 
                 // 成功提示
@@ -455,6 +460,7 @@ export default {
 
                 // 刷新訂位列表或更新狀態
                 this.fetchReservationsByDate(this.currentDate);
+                this.fetchTables(); // 添加這行以刷新桌位
             } catch (error) {
                 // 處理錯誤情況
                 console.error('報到失敗', error);
@@ -503,6 +509,7 @@ export default {
 
                 // 刷新訂位列表
                 this.fetchReservationsByDate(this.currentDate);
+                this.fetchTables(); // 添加這行以刷新桌位
             } catch (error) {
                 // 處理錯誤情況
                 console.error('取消訂位失敗', error);
@@ -574,7 +581,6 @@ export default {
         },
 
         confirmPayment(ordersId) {
-
             const now = new Date();
             // 將時間轉換為 UTC+8
             const taiwanTime = new Date(now.getTime() + (8 * 60 * 60 * 1000)); // 加8小時
@@ -689,8 +695,8 @@ export default {
             }
         },
 
-        // 訂位 model 功能：
-        // 關閉訂位 model 視窗
+        // 訂位 modal
+        // 關閉訂位視窗
         closeReservationModal() {
             this.showReservationModal = false
         },
@@ -698,24 +704,43 @@ export default {
         // 可用的訂位時間段 API
         async fetchAvailableTimes() {
             try {
-                // 設置日期和用餐時長的參數
+                // 設置日期和用餐人數的參數
                 const reservationDate = this.newReservation.date;
-                const diningDuration = this.diningDuration;
+                const reservationPeople = this.newReservation.people;
 
                 // 發送請求到後端 API
-                const response = await axios.get('http://localhost:8080/reservation/generateAndFindAvailableTables', {
+                const response = await axios.get('http://localhost:8080/reservation/getAvailableTimeSlots', {
                     params: {
                         reservationDate: reservationDate,
-                        diningDuration: diningDuration,
-                        reservationPeople: this.newReservation.partySize
+                        reservationPeople: reservationPeople
                     }
                 });
 
-                // 使用正確的字段名稱 availableTimeSlots
-                this.availableTimes = response.data.availableTimeSlots; // 從 availableTimeSlots 提取資料
+                // 使用返回的 availableTimeSlots 資料
+                if (response.data && response.data.availableTimeSlots) {
+                    this.availableTimes = response.data.availableTimeSlots.map(timeSlot => ({
+                        startTime: timeSlot.startTime,
+                        endTime: timeSlot.endTime,
+                        available: timeSlot.available
+                    }));
+                } else {
+                    this.availableTimes = [];
+                    console.warn('訂位已滿沒有可選取的時段！');
+                    Swal.fire({
+                        icon: 'warning',
+                        title: '下次請早',
+                        text: '訂位已滿沒有可選取的時段！',
+                    });
+                }
+
                 console.log('可用時段:', this.availableTimes);
             } catch (error) {
                 console.error('無法獲取可用時段:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: '錯誤',
+                    text: '無法獲取可用時段！',
+                });
             }
         },
 
@@ -730,17 +755,20 @@ export default {
                 customerPhoneNumber: this.newReservation.phone,
                 customerEmail: this.newReservation.email,
                 customerGender: this.newReservation.title, // 先生, 小姐, 或 其他
-                reservationPeople: this.newReservation.partySize,
+                reservationPeople: this.newReservation.people, // 注意：這裡改為 people，對應你表單中的命名
                 reservationDate: this.newReservation.date,
                 reservationStartTime: selectedTimeSlot.startTime, // 選擇的開始時間
                 reservationEndingTime: selectedTimeSlot.endTime // 直接使用後端提供的結束時間
             };
 
+            // 在這裡打印出準備發送的資料
+            console.log('即將發送的訂位資料:', reservationData);
+
             try {
                 // 發送 POST 請求到後端 API
                 const response = await axios.post('http://localhost:8080/reservation/saveReservation', reservationData);
 
-                if (response.data.code === 200) {
+                if (response.status === 200) {
                     Swal.fire({
                         title: '訂位成功',
                         text: '您的訂位已確認',
@@ -768,504 +796,567 @@ export default {
             }
         },
 
-        // 候位 model 功能：
-        // 關閉後位 model 視窗
+        // 候位 modal
+        // 關閉候位視窗
         closeWaitlistModal() {
             this.showWaitlistModal = false
         },
+
+        // 格式化當前時間
+        getCurrentTime() {
+            const now = new Date();
+            // 將時間格式化為 HH:MM:SS 的格式
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            return `${hours}:${minutes}:${seconds}`; // 返回 HH:MM:SS 格式
+        },
+
+        // 獲取最大候位順序
+        async fetchMaxWaitlistOrder() {
+            try {
+                const response = await axios.get('http://localhost:8080/waitlist/getMaxWaitlistOrder'); // 使用你的 API 路徑
+                this.maxWaitlistOrder = response.data; // 更新最大候位順序
+            } catch (error) {
+                console.error('獲取最大候位順序失敗:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: '錯誤',
+                    text: '獲取最大候位順序！',
+                });
+            }
+        },
+
+        // 儲存候位API
+        async addWaitlist() {
+            // 將要傳送的數據格式化
+            const waitlistData = {
+                customerName: this.newWaitlist.name,
+                customerPhoneNumber: this.newWaitlist.phone,
+                customerEmail: this.newWaitlist.email,
+                customerGender: this.newWaitlist.title,
+                waitListPeople: this.newWaitlist.people,
+                waitingDate: this.newWaitlist.date,
+                waitTime: this.newWaitlist.time
+            };
+
+            try {
+                const response = await axios.post('http://localhost:8080/waitlist/registerWaitlist', waitlistData); // 儲存候位的 API
+                console.log('候位提交成功:', response.data);
+                Swal.fire({
+                    title: '候位成功',
+                    text: '您的候位已確認',
+                    icon: 'success',
+                    confirmButtonText: '確定'
+                });
+                this.closeWaitlistModal();
+            } catch (error) {
+                console.error('候位提交失敗:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: '錯誤',
+                    text: '候位提交失敗！',
+                });
+            }
+        }
     },
 };
 </script>
 
 <template>
-    <div class="big">
-        <!-- 側邊欄 -->
-        <div class="leftBar">
-            <LeftBar />
-        </div>
+<div class="big">
+    <!-- 側邊欄 -->
+    <div class="leftBar">
+        <LeftBar />
+    </div>
 
-        <!-- 桌位、訂位顯示區域 -->
-        <div class="tableReservationArea">
-            <!-- 桌位區域 -->
-            <div class="tableArea">
-                <!-- 桌位標題、刷新 Button -->
-                <div class="tableHeader">
-                    <h1 class="tableTitle">桌位圖</h1>
-                    <div class="timeSlotsArea">
-                        <!-- 時段選擇 -->
-                        <label for="timeSlots">時間</label>
-                        <select class="selectedTime" id="timeSlots" v-model="selectedTimeSlot" @change="updateTablesForTimeSlot(selectedTimeSlot)">
-                            <option v-for="slot in timeSlots" :key="slot.timeSlot" :value="slot.timeSlot">
-                                {{ slot.timeSlot }}
-                            </option>
-                        </select>
-                    </div>
+    <!-- 桌位、訂位顯示區域 -->
+    <div class="tableReservationArea">
+        <!-- 桌位區域 -->
+        <div class="tableArea">
+            <!-- 桌位標題、刷新 Button -->
+            <div class="tableHeader">
+                <h1 class="tableTitle">桌位圖</h1>
+                <div class="timeSlotsArea">
+                    <!-- 時段選擇 -->
+                    <label for="timeSlots">時間</label>
+                    <select class="selectedTime" id="timeSlots" v-model="selectedTimeSlot" @change="updateTablesForTimeSlot(selectedTimeSlot)">
+                        <option v-for="slot in timeSlots" :key="slot.timeSlot" :value="slot.timeSlot">
+                            {{ slot.timeSlot }}
+                        </option>
+                    </select>
                 </div>
+            </div>
 
-                <!-- 桌位狀態 -->
-                <div class="status">
-                    <span class="activeDot"></span> 用餐中
-                    <span class="reservedDot"></span> 訂位中
-                    <span class="availableDot"></span> 可使用
-                </div>
+            <!-- 桌位狀態 -->
+            <div class="status">
+                <span class="activeDot"></span> 用餐中
+                <span class="reservedDot"></span> 訂位中
+                <span class="availableDot"></span> 可使用
+            </div>
 
-                <!-- 桌位圖 -->
-                <div class="tableGrid">
-                    <div v-for="table in tables" :key="table.id" :data-id="table.id" class="tableItem" ref="tableItem"
-                        :style="{ width: `${getWidthByCapacity(table.capacity)}px`, height: `${getHeightByCapacity(table.capacity)}px` }">
-                        <div :class="['circle', table.status]" @click="selectTable(table)">
-                            <div class="tableNumber">{{ table.id }}</div>
-                            <div class="tableCapacity">
-                                <i class="fa-solid fa-user-group"></i> {{ table.capacity }}
-                            </div>
+            <!-- 桌位圖 -->
+            <div class="tableGrid">
+                <div v-for="table in tables" :key="table.id" :data-id="table.id" class="tableItem" ref="tableItem"
+                    :style="{ width: `${getWidthByCapacity(table.capacity)}px`, height: `${getHeightByCapacity(table.capacity)}px` }">
+                    <div :class="['circle', table.status]" @click="selectTable(table)">
+                        <div class="tableNumber">{{ table.id }}</div>
+                        <div class="tableCapacity">
+                            <i class="fa-solid fa-user-group"></i> {{ table.capacity }}
                         </div>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <!-- 訂位資訊 -->
-            <div class="reservationArea">
-                <!-- 切換 訂位/現場候位 -->
-                <div class="reservationHeader">
-                    <button :class="{ active: viewType === 'reservation' }" @click="viewType = 'reservation'">
-                        訂位
-                    </button>
-                    <button :class="{ active: viewType === 'waitlist' }" @click="viewType = 'waitlist'">
-                        現場候位
-                    </button>
-                </div>
+        <!-- 結帳側邊欄區域 -->
+        <div v-if="selectedTable" class="sidebarArea">
+            <!-- 黑色背景層 -->
+            <div class="sidebarBackground" @click="closePanel"></div>
 
-                <!-- 日期選擇 -->
-                <div class="datePicker">
-                    <button @click="changeDate(-1)">
-                        <i class="fa-solid fa-angle-left"></i>
-                    </button>
-                    <span>{{ formattedDate }} 週{{ dayOfWeek }}</span>
-                    <button @click="changeDate(1)">
-                        <i class="fa-solid fa-angle-right"></i>
-                    </button>
-                </div>
+            <!-- 側邊欄 -->
+            <div class="sidebar">
+                <div class="sideHeader">
 
-                <!-- 訂位顯示區域 -->
-                <div v-if="viewType === 'reservation'" class="reservations">
-                    <!-- 注意事項與搜尋欄 -->
-                    <div class="reminderAndSearchArea">
-                        <p class="reminderText">時間為訂位時間</p>
-                        <button class="phoneSearch" @click="toggleSearch" v-if="!isSearching">
-                            <i class="fa-solid fa-magnifying-glass"></i>
-                        </button>
-                        <input v-if="isSearching" type="search" v-model="searchNumber" placeholder="請輸入電話號碼 (末三碼)" 
-                            @input="searchReservations" @blur="handleBlur" class="searchInput" ref="searchInput"/>
+                    <!-- 返回鍵、結帳明細 -->
+                    <div class="titleArea">
+                        <i class="fa-solid fa-chevron-right" @click="closePanel"></i>
+                        <h2>結帳明細</h2>
                     </div>
-                    
-                    <div v-for="reservation in filteredReservations" :key="reservation.id" class="reservationItem">
-                        <!-- 顧客名字 -->
-                        <div class="customerName">{{ reservation.name }}</div>
 
-                            <!-- 顧客手機與訂位人數 -->
-                            <div class="customerPhoneAndParty">
-                                <div class="customerPhone">
-                                    <i class="fa-solid fa-phone"></i>
-                                    {{ reservation.phone }}
-                                </div>
-                                <div class="customerPartySize">
-                                    <i class="fa-solid fa-user-group"></i>
-                                    {{ reservation.partySize }}位
-                                </div>
-                            </div>
+                    <!-- 桌號、訂單編號、會員電話 -->
+                    <div class="dataArea">
+                        <!-- 桌號 -->
+                        <div class="tableNumber">{{ selectedTable.id }}</div>
 
-                        <!-- 桌號與訂位時間 -->
-                        <div class="tableNumberAndTime">
-                            <div class="tableNumbers">{{ reservation.tables.join(', ') }}</div> <!-- 顯示所有桌號 -->
-                            <div class="reservationTime">{{ reservation.time }}</div>
+                        <!-- 訂單編號 -->
+                        <div class="orderNumber">
+                            <p>訂單編號</p>
+                            {{ ordersId }} {{ selectedTable.name }}
                         </div>
-        
-                        <!-- 報到與取消 -->
-                        <div class="reservationActions">
-                            <div class="checkinArea">
-                                <input type="checkbox" id="checkin_{{ reservation.id }}" name="checkin" @click="confirmCheckIn(reservation.tables[0])" />
-                                <label for="checkin_{{ reservation.id }}">報到</label>
-                            </div>
-                            <div class="cancelArea">
-                                <!-- 當取消勾選時調用 confirmCancellation 方法 -->
-                                <input type="checkbox" id="cancel_{{ reservation.id }}" name="cancel" @click="confirmCancellation(reservation.id)" />
-                                <label for="cancel_{{ reservation.id }}">取消</label>
-                            </div>
+
+                        <!-- 會員電話輸入框 
+                    <div class="memberArea">
+                        <div class="memberPhone">
+                            <input type="search" class="phoneInput" placeholder="輸入會員電話" v-model="memberPhoneNumber"/>
+                            <button class="searchButton" @click="searchMember"><i class="fa-solid fa-search"></i></button>
                         </div>
+                        <div v-if="memberDiscount" class="memberDiscount">
+                            <span>黃金會員 {{ memberDiscount }} 折</span>
+                        </div>
+                    </div>-->
                     </div>
                 </div>
 
-                <!-- 開啟訂位 model 視窗 button -->
-                <button v-if="viewType === 'reservation'" class="newReservation" @click="showReservationModal = true">
-                    <i class="fa-solid fa-plus"></i>
-                    新增訂位
+                <div class="sideBody">
+
+                    <!-- 明細、金額區域 -->
+                    <div class="detailSection">
+
+                        <!-- 餐點明細 -->
+                        <div class="orderDetails">
+                            <h3 class="orderTitle">餐點明細</h3>
+                            <div v-for="(item, index) in orderItems" :key="index" class="orderItem">
+                                <div class="itemInfo">
+
+                                    <!-- 餐點名稱 -->
+                                    <div class="orderName">{{ item.name }}</div>
+
+                                    <!-- 餐點細項 -->
+                                    <ul v-if="item.notes && item.notes.length">
+                                        <li v-for="(note, idx) in item.notes" :key="idx">{{ note }}</li>
+                                    </ul>
+                                </div>
+                                <div class="itemPrice">$ {{ item.price }}</div>
+                            </div>
+                        </div>
+
+                        <!-- 總金額、折扣與小計 -->
+                        <div class="totalSummary">
+                            <div class="totalPrice">
+                                <p>總金額</p>
+                                $ {{ total }}
+                            </div>
+                            <!-- <div class="priceDiscount">
+                            <p>折扣</p>
+                            黃金會員 {{ memberDiscount || 100 }} 折
+                        </div> -->
+                            <div class="summary">
+                                <p>小計</p>
+                                $ {{ subtotal }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 付款方式 -->
+                    <div class="paymentSection">
+                        <h3 class="paymentTitle">選擇付款方式</h3>
+                        <select class="paymentSelect" v-model="paymentMethod">
+                            <option value="creditCard">信用卡</option>
+                            <option value="cash">現金</option>
+                        </select>
+
+                        <!-- 信用卡表單 -->
+                        <div v-if="paymentMethod === 'creditCard'" class="creditCardForm">
+
+                            <!--<div>
+                            <label>卡號</label>
+                            <input type="text" v-model="creditCardInfo.cardNumber" />
+                        </div>
+                        <div>
+                            <label>持卡人姓名</label>
+                            <input type="text" v-model="creditCardInfo.cardHolder" />
+                        </div>
+                        <div>
+                            <label>卡片到期日</label>
+                            <input type="text" v-model="creditCardInfo.expiryDate" />
+                        </div>
+                        <div>
+                            <label>確認碼</label>
+                            <input type="text" v-model="creditCardInfo.cvv" />
+                        </div>
+                        -->
+                            <button class="confirmButton" @click="confirmPayment(this.ordersId)">確認付款</button>
+                        </div>
+
+                        <!-- 現金付款表單 -->
+                        <div v-if="paymentMethod === 'cash'" class="cashForm">
+                            <div>
+                                <input type="number" placeholder="輸入收取金額" v-model="receivedAmount"
+                                    @input="calculateChange" 
+                                    @keypress="onlyNumbers"/>
+                            </div>
+                            <div class="cashSummary">
+                                <div class="payment">
+                                    <p>付款</p>
+                                    $ {{ receivedAmount }}
+                                </div>
+                                <div class="summary">
+                                    <p>訂單金額</p>
+                                    $ {{ subtotal }}
+                                </div>
+                                <div class="change">
+                                    <p>找零</p>
+                                    $ {{ change }}
+                                </div>
+                            </div>
+
+                            <button class="confirmButton" @click="confirmPayment(this.ordersId)">確認付款</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 訂位資訊 -->
+        <div class="reservationArea">
+            <!-- 切換 訂位/現場候位 -->
+            <div class="reservationHeader">
+                <button :class="{ active: viewType === 'reservation' }" @click="viewType = 'reservation'">
+                    訂位
                 </button>
+                <button :class="{ active: viewType === 'waitlist' }" @click="viewType = 'waitlist'">
+                    現場候位
+                </button>
+            </div>
 
-                <!-- 現場候位顯示區域 -->
-                <div v-if="viewType === 'waitlist'" class="waitlist">
-                    <!-- 注意事項與搜尋欄 -->
-                    <div class="reminderAndSearchArea">
-                        <p class="reminderText">時間為登記時間</p>
-                        <button class="phoneSearch" @click="toggleSearch" v-if="!isSearching">
-                            <i class="fa-solid fa-magnifying-glass"></i>
-                        </button>
-                        <input v-if="isSearching" type="search" v-model="searchNumber" placeholder="請輸入電話號碼 (末三碼)" 
-                            @input="searchReservations" @blur="handleBlur" class="searchInput" ref="searchInput"/>
-                    </div>
+            <!-- 日期選擇 -->
+            <div class="datePicker">
+                <button @click="changeDate(-1)">
+                    <i class="fa-solid fa-angle-left"></i>
+                </button>
+                <span>{{ formattedDate }} 週{{ dayOfWeek }}</span>
+                <button @click="changeDate(1)">
+                    <i class="fa-solid fa-angle-right"></i>
+                </button>
+            </div>
 
-                    <div v-for="wait in waitlist" :key="wait.id" class="waitlistItem">
-                        <!-- 顧客名字 -->
-                        <div class="customerName">{{ wait.name }}</div>
+            <!-- 訂位顯示區域 -->
+            <div v-if="viewType === 'reservation'" class="reservations">
+                <!-- 注意事項與搜尋欄 -->
+                <div class="reminderAndSearchArea">
+                    <p class="reminderText">時間為訂位時間</p>
+                    <button class="phoneSearch" @click="toggleSearch" v-if="!isSearching">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </button>
+                    <input v-if="isSearching" type="search" v-model="searchNumber" placeholder="請輸入電話號碼 (末三碼)" 
+                        @input="searchReservations" @blur="handleBlur" class="searchInput" ref="searchInput"/>
+                </div>
+                
+                <div v-for="reservation in filteredReservations" :key="reservation.id" class="reservationItem">
+                    <!-- 顧客名字 -->
+                    <div class="customerName">{{ reservation.name }}</div>
 
-                        <!-- 顧客手機與候位人數 -->
+                        <!-- 顧客手機與訂位人數 -->
                         <div class="customerPhoneAndParty">
                             <div class="customerPhone">
                                 <i class="fa-solid fa-phone"></i>
-                                {{ wait.phone }}
+                                {{ reservation.phone }}
                             </div>
                             <div class="customerPartySize">
                                 <i class="fa-solid fa-user-group"></i>
-                                {{ wait.partySize }}位
+                                {{ reservation.partySize }}位
                             </div>
                         </div>
 
-                        <!-- 桌號與登記時間 -->
-                        <div class="tableNumberAndTime">
-                            <div class="tableNumbers">{{ wait.table }}</div>
-                            <div class="registrationTime">{{ wait.registrationTime }}</div>
+                    <!-- 桌號與訂位時間 -->
+                    <div class="tableNumberAndTime">
+                        <div class="tableNumbers">{{ reservation.tables.join(', ') }}</div> <!-- 顯示所有桌號 -->
+                        <div class="reservationTime">{{ reservation.time }}</div>
+                    </div>
+
+                    <!-- 報到與取消 -->
+                    <div class="reservationActions">
+                        <div class="checkinArea">
+                            <input type="checkbox" id="checkin_{{ reservation.id }}" name="checkin" @click="confirmCheckIn(reservation.tables[0], reservation.id)" />
+                            <label for="checkin_{{ reservation.id }}">報到</label>
+                        </div>
+                        <div class="cancelArea">
+                            <!-- 當取消勾選時調用 confirmCancellation 方法 -->
+                            <input type="checkbox" id="cancel_{{ reservation.id }}" name="cancel" @click="confirmCancellation(reservation.id)" />
+                            <label for="cancel_{{ reservation.id }}">取消</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 開啟訂位 model 視窗 button -->
+            <button v-if="viewType === 'reservation'" class="newReservation" @click="showReservationModal = true">
+                <i class="fa-solid fa-plus"></i>
+                新增訂位
+            </button>
+
+            <!-- 現場候位顯示區域 -->
+            <div v-if="viewType === 'waitlist'" class="waitlist">
+                <!-- 注意事項與搜尋欄 -->
+                <div class="reminderAndSearchArea">
+                    <p class="reminderText">時間為登記時間</p>
+                    <button class="phoneSearch" @click="toggleSearch" v-if="!isSearching">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </button>
+                    <input v-if="isSearching" type="search" v-model="searchNumber" placeholder="請輸入電話號碼 (末三碼)" 
+                        @input="searchReservations" @blur="handleBlur" class="searchInput" ref="searchInput"/>
+                </div>
+
+                <div v-for="wait in waitlist" :key="wait.id" class="waitlistItem">
+                    <!-- 顧客名字 -->
+                    <div class="customerName">{{ wait.name }}</div>
+
+                    <!-- 顧客手機與候位人數 -->
+                    <div class="customerPhoneAndParty">
+                        <div class="customerPhone">
+                            <i class="fa-solid fa-phone"></i>
+                            {{ wait.phone }}
+                        </div>
+                        <div class="customerPartySize">
+                            <i class="fa-solid fa-user-group"></i>
+                            {{ wait.partySize }}位
+                        </div>
+                    </div>
+
+                    <!-- 桌號與登記時間 -->
+                    <div class="tableNumberAndTime">
+                        <div class="tableNumbers">{{ wait.table }}</div>
+                        <div class="registrationTime">{{ wait.registrationTime }}</div>
+                    </div>
+
+                    <!-- 候位順序 -->
+                    <div class="waitPositionAndTime">
+                        <div class="waitPosition">候位 {{ wait.position }}</div>
+                        <div class="checkinArea">
+                            <input type="checkbox" id="checkin_{{ reservation.id }}" name="checkin" @click="confirmCheckIn(reservation.tables[0])" />
+                            <label for="checkin_{{ reservation.id }}">報到</label>
+                        </div>
+                        <div class="cancelArea">
+                            <!-- 當取消勾選時調用 confirmCancellation 方法 -->
+                            <input type="checkbox" id="cancel_{{ reservation.id }}" name="cancel" @click="confirmCancellation(reservation.id)" />
+                            <label for="cancel_{{ reservation.id }}">取消</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 開啟候位 model 視窗 button -->
+            <button v-if="viewType === 'waitlist'" class="newWaitlist" @click="showWaitlistModal = true">
+                <i class="fa-solid fa-plus"></i>
+                新增候位
+            </button>
+        </div>
+
+        <!-- 新增訂位 Modal -->
+        <div v-if="showReservationModal" class="reservationModal" @click="closeReservationModal">
+            <div class="modalContent" @click.stop>
+                <!-- 訂位區域 -->
+                <div class="reserveInfoArea">
+                    <h3 class="reserveInfoTitle">訂位資訊</h3>
+                
+                    <div class="partySizeAndDateArea">
+                        <!-- 人數選擇 -->
+                        <div class="partySizeArea">
+                            <label for="partySize">人數</label>
+                            <select v-model="newReservation.people">
+                                <option disabled value="">選擇人數</option>
+                                <option v-for="n in 20" :key="n" :value="n">{{ n }}</option>
+                            </select>
+                        </div>
+            
+                            <!-- 日期選擇 -->
+                            <div class="dateArea">
+                                <label for="date">日期</label>
+                                <input type="date" v-model="newReservation.date" />
+                            </div>
+                    </div>
+            
+            
+                    <!-- 時段選擇 -->
+                    <div class="timeSlotsArea">
+                        <label for="time">時段</label>
+                        <div class="timeButtonArea">
+                            <!-- 根據 available 狀態來顯示可用的時段 -->
+                            <button 
+                                v-for="time in availableTimes" 
+                                :key="time.startTime" 
+                                :class="{ selected: newReservation.time === time.startTime, disabled: !time.available }" 
+                                @click="newReservation.time = time.startTime" 
+                                :disabled="!time.available">
+                                {{ time.startTime }}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            
+                <!-- 聯絡資料 -->
+                <div class="contactInfoArea">
+                    <h3 class="contactInfoTitle">聯絡資料</h3>
+            
+                    <div class="nameAndTitleArea">
+                        <!-- 訂位人姓名 -->
+                        <div class="nameArea">
+                            <label for="name">訂位人姓名</label>
+                            <input type="text" v-model="newReservation.name" />
+                        </div>
+                        <!-- 稱謂選擇 -->
+                        <div class="titleArea">
+                            <label>
+                                <input type="radio" v-model="newReservation.title" value="先生" /> 先生
+                            </label>
+                            <label>
+                                <input type="radio" v-model="newReservation.title" value="小姐" /> 小姐
+                            </label>
+                            <label>
+                                <input type="radio" v-model="newReservation.title" value="其他" /> 其他
+                            </label>
+                        </div>
+                    </div>
+            
+            
+                    <!-- 電話號碼 -->
+                    <div class="phoneArea">
+                        <label for="phone">電話號碼</label>
+                        <input type="text" v-model="newReservation.phone" />
+                    </div>
+            
+                    <!-- 電子郵件 -->
+                    <div class="mailArea">
+                        <label for="email">電子郵件Email</label>
+                        <input type="email" v-model="newReservation.email" />
+                    </div>
+                </div>
+            
+                <!-- 按鈕 -->
+                <div class="buttonArea">
+                    <button class="cancelButton" @click="closeReservationModal">取消</button>
+                    <button class="addButton" @click="addReservation">確認</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 新增候位 Modal -->
+        <div v-if="showWaitlistModal" class="waitlistModal" @click="closeWaitlistModal">
+            <div class="modalContent" @click.stop>
+                <!-- 候位區域 -->
+                <div class="waitlistInfoArea">
+                    <h3 class="waitlistInfoTitle">候位資訊</h3>
+                
+                    <div class="partySizeAndDateArea">
+                        <!-- 人數選擇 -->
+                        <div class="partySizeArea">
+                            <label for="partySize">人數</label>
+                            <select v-model="newWaitlist.people">
+                                <option disabled value="">選擇人數</option>
+                                <option v-for="n in 20" :key="n" :value="n">{{ n }}</option>
+                            </select>
+                        </div>
+                        
+                        <!-- 日期選擇 -->
+                        <div class="dateArea">
+                            <label for="date">日期</label>
+                            <input type="date" v-model="newWaitlist.date" />
+                        </div>
+                    </div>
+                    
+                    <div class="timeAndOrderArea">
+                        <!-- 時段選擇 -->
+                        <div class="timeArea">
+                            <label for="time">時間</label>
+                            <input class="timeInput" type="time" v-model="newWaitlist.time" />
                         </div>
 
                         <!-- 候位順序 -->
-                        <div class="waitPositionAndTime">
-                            <div class="waitPosition">候位 {{ wait.position }}</div>
-                            <div class="checkinArea">
-                                <input type="checkbox" id="checkin_{{ reservation.id }}" name="checkin" @click="confirmCheckIn(reservation.tables[0])" />
-                                <label for="checkin_{{ reservation.id }}">報到</label>
-                            </div>
-                            <div class="cancelArea">
-                                <!-- 當取消勾選時調用 confirmCancellation 方法 -->
-                                <input type="checkbox" id="cancel_{{ reservation.id }}" name="cancel" @click="confirmCancellation(reservation.id)" />
-                                <label for="cancel_{{ reservation.id }}">取消</label>
-                            </div>
+                        <div class="orderArea">
+                            <label for="order">前方候位組數</label>
+                            <input type="text" :value="maxWaitlistOrder" readonly />
                         </div>
                     </div>
                 </div>
+            
+                <!-- 聯絡資料 -->
+                <div class="contactInfoArea">
+                    <h3 class="contactInfoTitle">聯絡資料</h3>
 
-                <!-- 開啟候位 model 視窗 button -->
-                <button v-if="viewType === 'waitlist'" class="newWaitlist" @click="showWaitlistModal = true">
-                    <i class="fa-solid fa-plus"></i>
-                    新增候位
-                </button>
-            </div>
-
-            <!-- 結帳側邊欄區域 -->
-            <div v-if="selectedTable" class="sidebarArea">
-                <!-- 黑色背景層 -->
-                <div class="sidebarBackground" @click="closePanel"></div>
-
-                <!-- 側邊欄 -->
-                <div class="sidebar">
-                    <div class="sideHeader">
-
-                        <!-- 返回鍵、結帳明細 -->
+                    <div class="nameAndTitleArea">
+                        <!-- 訂位人姓名 -->
+                        <div class="nameArea">
+                            <label for="name">訂位人姓名</label>
+                            <input type="text" v-model="newWaitlist.name" />
+                        </div>
+                        <!-- 稱謂選擇 -->
                         <div class="titleArea">
-                            <i class="fa-solid fa-chevron-right" @click="closePanel"></i>
-                            <h2>結帳明細</h2>
-                        </div>
-
-                        <!-- 桌號、訂單編號、會員電話 -->
-                        <div class="dataArea">
-                            <!-- 桌號 -->
-                            <div class="tableNumber">{{ selectedTable.id }}</div>
-
-                            <!-- 訂單編號 -->
-                            <div class="orderNumber">
-                                <p>訂單編號</p>
-                                {{ ordersId }} {{ selectedTable.name }}
-                            </div>
-
-                            <!-- 會員電話輸入框 
-                        <div class="memberArea">
-                            <div class="memberPhone">
-                                <input type="search" class="phoneInput" placeholder="輸入會員電話" v-model="memberPhoneNumber"/>
-                                <button class="searchButton" @click="searchMember"><i class="fa-solid fa-search"></i></button>
-                            </div>
-                            <div v-if="memberDiscount" class="memberDiscount">
-                                <span>黃金會員 {{ memberDiscount }} 折</span>
-                            </div>
-                        </div>-->
+                            <label>
+                                <input type="radio" v-model="newWaitlist.title" value="先生" /> 先生
+                            </label>
+                            <label>
+                                <input type="radio" v-model="newWaitlist.title" value="小姐" /> 小姐
+                            </label>
+                            <label>
+                                <input type="radio" v-model="newWaitlist.title" value="其他" /> 其他
+                            </label>
                         </div>
                     </div>
 
-                    <div class="sideBody">
 
-                        <!-- 明細、金額區域 -->
-                        <div class="detailSection">
+                    <!-- 電話號碼 -->
+                    <div class="phoneArea">
+                        <label for="phone">電話號碼</label>
+                        <input type="text" v-model="newWaitlist.phone" />
+                    </div>
 
-                            <!-- 餐點明細 -->
-                            <div class="orderDetails">
-                                <h3 class="orderTitle">餐點明細</h3>
-                                <div v-for="(item, index) in orderItems" :key="index" class="orderItem">
-                                    <div class="itemInfo">
-
-                                        <!-- 餐點名稱 -->
-                                        <div class="orderName">{{ item.name }}</div>
-
-                                        <!-- 餐點細項 -->
-                                        <ul v-if="item.notes && item.notes.length">
-                                            <li v-for="(note, idx) in item.notes" :key="idx">{{ note }}</li>
-                                        </ul>
-                                    </div>
-                                    <div class="itemPrice">$ {{ item.price }}</div>
-                                </div>
-                            </div>
-
-                            <!-- 總金額、折扣與小計 -->
-                            <div class="totalSummary">
-                                <div class="totalPrice">
-                                    <p>總金額</p>
-                                    $ {{ total }}
-                                </div>
-                                <!-- <div class="priceDiscount">
-                                <p>折扣</p>
-                                黃金會員 {{ memberDiscount || 100 }} 折
-                            </div> -->
-                                <div class="summary">
-                                    <p>小計</p>
-                                    $ {{ subtotal }}
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 付款方式 -->
-                        <div class="paymentSection">
-                            <h3 class="paymentTitle">選擇付款方式</h3>
-                            <select class="paymentSelect" v-model="paymentMethod">
-                                <option value="creditCard">信用卡</option>
-                                <option value="cash">現金</option>
-                            </select>
-
-                            <!-- 信用卡表單 -->
-                            <div v-if="paymentMethod === 'creditCard'" class="creditCardForm">
-
-                                <!--<div>
-                                <label>卡號</label>
-                                <input type="text" v-model="creditCardInfo.cardNumber" />
-                            </div>
-                            <div>
-                                <label>持卡人姓名</label>
-                                <input type="text" v-model="creditCardInfo.cardHolder" />
-                            </div>
-                            <div>
-                                <label>卡片到期日</label>
-                                <input type="text" v-model="creditCardInfo.expiryDate" />
-                            </div>
-                            <div>
-                                <label>確認碼</label>
-                                <input type="text" v-model="creditCardInfo.cvv" />
-                            </div>
-                            -->
-                                <button class="confirmButton" @click="confirmPayment(this.ordersId)">確認付款</button>
-                            </div>
-
-                            <!-- 現金付款表單 -->
-                            <div v-if="paymentMethod === 'cash'" class="cashForm">
-                                <div>
-                                    <input type="number" placeholder="輸入收取金額" v-model="receivedAmount"
-                                        @input="calculateChange" 
-                                        @keypress="onlyNumbers"/>
-                                </div>
-                                <div class="cashSummary">
-                                    <div class="payment">
-                                        <p>付款</p>
-                                        $ {{ receivedAmount }}
-                                    </div>
-                                    <div class="summary">
-                                        <p>訂單金額</p>
-                                        $ {{ subtotal }}
-                                    </div>
-                                    <div class="change">
-                                        <p>找零</p>
-                                        $ {{ change }}
-                                    </div>
-                                </div>
-
-                                <button class="confirmButton" @click="confirmPayment(this.ordersId)">確認付款</button>
-                            </div>
-                        </div>
+                    <!-- 電子郵件 -->
+                    <div class="mailArea">
+                        <label for="email">電子郵件Email</label>
+                        <input type="email" v-model="newWaitlist.email" />
                     </div>
                 </div>
-            </div>
-
-            <!-- 新增訂位 Modal -->
-            <div v-if="showReservationModal" class="reservationModal" @click="closeReservationModal">
-            <div class="modalContent" @click.stop>
-                <!-- 訂位區域 -->
-                <div class="reserveInfoArea">
-                    <h3 class="reserveInfoTitle">訂位資訊</h3>
-                
-                    <div class="partySizeAndDateArea">
-                        <!-- 人數選擇 -->
-                        <div class="partySizeArea">
-                            <label for="partySize">人數</label>
-                            <select v-model="newReservation.partySize">
-                                <option disabled value="">選擇人數</option>
-                                <option v-for="n in 20" :key="n" :value="n">{{ n }}</option>
-                            </select>
-                        </div>
-
-                            <!-- 日期選擇 -->
-                            <div class="dateArea">
-                                <label for="date">日期</label>
-                                <input type="date" v-model="newReservation.date" />
-                            </div>
-                        </div>
-
-
-                        <!-- 時段選擇 -->
-                        <div class="timeSlotsArea">
-                            <label for="time">時段</label>
-                            <div class="timeButtonArea">
-                                <button v-for="time in availableTimes" :key="time.startTime"
-                                    :class="{ selected: newReservation.time === time.startTime }"
-                                    @click="newReservation.time = time.startTime">
-                                    {{ time.startTime }}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 聯絡資料 -->
-                    <div class="contactInfoArea">
-                        <h3 class="contactInfoTitle">聯絡資料</h3>
-
-                        <div class="nameAndTitleArea">
-                            <!-- 訂位人姓名 -->
-                            <div class="nameArea">
-                                <label for="name">訂位人姓名</label>
-                                <input type="text" v-model="newReservation.name" />
-                            </div>
-                            <!-- 稱謂選擇 -->
-                            <div class="titleArea">
-                                <label>
-                                    <input type="radio" v-model="newReservation.title" value="先生" /> 先生
-                                </label>
-                                <label>
-                                    <input type="radio" v-model="newReservation.title" value="小姐" /> 小姐
-                                </label>
-                                <label>
-                                    <input type="radio" v-model="newReservation.title" value="其他" /> 其他
-                                </label>
-                            </div>
-                        </div>
-
-
-                        <!-- 電話號碼 -->
-                        <div class="phoneArea">
-                            <label for="phone">電話號碼</label>
-                            <input type="text" v-model="newReservation.phone" />
-                        </div>
-
-                        <!-- 電子郵件 -->
-                        <div class="mailArea">
-                            <label for="email">電子郵件Email</label>
-                            <input type="email" v-model="newReservation.email" />
-                        </div>
-                    </div>
-
-                    <!-- 按鈕 -->
-                    <div class="buttonArea">
-                        <button class="cancelButton" @click="closeReservationModal">取消</button>
-                        <button class="addButton" @click="addReservation">確認</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 新增候位 Modal -->
-            <div v-if="showWaitlistModal" class="waitlistModal" @click="closeWaitlistModal">
-            <div class="modalContent" @click.stop>
-                <!-- 訂位區域 -->
-                <div class="reserveInfoArea">
-                    <h3 class="reserveInfoTitle">訂位資訊</h3>
-                
-                    <div class="partySizeAndDateArea">
-                        <!-- 人數選擇 -->
-                        <div class="partySizeArea">
-                            <label for="partySize">人數</label>
-                            <select v-model="newReservation.partySize">
-                                <option disabled value="">選擇人數</option>
-                                <option v-for="n in 20" :key="n" :value="n">{{ n }}</option>
-                            </select>
-                        </div>
-
-                            <!-- 日期選擇 -->
-                            <div class="dateArea">
-                                <label for="date">日期</label>
-                                <input type="date" v-model="newReservation.date" />
-                            </div>
-                        </div>
-
-
-                        <!-- 時段選擇 -->
-                        <div class="timeSlotsArea">
-                            <label for="time">時段</label>
-                            <div class="timeButtonArea">
-                                <button v-for="time in availableTimes" :key="time.startTime"
-                                    :class="{ selected: newReservation.time === time.startTime }"
-                                    @click="newReservation.time = time.startTime">
-                                    {{ time.startTime }}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 聯絡資料 -->
-                    <div class="contactInfoArea">
-                        <h3 class="contactInfoTitle">聯絡資料</h3>
-
-                        <div class="nameAndTitleArea">
-                            <!-- 訂位人姓名 -->
-                            <div class="nameArea">
-                                <label for="name">訂位人姓名</label>
-                                <input type="text" v-model="newReservation.name" />
-                            </div>
-                            <!-- 稱謂選擇 -->
-                            <div class="titleArea">
-                                <label>
-                                    <input type="radio" v-model="newReservation.title" value="先生" /> 先生
-                                </label>
-                                <label>
-                                    <input type="radio" v-model="newReservation.title" value="小姐" /> 小姐
-                                </label>
-                                <label>
-                                    <input type="radio" v-model="newReservation.title" value="其他" /> 其他
-                                </label>
-                            </div>
-                        </div>
-
-
-                        <!-- 電話號碼 -->
-                        <div class="phoneArea">
-                            <label for="phone">電話號碼</label>
-                            <input type="text" v-model="newReservation.phone" />
-                        </div>
-
-                        <!-- 電子郵件 -->
-                        <div class="mailArea">
-                            <label for="email">電子郵件Email</label>
-                            <input type="email" v-model="newReservation.email" />
-                        </div>
-                    </div>
-
-                    <!-- 按鈕 -->
-                    <div class="buttonArea">
-                        <button class="cancelButton" @click="closeReservationModal">取消</button>
-                        <button class="addButton" @click="addReservation">確認</button>
-                    </div>
+            
+                <!-- 按鈕 -->
+                <div class="buttonArea">
+                    <button class="cancelButton" @click="closeWaitlistModal">取消</button>
+                    <button class="addButton" @click="addWaitlist">確認</button>
                 </div>
             </div>
         </div>
     </div>
+</div>
 </template>
 
 <style scoped lang="scss">
@@ -1429,9 +1520,365 @@ export default {
             }
         }
 
+        .sidebarArea {
+            width: 100vw;
+            height: 100vh;
+            position: fixed;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+
+            .sidebarBackground {
+                width: 100vw;
+                height: 100vh;
+                background: rgba(0, 0, 0, 0.5);
+                /* 半透明的黑色遮罩 */
+                position: absolute;
+                top: 0;
+                left: 0;
+                cursor: pointer;
+            }
+
+            .sidebar {
+                width: 50%;
+                height: 100%;
+                border-radius: 10px;
+                background-color: #fff;
+                padding: 20px;
+                position: relative;
+                z-index: 100;
+                /* 確保側邊欄在遮罩上面 */
+
+                .sideHeader {
+                    display: flex;
+                    flex-direction: column;
+
+                    .titleArea {
+                        letter-spacing: 5px;
+                        display: flex;
+                        align-items: center;
+                        margin-bottom: 15px;
+
+                        i {
+                            font-size: 20px;
+                            color: #878D96;
+                            margin-right: 10px;
+                            cursor: pointer;
+                        }
+                    }
+
+                    .dataArea {
+                        display: flex;
+                        align-items: center;
+                        margin-bottom: 15px;
+
+                        .tableNumber {
+                            border-radius: 10px;
+                            background-color: #DDE1E6;
+                            font-size: 22px;
+                            font-weight: bolder;
+                            padding: 20px 15px;
+                        }
+
+                        .orderNumber {
+                            font-size: 17px;
+                            color: #343A3F;
+                            font-weight: bold;
+                            padding: 15px;
+
+                            p {
+                                margin-bottom: 5px;
+                            }
+                        }
+
+                        .memberArea {
+                            display: flex;
+                            flex-direction: column;
+                            align-items: end;
+                            position: absolute;
+                            right: 2%;
+
+                            .memberPhone {
+                                display: flex;
+                                align-items: center;
+                                margin-bottom: 5px;
+
+                                .phoneInput {
+                                    width: 350px;
+                                    height: 40px;
+                                    border: 1px solid #697077;
+                                    border-radius: 5px;
+                                    font-size: 18px;
+                                    color: #A2A9B0;
+                                    text-indent: 10px;
+                                    letter-spacing: 2px;
+                                    outline: none;
+                                }
+
+                                .searchButton {
+                                    margin: 10px;
+                                    background: none;
+                                    border: none;
+                                    font-size: 20px;
+                                    color: #697077;
+                                    cursor: pointer;
+                                }
+                            }
+
+                            .memberDiscount {
+                                font-size: 16px;
+                                letter-spacing: 2px;
+                                margin-right: 15px;
+                            }
+                        }
+                    }
+                }
+
+                .sideBody {
+                    height: 84%;
+                    display: flex;
+                    justify-content: space-between;
+
+                    .detailSection {
+                        width: 50%;
+                        border-radius: 10px;
+                        background-color: #F2F4F8;
+                        padding: 20px;
+
+                        .orderDetails {
+                            width: 100%;
+                            height: 600px;
+                            max-height: 600px;
+                            overflow-y: auto;
+                            margin-bottom: 10px;
+
+                            .orderTitle {
+                                font-size: 20px;
+                                letter-spacing: 5px;
+                                margin-bottom: 20px;
+                            }
+
+                            .orderItem {
+                                width: 100%;
+                                border: 2px solid #d9d9d9;
+                                border-radius: 10px;
+                                display: flex;
+                                justify-content: space-between;
+                                padding: 10px 20px;
+                                margin-bottom: 10px;
+
+                                .itemInfo {
+                                    flex: 1;
+                                    display: flex;
+                                    flex-direction: column;
+
+                                    .orderName {
+                                        font-size: 17px;
+                                        color: #1e1e1e;
+                                        font-weight: bold;
+                                        letter-spacing: 3px;
+                                        margin-bottom: 10px;
+                                    }
+
+                                    ul {
+                                        font-size: 15px;
+                                        letter-spacing: 1px;
+                                        color: #21272A;
+                                        margin-left: 20px;
+
+                                        li {
+                                            margin-bottom: 5px;
+                                        }
+                                    }
+                                }
+
+                                .itemPrice {
+                                    font-size: 17px;
+                                    letter-spacing: 2px;
+                                    color: #1e1e1e;
+                                }
+                            }
+                        }
+
+                        .totalSummary {
+                            padding: 20px;
+
+                            .totalPrice {
+                                font-size: 15px;
+                                font-weight: bold;
+                                letter-spacing: 3px;
+                                color: #697077;
+                                display: flex;
+                                justify-content: space-between;
+                                margin-bottom: 10px;
+                            }
+
+                            .priceDiscount {
+                                font-size: 15px;
+                                font-weight: bold;
+                                letter-spacing: 3px;
+                                color: #697077;
+                                display: flex;
+                                justify-content: space-between;
+                                margin-bottom: 15px;
+                            }
+
+                            .summary {
+                                font-size: 17px;
+                                font-weight: bold;
+                                letter-spacing: 3px;
+                                color: #1e1e1e;
+                                display: flex;
+                                justify-content: space-between;
+                            }
+                        }
+                    }
+
+                    .paymentSection {
+                        width: 50%;
+                        padding: 20px;
+
+                        .paymentTitle {
+                            font-size: 20px;
+                            letter-spacing: 5px;
+                            margin-bottom: 20px;
+                        }
+
+                        .paymentSelect {
+                            width: 100%;
+                            border: 1px solid #A2A9B0;
+                            border-radius: 10px;
+                            font-size: 16px;
+                            letter-spacing: 2px;
+                            appearance: none;
+                            /* 隱藏默認的箭頭 */
+                            background: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyLjcxNzUgNi41NDc1QzEzLjE3OTcgNi4xNDcyIDEzLjI4MjIgNS40MTMgMTIuOTg3MiA0LjkzMjVDMTIuNjkzMiA0LjQ1MjUgMTIuMDEwNCA0LjQ1MjUgMTEuNzE3IDQuOTMyNUw4IDkuMzM1NEw0LjI4MjUgNC45MzI1QzMuOTg5NiA0LjQ1MjUgMy4zMDY4IDQuNDUyNSAyLjAxMjggNC45MzI1QzEuNzE4OCA1LjQxMyAxLjgyMTEgNi4xNDcyIDIuMjg0MTIgNi41NDc1TDcuMzE1MTIgMTEuNTA2QzcuNzU4NDEgMTEuOTYxIDguMjQxNiAxMS45NjEgOC42ODY4IDExLjUwNkMxMC4xNzA4IDEwLjI1NyAxMS41OTExIDguOTAzNTggMTIuNzE3NSA3LjY2MjVIMTIuNzE3NVoiIGZpbGw9IiMyMjIyMjIiLz4KPC9zdmc+') no-repeat;
+                            /* 使用 base64 格式的箭頭圖標 */
+                            background-position: calc(100% - 20px) center;
+                            /* 調整箭頭的位置，讓它距離左邊更近 */
+                            background-size: 15px;
+                            /* 調整箭頭大小 */
+                            outline: none;
+                            cursor: pointer;
+                            padding: 10px;
+                            margin-bottom: 30px;
+                        }
+
+                        .creditCardForm {
+                            width: 100%;
+                            height: 85%;
+                            position: relative;
+
+                            label {
+                                font-size: 16px;
+                                letter-spacing: 2px;
+                            }
+
+                            input {
+                                width: 100%;
+                                height: 40%;
+                                border: 1px solid #DDE1E6;
+                                border-radius: 10px;
+                                font-size: 16px;
+                                color: #697077;
+                                letter-spacing: 2px;
+                                outline: none;
+                                padding: 10px;
+                                margin: 10px 0px;
+                            }
+
+                            .confirmButton {
+                                width: 100%;
+                                border: none;
+                                border-radius: 10px;
+                                background-color: #343A3F;
+                                font-size: 16px;
+                                letter-spacing: 3px;
+                                color: #ffffff;
+                                padding: 15px;
+                                position: absolute;
+                                bottom: 4%;
+                                cursor: pointer;
+                            }
+                        }
+
+                        .cashForm {
+                            width: 100%;
+                            height: 85%;
+                            position: relative;
+
+                            input {
+                                width: 100%;
+                                height: 40%;
+                                border: 1px solid #DDE1E6;
+                                border-radius: 10px;
+                                background-color: #F2F4F8;
+                                font-size: 16px;
+                                color: #697077;
+                                letter-spacing: 2px;
+                                outline: none;
+                                padding: 10px;
+                                margin: 10px 0px;
+                            }
+
+                            .cashSummary {
+                                padding: 20px;
+
+                                .payment {
+                                    font-size: 16px;
+                                    font-weight: bold;
+                                    letter-spacing: 3px;
+                                    color: #697077;
+                                    display: flex;
+                                    justify-content: space-between;
+                                    margin-bottom: 15px;
+                                }
+
+                                .summary {
+                                    font-size: 16px;
+                                    font-weight: bold;
+                                    letter-spacing: 3px;
+                                    color: #697077;
+                                    display: flex;
+                                    justify-content: space-between;
+                                    margin-bottom: 15px;
+                                }
+
+                                .change {
+                                    font-size: 18px;
+                                    font-weight: bold;
+                                    letter-spacing: 3px;
+                                    color: #1e1e1e;
+                                    display: flex;
+                                    justify-content: space-between;
+                                }
+                            }
+
+                            .confirmButton {
+                                width: 100%;
+                                border: none;
+                                border-radius: 10px;
+                                background-color: #343A3F;
+                                font-size: 16px;
+                                letter-spacing: 3px;
+                                color: #ffffff;
+                                padding: 15px;
+                                position: absolute;
+                                bottom: 4%;
+                                cursor: pointer;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         .reservationArea {
             width: 35%;
-            height: 98%;
+            height: 100%;
             border-radius: 10px;
             background-color: #FFFFFF;
             display: flex;
@@ -1813,361 +2260,6 @@ export default {
             }
         }
 
-        .sidebarArea {
-            width: 100vw;
-            height: 100vh;
-            position: fixed;
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            top: 0;
-            left: 0;
-
-            .sidebarBackground {
-                width: 100vw;
-                height: 100vh;
-                background: rgba(0, 0, 0, 0.5);
-                /* 半透明的黑色遮罩 */
-                position: absolute;
-                top: 0;
-                left: 0;
-                cursor: pointer;
-            }
-
-            .sidebar {
-                width: 50%;
-                height: 98%;
-                border-radius: 10px;
-                background-color: #fff;
-                padding: 20px;
-                position: relative;
-                z-index: 100;
-                /* 確保側邊欄在遮罩上面 */
-
-                .sideHeader {
-                    display: flex;
-                    flex-direction: column;
-
-                    .titleArea {
-                        letter-spacing: 5px;
-                        display: flex;
-                        align-items: center;
-                        margin-bottom: 15px;
-
-                        i {
-                            font-size: 20px;
-                            color: #878D96;
-                            margin-right: 10px;
-                            cursor: pointer;
-                        }
-                    }
-
-                    .dataArea {
-                        display: flex;
-                        align-items: center;
-                        margin-bottom: 15px;
-
-                        .tableNumber {
-                            border-radius: 10px;
-                            background-color: #DDE1E6;
-                            font-size: 22px;
-                            font-weight: bolder;
-                            padding: 20px 15px;
-                        }
-
-                        .orderNumber {
-                            font-size: 17px;
-                            color: #343A3F;
-                            font-weight: bold;
-                            padding: 15px;
-
-                            p {
-                                margin-bottom: 5px;
-                            }
-                        }
-
-                        .memberArea {
-                            display: flex;
-                            flex-direction: column;
-                            align-items: end;
-                            position: absolute;
-                            right: 2%;
-
-                            .memberPhone {
-                                display: flex;
-                                align-items: center;
-                                margin-bottom: 5px;
-
-                                .phoneInput {
-                                    width: 350px;
-                                    height: 40px;
-                                    border: 1px solid #697077;
-                                    border-radius: 5px;
-                                    font-size: 18px;
-                                    color: #A2A9B0;
-                                    text-indent: 10px;
-                                    letter-spacing: 2px;
-                                    outline: none;
-                                }
-
-                                .searchButton {
-                                    margin: 10px;
-                                    background: none;
-                                    border: none;
-                                    font-size: 20px;
-                                    color: #697077;
-                                    cursor: pointer;
-                                }
-                            }
-
-                            .memberDiscount {
-                                font-size: 16px;
-                                letter-spacing: 2px;
-                                margin-right: 15px;
-                            }
-                        }
-                    }
-                }
-
-                .sideBody {
-                    height: 84%;
-                    display: flex;
-                    justify-content: space-between;
-
-                    .detailSection {
-                        width: 50%;
-                        border-radius: 10px;
-                        background-color: #F2F4F8;
-                        padding: 20px;
-
-                        .orderDetails {
-                            width: 100%;
-                            height: 600px;
-                            max-height: 600px;
-                            overflow-y: auto;
-                            margin-bottom: 10px;
-
-                            .orderTitle {
-                                font-size: 20px;
-                                letter-spacing: 5px;
-                                margin-bottom: 20px;
-                            }
-
-                            .orderItem {
-                                width: 100%;
-                                border: 2px solid #d9d9d9;
-                                border-radius: 10px;
-                                display: flex;
-                                justify-content: space-between;
-                                padding: 10px 20px;
-                                margin-bottom: 10px;
-
-                                .itemInfo {
-                                    flex: 1;
-                                    display: flex;
-                                    flex-direction: column;
-
-                                    .orderName {
-                                        font-size: 17px;
-                                        color: #1e1e1e;
-                                        font-weight: bold;
-                                        letter-spacing: 3px;
-                                        margin-bottom: 10px;
-                                    }
-
-                                    ul {
-                                        font-size: 15px;
-                                        letter-spacing: 1px;
-                                        color: #21272A;
-                                        margin-left: 20px;
-
-                                        li {
-                                            margin-bottom: 5px;
-                                        }
-                                    }
-                                }
-
-                                .itemPrice {
-                                    font-size: 17px;
-                                    letter-spacing: 2px;
-                                    color: #1e1e1e;
-                                }
-                            }
-                        }
-
-                        .totalSummary {
-                            padding: 20px;
-
-                            .totalPrice {
-                                font-size: 15px;
-                                font-weight: bold;
-                                letter-spacing: 3px;
-                                color: #697077;
-                                display: flex;
-                                justify-content: space-between;
-                                margin-bottom: 10px;
-                            }
-
-                            .priceDiscount {
-                                font-size: 15px;
-                                font-weight: bold;
-                                letter-spacing: 3px;
-                                color: #697077;
-                                display: flex;
-                                justify-content: space-between;
-                                margin-bottom: 15px;
-                            }
-
-                            .summary {
-                                font-size: 17px;
-                                font-weight: bold;
-                                letter-spacing: 3px;
-                                color: #1e1e1e;
-                                display: flex;
-                                justify-content: space-between;
-                            }
-                        }
-                    }
-
-                    .paymentSection {
-                        width: 50%;
-                        padding: 20px;
-
-                        .paymentTitle {
-                            font-size: 20px;
-                            letter-spacing: 5px;
-                            margin-bottom: 20px;
-                        }
-
-                        .paymentSelect {
-                            width: 100%;
-                            border: 1px solid #A2A9B0;
-                            border-radius: 10px;
-                            font-size: 16px;
-                            letter-spacing: 2px;
-                            appearance: none;
-                            /* 隱藏默認的箭頭 */
-                            background: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyLjcxNzUgNi41NDc1QzEzLjE3OTcgNi4xNDcyIDEzLjI4MjIgNS40MTMgMTIuOTg3MiA0LjkzMjVDMTIuNjkzMiA0LjQ1MjUgMTIuMDEwNCA0LjQ1MjUgMTEuNzE3IDQuOTMyNUw4IDkuMzM1NEw0LjI4MjUgNC45MzI1QzMuOTg5NiA0LjQ1MjUgMy4zMDY4IDQuNDUyNSAyLjAxMjggNC45MzI1QzEuNzE4OCA1LjQxMyAxLjgyMTEgNi4xNDcyIDIuMjg0MTIgNi41NDc1TDcuMzE1MTIgMTEuNTA2QzcuNzU4NDEgMTEuOTYxIDguMjQxNiAxMS45NjEgOC42ODY4IDExLjUwNkMxMC4xNzA4IDEwLjI1NyAxMS41OTExIDguOTAzNTggMTIuNzE3NSA3LjY2MjVIMTIuNzE3NVoiIGZpbGw9IiMyMjIyMjIiLz4KPC9zdmc+') no-repeat;
-                            /* 使用 base64 格式的箭頭圖標 */
-                            background-position: calc(100% - 20px) center;
-                            /* 調整箭頭的位置，讓它距離左邊更近 */
-                            background-size: 15px;
-                            /* 調整箭頭大小 */
-                            outline: none;
-                            cursor: pointer;
-                            padding: 10px;
-                            margin-bottom: 30px;
-                        }
-
-                        .creditCardForm {
-                            width: 100%;
-                            height: 85%;
-                            position: relative;
-
-                            label {
-                                font-size: 16px;
-                                letter-spacing: 2px;
-                            }
-
-                            input {
-                                width: 100%;
-                                height: 40%;
-                                border: 1px solid #DDE1E6;
-                                border-radius: 10px;
-                                font-size: 16px;
-                                color: #697077;
-                                letter-spacing: 2px;
-                                outline: none;
-                                padding: 10px;
-                                margin: 10px 0px;
-                            }
-
-                            .confirmButton {
-                                width: 100%;
-                                border: none;
-                                border-radius: 10px;
-                                background-color: #343A3F;
-                                font-size: 16px;
-                                letter-spacing: 3px;
-                                color: #ffffff;
-                                padding: 15px;
-                                position: absolute;
-                                bottom: 4%;
-                                cursor: pointer;
-                            }
-                        }
-
-                        .cashForm {
-                            width: 100%;
-                            height: 85%;
-                            position: relative;
-
-                            input {
-                                width: 100%;
-                                height: 40%;
-                                border: 1px solid #DDE1E6;
-                                border-radius: 10px;
-                                background-color: #F2F4F8;
-                                font-size: 16px;
-                                color: #697077;
-                                letter-spacing: 2px;
-                                outline: none;
-                                padding: 10px;
-                                margin: 10px 0px;
-                            }
-
-                            .cashSummary {
-                                padding: 20px;
-
-                                .payment {
-                                    font-size: 16px;
-                                    font-weight: bold;
-                                    letter-spacing: 3px;
-                                    color: #697077;
-                                    display: flex;
-                                    justify-content: space-between;
-                                    margin-bottom: 15px;
-                                }
-
-                                .summary {
-                                    font-size: 16px;
-                                    font-weight: bold;
-                                    letter-spacing: 3px;
-                                    color: #697077;
-                                    display: flex;
-                                    justify-content: space-between;
-                                    margin-bottom: 15px;
-                                }
-
-                                .change {
-                                    font-size: 18px;
-                                    font-weight: bold;
-                                    letter-spacing: 3px;
-                                    color: #1e1e1e;
-                                    display: flex;
-                                    justify-content: space-between;
-                                }
-                            }
-
-                            .confirmButton {
-                                width: 100%;
-                                border: none;
-                                border-radius: 10px;
-                                background-color: #343A3F;
-                                font-size: 16px;
-                                letter-spacing: 3px;
-                                color: #ffffff;
-                                padding: 15px;
-                                position: absolute;
-                                bottom: 4%;
-                                cursor: pointer;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
         .reservationModal {
             width: 100dvw;
             height: 100dvh;
@@ -2278,7 +2370,6 @@ export default {
 
                         .timeButtonArea {
                             display: flex;
-                            justify-content: space-between;
 
                             button {
                                 border: none;
@@ -2286,6 +2377,7 @@ export default {
                                 background-color: #E5E8EB;
                                 font-size: 16px;
                                 padding: 15px 25px;
+                                margin-right: 15px;
                                 cursor: pointer;
 
                                 &.selected {
@@ -2461,16 +2553,16 @@ export default {
 
             .modalContent {
                 width: 50%;
-                height: 75%;
+                height: 70%;
                 border-radius: 10px;
                 background: white;
                 padding: 20px;
 
-                .reserveInfoArea {
+                .waitlistInfoArea {
                     width: 100%;
                     height: 40%;
 
-                    .reserveInfoTitle {
+                    .waitlistInfoTitle {
                         font-size: 20px;
                         letter-spacing: 3px;
                         margin-bottom: 8px;
@@ -2541,36 +2633,57 @@ export default {
                         }
                     }
 
-                    .timeSlotsArea {
-                        width: 100%;
-                        height: 40%;
-                        overflow-x: scroll;
+                    .timeAndOrderArea {
+                        height: 35%;
                         display: flex;
-                        flex-direction: column;
+                        justify-content: space-between;
                         padding: 10px;
 
-                        label {
-                            font-size: 17px;
-                            letter-spacing: 4px;
-                            margin-bottom: 25px;
+                        .timeArea {
+                            width: 50%;
+                            height: 100%;
+                            display: flex;
+                            flex-direction: column;
+                            justify-content: space-evenly;
+
+                            label {
+                                font-size: 17px;
+                                letter-spacing: 4px;
+                                margin-bottom: 5px;
+                            }
+
+                            input {
+                                width: 65%;
+                                height: 35px;
+                                border-radius: 10px;
+                                border: 1px solid #C1C7CD;
+                                text-indent: 3px;
+                                outline: none;
+                                cursor: pointer;
+                            }
                         }
 
-                        .timeButtonArea {
+                        .orderArea {
+                            width: 35%;
+                            height: 100%;
                             display: flex;
-                            justify-content: space-between;
+                            flex-direction: column;
+                            justify-content: space-evenly;
 
-                            button {
-                                border: none;
+                            label {
+                                font-size: 17px;
+                                letter-spacing: 4px;
+                                margin-bottom: 5px;
+                            }
+
+                            input {
+                                width: 90%;
+                                height: 35px;
                                 border-radius: 10px;
-                                background-color: #E5E8EB;
-                                font-size: 16px;
-                                padding: 15px 25px;
+                                border: 1px solid #C1C7CD;
+                                text-indent: 5px;
+                                outline: none;
                                 cursor: pointer;
-
-                                &.selected {
-                                    background-color: #4D5358;
-                                    color: #FFFFFF;
-                                }
                             }
                         }
                     }
