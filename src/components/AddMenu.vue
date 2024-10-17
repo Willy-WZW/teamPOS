@@ -1404,7 +1404,7 @@ $subColor: #000000;
                     span {
                         font-weight: bold;
                         font-family: "Noto Sans TC", sans-serif;
-                        margin-left: 3.5%;
+                        margin-left: 4.5%;
                     }
 
                     .editInputCategory {
@@ -1500,7 +1500,7 @@ $subColor: #000000;
             width: 90%;
             height: 37px;
             border-radius: 10px;
-            border: 1px solid black;
+            border: 2px solid black;
             margin-bottom: 3%;
             cursor: pointer;
             display: flex;
@@ -1516,7 +1516,7 @@ $subColor: #000000;
             width: 90%;
             height: 37px;
             border-radius: 10px;
-            border: 1px solid black;
+            border: 2px solid black;
             font-weight: bold;
             margin-bottom: 3%;
             cursor: pointer;
@@ -1646,8 +1646,8 @@ $subColor: #000000;
                     .saveBtn {
                         width: 43.4%;
                         height: 91%;
-                        border-radius: 5px;
-                        border: 1px solid black;
+                        border-radius: 10px;
+                        border: 2px solid black;
                         font-weight: bold;
                         color: $subColor;
                         background-color: $selectedColor;
@@ -1915,8 +1915,8 @@ $subColor: #000000;
                     .saveBtn {
                         width: 17.4%;
                         height: 100%;
-                        border-radius: 5px;
-                        border: 1px solid black;
+                        border-radius: 10px;
+                        border: 2px solid black;
                         font-weight: bold;
                         cursor: pointer;
                         color: $subColor;
