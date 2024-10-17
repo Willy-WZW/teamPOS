@@ -1545,6 +1545,15 @@ export default {
 </template>
 
 <style scoped lang="scss">
+$divColor: #fff;
+$addDiv: #343a3f;
+$available-color: #28A745;
+$active-color: rgb(224, 45, 17, 0.8);
+$borderBot: #697077;
+$editColor: #e6b800;
+$reserve-color: #FFC90E;
+$subColor: #000000;
+
 .big {
     width: 100%;
     height: 100dvh;
@@ -1631,22 +1640,21 @@ export default {
                     width: 12px;
                     height: 12px;
                     border-radius: 50%;
-                    background-color: #878d96;
+                    background-color: $active-color;
                 }
 
                 .reservedDot {
                     width: 12px;
                     height: 12px;
                     border-radius: 50%;
-                    background-color: #c1c7cd;
+                    background-color: $reserve-color;
                 }
 
                 .availableDot {
                     width: 12px;
                     height: 12px;
                     border-radius: 50%;
-                    border: 1px solid #000;
-                    background-color: #f2f4f8;
+                    background-color: $available-color;
                 }
             }
 
@@ -1674,8 +1682,8 @@ export default {
                     cursor: move;
 
                     .circle {
-                        width: 100px;
-                        height: 100px;
+                        width: 80px;
+                        height: 80px;
                         border-radius: 50%;
                         background-color: #f4f6f9;
                         display: flex;
@@ -1685,17 +1693,17 @@ export default {
                         cursor: pointer;
 
                         &.用餐中 {
-                            background-color: #878d96 !important;
+                            background-color: $active-color !important;
                             /* 用餐中狀態 */
                         }
 
                         &.訂位中 {
-                            background-color: #c1c7cd !important;
+                            background-color: $reserve-color !important;
                             /* 已訂位狀態 */
                         }
 
                         &.可使用 {
-                            background-color: #f2f4f8 !important;
+                            background-color: $available-color !important;
                             /* 可使用狀態，預設為淺色 */
                         }
 
