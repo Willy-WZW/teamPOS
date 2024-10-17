@@ -292,7 +292,6 @@ export default {
         </div>
         <div class="userAndlogoutArea">
             <div class="Permissions" @click="goUserInfo()" :class="{ 'selected': this.$route.path == '/userInfo' }">
-                <i class="fa-regular fa-circle-user"></i>
                 <h3>{{ this.userName }}</h3>
                 <p>{{ this.role }}</p>
             </div>
