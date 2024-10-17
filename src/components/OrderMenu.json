@@ -650,3 +650,48 @@ private Boolean checkout = false;
     "workstationId":3,
     "price":105(豬肉培根蛋吐司price+蔥花蛋price+烤酥price 或直接取this.totalPrice?),
 },
+
+groupedComboDishes = [
+    {
+        categoryName: "漢堡",  // 分類名稱
+        categoryId: 1,        // 分類ID
+        dishes: [             // 該分類下的菜品列表
+            {
+                name: "豬肉堡",      // 菜品名稱
+                price: 50,             // 該菜品價格
+                categoryId: 1,         // 該菜品的分類ID
+                priceDifference: 0     // 與預設菜品的價差
+            },
+            {
+                name: "豬肉起司堡",
+                price: 70,
+                categoryId: 1,
+                priceDifference: 20
+            },
+        ]
+    },
+    {
+        categoryName: "漢堡",
+        categoryId: 1,
+        dishes: [
+            {
+                name: "牛肉堡",
+                price: 50,
+                categoryId: 2,
+                priceDifference: 0
+            },
+            {
+                name: "牛肉起司堡",
+                price: 70,
+                categoryId: 1,
+                priceDifference: 20
+            },
+        ]
+    }
+]
+假設groupedComboDishes的結構如上
+菜品分類相同時(都是categoryId: 1)
+依照目前程式碼
+只會預設勾選到“牛肉堡”
+且豬肉堡和牛肉堡的客製化選項也無法分開選擇
+請分析原因

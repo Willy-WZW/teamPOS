@@ -6,7 +6,7 @@ export default {
     data () {
         return {
             tableList: [], // 桌位列表，從後端獲取資料
-            newTable: { table_number: '', table_capacity: '', table_status: 'AVAILABLE' }, // 新增桌號的初始值
+            newTable: { table_number: '', table_capacity: '', table_status: '可使用' }, // 新增桌號的初始值
             showNewTableRow: false, // 控制新增桌號行是否顯示
         };
     },
@@ -44,15 +44,15 @@ export default {
             this.tableList.push({
                 table_number: '', 
                 table_capacity: '', 
-                table_status: 'AVAILABLE',
+                table_status: '可使用',
             });
         },
 
         // 刪除桌位
         removeTable (index) {
             const table = this.tableList[index];
-            // 檢查狀態，如果是 RESERVED 或 ACTIVE，則禁止刪除
-            if (table.table_status === 'RESERVED' || table.table_status === 'ACTIVE') {
+            // 檢查狀態，如果是 訂位中 或 用餐中，則禁止刪除
+            if (table.table_status === '訂位中' || table.table_status === '用餐中') {
                 Swal.fire({
                     icon: 'error',
                     title: '無法刪除桌位',

@@ -931,6 +931,9 @@ export default{
                 this.analysis = response.data.analysis
                 this.analysis.popularDishes.sort((a,b)=>{return b.orders-a.orders})
             
+                this.optionLine.legend.data[0] = '銷售額'
+                this.optionLine.series[0].name = '銷售額'
+                this.optionLine.series[0].type = 'line'
                 this.optionLine.xAxis.data = this.analysis.revenueGrowth.map(item=>item.day)
                 this.optionLine.series[0].data = this.analysis.revenueGrowth.map(item=>item.revenue)
                 this.optionLineDishes.xAxis.data = this.analysis.popularDishes.map(item=>item.name)

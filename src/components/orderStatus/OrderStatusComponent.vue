@@ -2,85 +2,85 @@
 import axios from 'axios';
 import Swal from 'sweetalert2';
 
-export default{
-    data(){
-        return{
-            currentDate:new Date(),
-            orderDetail:null,
+export default {
+    data() {
+        return {
+            currentDate: new Date(),
+            orderDetail: null,
 
-            preparing:null,
-            undelivered:null,
-            delivered:null,
+            preparing: null,
+            undelivered: null,
+            delivered: null,
         }
     },
-    created(){
-        axios.post("http://localhost:8080/pos/searchOrderStatus", {   
-                "startDate": "",
-                "endDate": ""
-            })
-        .then(response=>{
-            this.preparing = response.data.preparingOrders
-            this.undelivered = response.data.undeliveredOrders
-            this.delivered = response.data.deliveredOrders
-            console.log(this.delivered)
+    created() {
+        axios.post("http://localhost:8080/pos/searchOrderStatus", {
+            "startDate": "",
+            "endDate": ""
         })
-        .catch(error => {
-            console.error("Error fetching analysis:", error);
-        });  
+            .then(response => {
+                this.preparing = response.data.preparingOrders
+                this.undelivered = response.data.undeliveredOrders
+                this.delivered = response.data.deliveredOrders
+                console.log(this.delivered)
+            })
+            .catch(error => {
+                console.error("Error fetching analysis:", error);
+            });
     },
-    mounted(){
- 
+    mounted() {
+
     },
-    computed:{
-        currentDateFormate(){
+    computed: {
+        currentDateFormate() {
             const year = this.currentDate.getDate()
-            const month = String(this.currentDate.getMonth()+1).padStart(2, '0')
-            const day = String( this.currentDate.getFullYear()).padStart(2, '0')
+            const month = String(this.currentDate.getMonth() + 1).padStart(2, '0')
+            const day = String(this.currentDate.getFullYear()).padStart(2, '0')
             return `${year}-${month}-${day}`;
         }
     },
-    methods:{
-        changeStatus(mealId, mealName){
+    methods: {
+        changeStatus(mealId, mealName) {
             Swal.fire({
                 title: '確定要繼續嗎？',
-                text: "確認是否要將"+`${mealName}`+"更改為已送達",
+                text: "確認是否要將" + `${mealName}` + "更改為已送達",
                 icon: 'warning',
                 showCancelButton: true,  // 顯示取消按鈕
                 confirmButtonText: '是的，繼續',
                 cancelButtonText: '取消',
             })
-            .then((result)=>{
-                if (result.isConfirmed){
-                    Swal.fire(
-                        '已繼續',
-                        '已成功更新'+`${mealName}`+'餐點狀態為已送達。',
-                        'success'
-                    );
-                    return axios.post("http://localhost:8080/pos/updateOrderStatus", {   
+                .then((result) => {
+                    if (result.isConfirmed) {
+                        Swal.fire(
+                            '已繼續',
+                            '已成功更新' + `${mealName}` + '餐點狀態為已送達。',
+                            'success'
+                        );
+                        return axios.post("http://localhost:8080/pos/updateOrderStatus", {
                             "id": mealId,
-                    })
-                    .then(()=>{
-                        return axios.post("http://localhost:8080/pos/searchOrderStatus", {   
-                            "startDate": "",
-                            "endDate": ""
                         })
-                    })
-                    .then(response=>{
-                        this.preparing = response.data.preparingOrders
-                        this.undelivered = response.data.undeliveredOrders
-                        this.delivered = response.data.deliveredOrders
-                        console.log(this.delivered)
-                    })
-                    .catch(error => {
-                        console.error("Error fetching analysis:", error);
-                    }); 
-                }
-            })
+                            .then(() => {
+                                return axios.post("http://localhost:8080/pos/searchOrderStatus", {
+                                    "startDate": "",
+                                    "endDate": ""
+                                })
+                            })
+                            .then(response => {
+                                this.preparing = response.data.preparingOrders
+                                this.undelivered = response.data.undeliveredOrders
+                                this.delivered = response.data.deliveredOrders
+                                console.log(this.delivered)
+                            })
+                            .catch(error => {
+                                console.error("Error fetching analysis:", error);
+                            });
+                    }
+                })
         },
-        countUndelivered(){
+        countUndelivered() {
             let count = 0
-            if(this.undelivered != null){
-                for (let i=0; i<this.undelivered.length; i++){
+            if (this.undelivered != null) {
+                for (let i = 0; i < this.undelivered.length; i++) {
                     count += this.undelivered[i].mealList.length
                 }
             }
@@ -99,10 +99,10 @@ export default{
                 <h1>餐點狀態</h1>
                 <div>
                     <p>待送餐點</p>
-                    <p>{{countUndelivered()}}</p>
+                    <p>{{ countUndelivered() }}</p>
                 </div>
             </div>
-            
+
             <div class="contentContainer">
                 <div class="statusContainer">
                     <h1>準備中</h1>
@@ -110,9 +110,8 @@ export default{
                         <div class="tableTitle">
                             <p class="tableNumber">桌號{{ table.tableNumber }}</p>
                             <p class="orderId">訂單編號{{ table.orderId }}</p>
-                            <i class="fa-solid fa-chevron-up"></i>
                         </div>
-                        <div class="tableContent"  v-for="(meal, mealIndex) in table.mealList">
+                        <div class="tableContent" v-for="(meal, mealIndex) in table.mealList">
                             <p class="comboName" v-if="meal.comboName">•{{ meal.comboName }}</p>
                             <div class="comboDetailList" v-if="meal.comboName">
                                 <p v-for="(comboDetail) in meal.mealDetail">
@@ -130,21 +129,22 @@ export default{
                         <div class="tableTitle">
                             <p>桌號{{ table.tableNumber }}</p>
                             <p>訂單編號{{ table.orderId }}</p>
-                            <i class="fa-solid fa-chevron-up"></i>
                         </div>
-                        <div class="tableContent"v-for="(meal, mealIndex) in table.mealList">
+                        <div class="tableContent" v-for="(meal, mealIndex) in table.mealList">
                             <p class="comboName" v-if="meal.comboName">•{{ meal.comboName }}</p>
                             <div class="comboDetailList" v-if="meal.comboName">
-                                <p v-for="(comboDetail,index) in meal.mealDetail" :key="comboDetail.id">
+                                <p v-for="(comboDetail, index) in meal.mealDetail" :key="comboDetail.id">
                                     <!-- •{{ comboDetail.mealName }} -->
                                     <!-- <h1 style="color: black;">{{ meal}} </h1> -->
-                                    <input type="checkbox" :id="`${comboDetail.id}`" @change="changeStatus(comboDetail.id, comboDetail.mealName)">
+                                    <input type="checkbox" :id="`${comboDetail.id}`"
+                                        @change="changeStatus(comboDetail.id, comboDetail.mealName)">
                                     <label :for="`${comboDetail.id}`">{{ comboDetail.mealName }}</label>
                                 </p>
                             </div>
                             <p class="singleName" v-if="!meal.comboName" :key="meal.mealDetail[0].id">
                                 <!-- •{{ meal.mealDetail[0].mealName }} -->
-                                <input type="checkbox" :id="`${meal.mealDetail[0].id}`" @change="changeStatus(meal.mealDetail[0].id, meal.mealDetail[0].mealName)">
+                                <input type="checkbox" :id="`${meal.mealDetail[0].id}`"
+                                    @change="changeStatus(meal.mealDetail[0].id, meal.mealDetail[0].mealName)">
                                 <label :for="`${meal.mealDetail[0].id}`">{{ meal.mealDetail[0].mealName }}</label>
                             </p>
                         </div>
@@ -156,9 +156,8 @@ export default{
                         <div class="tableTitle">
                             <p>桌號{{ table.tableNumber }}</p>
                             <p>訂單編號{{ table.orderId }}</p>
-                            <i class="fa-solid fa-chevron-up"></i>
                         </div>
-                        <div class="tableContent"  v-for="(meal, mealIndex) in table.mealList">
+                        <div class="tableContent" v-for="(meal, mealIndex) in table.mealList">
                             <p class="comboName" v-if="meal.comboName">•{{ meal.comboName }}</p>
                             <div class="comboDetailList" v-if="meal.comboName">
                                 <p v-for="(comboDetail) in meal.mealDetail">
@@ -170,119 +169,146 @@ export default{
                     </div>
                 </div>
             </div>
-        </div>    
+        </div>
     </div>
 </template>
 
 <style scoped lang="scss">
-*{
+$mainColor: #FFC90E;
+* {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
-.container{
+
+.container {
     width: 100%;
     height: 100%;
-    padding: 2% 2%; 
-    .innerContainer{
+    padding: 1% 2%;
+
+    .innerContainer {
         width: 100%;
         height: 100%;
         border-radius: 12px;
+        border: 1px solid;
         background-color: white;
-        .titleContainer{
+
+        .titleContainer {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 1% 4%; 
+            padding: 1% 4%;
             position: relative;
-            &:before{
+
+            &:before {
                 position: absolute;
                 content: "";
                 width: 95%;
                 height: 1px;
                 left: 2.5%;
                 bottom: 0;
-                background-color: rgba(0, 0, 0, 0.466)
+                background-color: rgba(0, 0, 0, 0.466);
             }
-            
-            div{
+
+            div {
                 width: 15%;
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
-                p{
+
+                p {
                     width: 50%;
                     font-size: 20px;
                     font-weight: 600;
                     margin: 0 2%;
-                    &:nth-child(2){
+
+                    &:nth-child(2) {
                         width: 30%;
                         display: flex;
                         align-items: center;
                         justify-content: center;
                         border-radius: 12px;
-                        background-color: rgba(0, 0, 0, 0.334);
+                        background-color: black;
+                        color: white;
                     }
                 }
             }
         }
-        .contentContainer{
+
+        .contentContainer {
             width: 100%;
             height: 90%;
             display: flex;
             align-items: start;
             justify-content: space-between;
             padding: 1% 4%;
+
             // background-color: antiquewhite;
-            .statusContainer{
+            .statusContainer {
                 width: 30%;
                 height: 100%;
                 background-color: rgba(0, 0, 0, 0.15);
                 border-radius: 12px;
+                box-shadow: 0 0 5px rgba(0, 0, 0, 0.2),
+                    0 0 10px rgba(0, 0, 0, 0.15),
+                    0 0 15px rgba(0, 0, 0, 0.1),
+                    0 0 20px rgba(0, 0, 0, 0.05);
+                border: 1px solid;
                 padding: 1% 1%;
                 overflow-y: auto;
                 scrollbar-width: none;
-                h1{
+
+                h1 {
                     font-size: 30px;
                 }
-                &:nth-child(2){
-                    background-color: rgba(0, 0, 0, 0.7);
-                    h1{
-                        color: white;
+
+                &:nth-child(2) {
+                    background-color: $mainColor;
+
+                    h1 {
+                        color: black;
                     }
                 }
-                .tableContainer{
+
+                .tableContainer {
                     width: 100%;
                     height: auto;
                     border-radius: 12px;
+                    border: 1px solid;
                     background-color: white;
                     padding: 2% 2%;
                     margin: 4% 0;
-                    
-                    .tableTitle{
+
+                    .tableTitle {
                         display: flex;
                         align-items: center;
                         justify-content: space-between;
                         font-size: 20px;
                         font-weight: 600;
                         padding: 4% 6%;
-                        p{
+
+                        p {
                             width: 40%;
                             display: flex;
                             align-items: center;
                             justify-content: center;
                             font-size: 20px;
                             border-radius: 12px;
-                            background-color: rgba(0, 0, 0, 0.1);
+                            color: white;
+                            background-color: black;
                         }
-                        p:nth-child(2){
+
+                        p:nth-child(2) {
                             font-size: 12px;
+                            padding-left: 4%;
                         }
                     }
-                    .tableContent{
+
+                    .tableContent {
                         font-size: 18px;
                         font-weight: 600;
-                        .comboName{
+
+                        .comboName {
                             font-size: 20px;
                             padding: 0 8%;
                             margin: 2% 0;
@@ -297,11 +323,13 @@ export default{
                             //     background-color: rgba(0, 0, 0, 0.3)
                             // }
                         }
-                        .comboDetailList{
+
+                        .comboDetailList {
                             padding: 0 15%;
                             margin: 2% 0;
                         }
-                        .singleName{
+
+                        .singleName {
                             font-size: 20px;
                             padding: 2% 8%;
                             position: relative;
@@ -322,8 +350,6 @@ export default{
         }
 
     }
-    
+
 }
-
 </style>
-

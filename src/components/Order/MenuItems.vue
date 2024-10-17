@@ -54,13 +54,16 @@ export default {
         </div>
 
         <!-- 套餐餐點 -->
-        <div v-if="showCombos" v-for="combo in combos" :key="combo.comboName" @click="selectItem(combo)" :class="{ disabled: isComboDisabled(combo) }">
-            <p>{{ combo.comboName }} - ${{ calculateComboPrice(combo) }}</p>
-            <ul>
-                <li v-for="dish in combo.comboDetail" :key="dish.dishesList[0].dishName">
-                    {{ dish.dishesList[0].dishName }}
-                </li>
-            </ul>
+        <div v-if="showCombos" v-for="combo in combos" :key="combo.comboName" @click="selectItem(combo)" :class="{ disabled: isComboDisabled(combo) }" class="comboItem">
+            <div class="imgContainer">
+                <p>{{ combo.comboName }}</p>
+                <ul>
+                    <li v-for="dish in combo.comboDetail" :key="dish.dishesList[0].dishName">
+                        {{ dish.dishesList[0].dishName }}
+                    </li>
+                </ul>
+            </div>
+            <div class="comboPrice">${{ calculateComboPrice(combo) }}</div>
         </div>
     </div>
 </template>
@@ -69,11 +72,12 @@ export default {
 .menuItems {
     display: flex;
     flex-wrap: wrap;
-    gap: 30px;
+    gap: 35px;
     padding: 2% 0;
 }
+
 .singleItem {
-    width: 230px;
+    width: 250px;
     height: 200px;
     cursor: pointer;
     padding: 1%;
@@ -133,4 +137,43 @@ export default {
     object-fit: cover;
     margin-bottom: 5px;
 }
+
+.comboItem {
+    width: 250px;
+    height: 200px;
+    cursor: pointer;
+    padding: 1%;
+    border: 1px solid rgba(grey, 0.5);
+    border-radius: 10px;
+    transition: background-color 0.3s;
+    &:hover {
+        border: 2px solid rgba(grey, 0.8);
+    }
+
+    .imgContainer {
+        width: 98%;
+        height: 75%;
+        border: 3px dashed rgba(grey, 0.3);
+
+        margin-bottom: 3px;
+        padding: 5%;
+
+        p {
+            font-weight: 500;
+        }
+
+        ul {
+            margin-top: 2%;
+            padding: 0 10%;
+        }
+
+    }
+
+    .comboPrice {
+        margin-top: 5%;
+        text-align: right;
+        font-weight: 500;
+    }
+}
+
 </style>
