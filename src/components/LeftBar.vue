@@ -1,140 +1,138 @@
 <script>
-import { RouterLink } from 'vue-router';
-import Swal from 'sweetalert2';
+import { RouterLink } from "vue-router";
+import Swal from "sweetalert2";
 
-import { computed } from 'vue';
-import { useFontStore } from '@/stores/fontStores';
+import { computed } from "vue";
+import { useFontStore } from "@/stores/fontStores";
 export default {
     data() {
         return {
-            timeCode: '',
-            userName: '',
-            role: '', // 員工的話顯示權限
+            timeCode: "",
+            userName: "",
+            role: "", // 員工的話顯示權限
             permissions: [],
-            managedAreas: []
-        }
+            managedAreas: [],
+        };
     },
     methods: {
-        updateTime() { //更新時間方法
+        updateTime() {
+            //更新時間方法
             const now = new Date();
             let hours = now.getHours();
-            const minutes = String(now.getMinutes()).padStart(2, '0');
-            const ampm = hours >= 12 ? 'PM' : 'AM'; //判斷AM PM
+            const minutes = String(now.getMinutes()).padStart(2, "0");
+            const ampm = hours >= 12 ? "PM" : "AM"; //判斷AM PM
 
             // 轉12小時制
             hours = hours % 12;
             hours = hours ? hours : 12; //小時為0時，顯示為12
-            hours = String(hours).padStart(2, '0');
+            hours = String(hours).padStart(2, "0");
 
             this.timeCode = `${hours}:${minutes} ${ampm}`;
 
-            const options = { year: 'numeric', month: 'short', day: 'numeric' };
-            this.dateCode = now.toLocaleDateString('en-US', options)
+            const options = { year: "numeric", month: "short", day: "numeric" };
+            this.dateCode = now.toLocaleDateString("en-US", options);
         },
         goSetting() {
-            this.$router.push("./setting")
+            this.$router.push("./setting");
         },
         goOperation() {
-            this.$router.push("./operation")
+            this.$router.push("./operation");
         },
         goOrder() {
-            this.$router.push("./order")
+            this.$router.push("./order");
         },
         goStatus() {
-            this.$router.push("./orderStatus")
+            this.$router.push("./orderStatus");
         },
         goTCheckout() {
-            this.$router.push("./tableAndCheckout")
+            this.$router.push("./tableAndCheckout");
         },
         goEvent() {
-            this.$router.push("./event")
+            this.$router.push("./event");
         },
         goWorkstation() {
-            this.$router.push("./workstation")
+            this.$router.push("./workstation");
         },
         goHistory() {
-            this.$router.push("./history")
+            this.$router.push("./history");
         },
         goStaffInfo() {
-            this.$router.push("./staffInfo")
+            this.$router.push("./staffInfo");
         },
         goUserInfo() {
-            this.$router.push("./userInfo")
+            this.$router.push("./userInfo");
         },
-        getUserData() { //抓會員資料
-            const memberId = sessionStorage.getItem('memberId');  //登入的時候已經把memberId寫在session了
+        getUserData() {
+            //抓會員資料
+            const memberId = sessionStorage.getItem("memberId"); //登入的時候已經把memberId寫在session了
 
             if (memberId) {
                 // 使用 fetch 發送 GET 請求
                 fetch(`http://localhost:8080/api/member/${memberId}`, {
-                    method: 'GET',
+                    method: "GET",
                     headers: {
-                        'Content-Type': 'application/json'
-                    }
+                        "Content-Type": "application/json",
+                    },
                 })
-                    .then(response => {
+                    .then((response) => {
                         if (!response.ok) {
                             throw new Error(`HTTP error! Status: ${response.status}`);
                         }
                         return response.json(); // 解析回應為 JSON 格式
                     })
-                    .then(data => {
-
+                    .then((data) => {
                         // 客人的話回傳等級
                         this.userName = data.member.name;
                         this.role = "等級" + data.member.memberLevel;
                     })
-                    .catch(error => {
+                    .catch((error) => {
                         console.error("取得使用者資料失敗:", error);
                     });
-
             } else {
                 console.error("Session 中的 memberId 不存在，無法取得使用者資料");
             }
         },
-        getStaffData() { // 抓員工資料
-            const staffNumber = sessionStorage.getItem('staffNumber');  // 登入的時候已經把 staffNumber 寫在 session 了
+        getStaffData() {
+            // 抓員工資料
+            const staffNumber = sessionStorage.getItem("staffNumber"); // 登入的時候已經把 staffNumber 寫在 session 了
 
             if (staffNumber) {
                 fetch(`http://localhost:8080/api/staff/${staffNumber}`, {
-                    method: 'GET',
+                    method: "GET",
                     headers: {
-                        'Content-Type': 'application/json'
-                    }
+                        "Content-Type": "application/json",
+                    },
                 })
-                    .then(response => {
+                    .then((response) => {
                         if (!response.ok) {
                             throw new Error(`HTTP error! Status: ${response.status}`);
                         }
                         return response.json(); // 解析回應為 JSON 格式
                     })
-                    .then(data => {
+                    .then((data) => {
                         if (data && data.staff) {
                             this.userName = data.staff.name;
 
                             if (data.staff.firstLogin) {
                                 Swal.fire({
-                                    title: '第一次登入請修改密碼',
-                                    text: '',
-                                    icon: 'warning',
-                                    confirmButtonText: '確定',
+                                    title: "第一次登入請修改密碼",
+                                    text: "",
+                                    icon: "warning",
+                                    confirmButtonText: "確定",
                                 }).then(() => {
-
                                     fetch(`http://localhost:8080/api/staff/updateFirstLogin/${staffNumber}`, {
-                                        method: 'GET',
+                                        method: "GET",
                                         headers: {
-                                            'Content-Type': 'application/json'
-                                        }
-                                    })
+                                            "Content-Type": "application/json",
+                                        },
+                                    });
                                 });
 
                                 this.goUserInfo();
                             }
 
                             // 找到相對應的權限物件
-                            const foundPermission = this.permissions.find(permission => permission.id == data.staff.authorization);
-
-
+                            const foundPermission = this.permissions.find((permission) => permission.id == data.staff.authorization);
 
                             if (foundPermission) {
                                 this.managedAreas = foundPermission.managedAreas;
@@ -147,7 +145,7 @@ export default {
                             console.error("回傳的資料格式不正確或沒有 staff 資料");
                         }
                     })
-                    .catch(error => {
+                    .catch((error) => {
                         console.error("取得員工資料失敗:", error);
                     });
             } else {
@@ -160,23 +158,23 @@ export default {
         },
         async fetchPermissions() {
             try {
-                const response = await fetch('http://localhost:8080/api/authorization/all');
+                const response = await fetch("http://localhost:8080/api/authorization/all");
                 const data = await response.json();
 
-                this.permissions = data.map(item => ({
+                this.permissions = data.map((item) => ({
                     name: item.authorizationName,
-                    managedAreas: item.authorizationItem.split(','),
-                    id: item.authorizationId
+                    managedAreas: item.authorizationItem.split(","),
+                    id: item.authorizationId,
                 }));
             } catch (error) {
-                console.error('無法獲取權限資料:', error);
-                Swal.fire('錯誤', '無法獲取權限資料', 'error');
+                console.error("無法獲取權限資料:", error);
+                Swal.fire("錯誤", "無法獲取權限資料", "error");
             }
         },
         refresh() {
             this.fetchPermissions().then(() => {
-                const memberId = sessionStorage.getItem('memberId');
-                const staffNumber = sessionStorage.getItem('staffNumber');
+                const memberId = sessionStorage.getItem("memberId");
+                const staffNumber = sessionStorage.getItem("staffNumber");
 
                 if (memberId) {
                     //抓使用者資料
@@ -186,13 +184,12 @@ export default {
                     this.getStaffData();
                 }
             });
-        }
+        },
     },
     mounted() {
-
         this.fetchPermissions().then(() => {
-            const memberId = sessionStorage.getItem('memberId');
-            const staffNumber = sessionStorage.getItem('staffNumber');
+            const memberId = sessionStorage.getItem("memberId");
+            const staffNumber = sessionStorage.getItem("staffNumber");
 
             if (memberId) {
                 //抓使用者資料
@@ -203,13 +200,12 @@ export default {
             }
         });
 
-
         // 初始化時間
-        this.updateTime()
+        this.updateTime();
 
         this.timeInterval = setInterval(() => {
-            this.updateTime()
-        }, 60000)
+            this.updateTime();
+        }, 60000);
     },
     beforeDestroy() {
         // 清除計時器
@@ -223,10 +219,10 @@ export default {
         };
         return {
             currentFont,
-            changeFont
+            changeFont,
         };
     },
-}
+};
 </script>
 
 <template>
@@ -236,62 +232,48 @@ export default {
             <div class="timeStyle" :style="{ fontFamily: currentFont }">{{ dateCode }}</div>
         </div>
         <div class="control">
-            <div class="event" @click="goEvent()" :class="{ 'selected': this.$route.path == '/event' }"
-                v-if="managedAreas.includes('活動')">
+            <div class="event" @click="goEvent()" :class="{ selected: this.$route.path == '/event' }" v-if="managedAreas.includes('活動')">
                 <i class="fa-regular fa-calendar-check"></i>
                 <h3>活動</h3>
             </div>
-            <div class="order" @click="goOrder()" :class="{ 'selected': this.$route.path == '/order' }"
-                v-if="managedAreas.includes('點餐')">
-                <i class="fa-solid fa-utensils"></i>
-                <h3>點餐</h3>
-            </div>
-            <div class="orderStatus" @click="goStatus()" :class="{ 'selected': this.$route.path == '/orderStatus' }"
-                v-if="managedAreas.includes('點餐狀態')">
-                <i class="fa-solid fa-list-check"></i>
-                <h3>餐點狀態</h3>
-            </div>
-            <div class="workstation" @click="goWorkstation()"
-                :class="{ 'selected': this.$route.path == '/workstation' }" v-if="managedAreas.includes('工作檯')">
-                <i class="fa-solid fa-fire-burner"></i>
-                <h3>工作檯</h3>
-            </div>
-            <div class="tableChechout" @click="goTCheckout()"
-                :class="{ 'selected': this.$route.path == '/tableAndCheckout' }" v-if="managedAreas.includes('桌位結帳')">
+            <div class="tableChechout" @click="goTCheckout()" :class="{ selected: this.$route.path == '/tableAndCheckout' }" v-if="managedAreas.includes('桌位結帳')">
                 <div>
-                    <span class="material-symbols-outlined">
-                        table_restaurant
-                    </span>
-                    <span class="material-symbols-outlined">
-                        request_quote
-                    </span>
+                    <span class="material-symbols-outlined"> table_restaurant </span>
+                    <span class="material-symbols-outlined"> request_quote </span>
                 </div>
                 <h3>桌位結帳</h3>
             </div>
-            <div class="history" @click="goHistory()" :class="{ 'selected': this.$route.path == '/history' }"
-                v-if="managedAreas.includes('歷史紀錄')">
+            <div class="order" @click="goOrder()" :class="{ selected: this.$route.path == '/order' }" v-if="managedAreas.includes('點餐')">
+                <i class="fa-solid fa-utensils"></i>
+                <h3>點餐</h3>
+            </div>
+            <div class="orderStatus" @click="goStatus()" :class="{ selected: this.$route.path == '/orderStatus' }" v-if="managedAreas.includes('餐點狀態')">
+                <i class="fa-solid fa-list-check"></i>
+                <h3>餐點狀態</h3>
+            </div>
+            <div class="workstation" @click="goWorkstation()" :class="{ selected: this.$route.path == '/workstation' }" v-if="managedAreas.includes('工作檯')">
+                <i class="fa-solid fa-fire-burner"></i>
+                <h3>工作檯</h3>
+            </div>
+            <div class="history" @click="goHistory()" :class="{ selected: this.$route.path == '/history' }" v-if="managedAreas.includes('歷史紀錄')">
                 <i class="fa-solid fa-clock-rotate-left"></i>
                 <h3>歷史紀錄</h3>
             </div>
-            <div class="operation" @click="goOperation()" :class="{ 'selected': this.$route.path == '/operation' }"
-                v-if="managedAreas.includes('營運')">
+            <div class="operation" @click="goOperation()" :class="{ selected: this.$route.path == '/operation' }" v-if="managedAreas.includes('銷售分析')">
                 <i class="fa-solid fa-chart-simple"></i>
-                <h3>營運</h3>
+                <h3>銷售分析</h3>
             </div>
-            <div class="staffInfo" @click="goStaffInfo()" :class="{ 'selected': this.$route.path == '/staffInfo' }"
-                v-if="managedAreas.includes('員工管理')">
+            <div class="staffInfo" @click="goStaffInfo()" :class="{ selected: this.$route.path == '/staffInfo' }" v-if="managedAreas.includes('員工管理')">
                 <i class="fa-solid fa-user"></i>
                 <h3>員工管理</h3>
             </div>
-            <div class="setting" @click="goSetting()" :class="{ 'selected': this.$route.path == '/setting' }"
-                v-if="managedAreas.includes('設定')">
+            <div class="setting" @click="goSetting()" :class="{ selected: this.$route.path == '/setting' }" v-if="managedAreas.includes('設定')">
                 <i class="fa-solid fa-gear"></i>
                 <h3>設定</h3>
             </div>
-
         </div>
         <div class="userAndlogoutArea">
-            <div class="Permissions" @click="goUserInfo()" :class="{ 'selected': this.$route.path == '/userInfo' }">
+            <div class="Permissions" @click="goUserInfo()" :class="{ selected: this.$route.path == '/userInfo' }">
                 <h3>{{ this.userName }}</h3>
                 <p>{{ this.role }}</p>
             </div>
@@ -301,12 +283,12 @@ export default {
 </template>
 
 <style scoped lang="scss">
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@100..900&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@100..900&display=swap");
 $boxShadow: #2d2d2d;
-$selectedColor: #FFC90E;
-$background-color: #FFFFFF;
-$black-color: #1E1E1E;
-$gray-color: #DDE1E6;
+$selectedColor: #ffc90e;
+$background-color: #ffffff;
+$black-color: #1e1e1e;
+$gray-color: #dde1e6;
 
 .lefter {
     width: 90%;

@@ -1,5 +1,5 @@
 <script>
-import Swal from 'sweetalert2';
+import Swal from "sweetalert2";
 
 export default {
     data() {
@@ -8,8 +8,8 @@ export default {
             selectedPermission: null,
             showModal: false,
             showAddModal: false,
-            newPermission: { name: '', managedAreas: [] },
-            allAreas: ['設定', '營運', '點餐', '點餐狀態', '桌位結帳', '活動', '工作檯', '歷史紀錄', '員工管理'],
+            newPermission: { name: "", managedAreas: [] },
+            allAreas: ["活動", "桌位結帳", "點餐", "餐點狀態", "工作檯", "歷史紀錄", "銷售分析", "員工管理", "設定"],
             isAllSelected: false,
         };
     },
@@ -20,17 +20,17 @@ export default {
     methods: {
         async fetchPermissions() {
             try {
-                const response = await fetch('http://localhost:8080/api/authorization/all');
+                const response = await fetch("http://localhost:8080/api/authorization/all");
                 const data = await response.json();
 
-                this.permissions = data.map(item => ({
+                this.permissions = data.map((item) => ({
                     name: item.authorizationName,
-                    managedAreas: item.authorizationItem.split(','),
-                    id: item.authorizationId
+                    managedAreas: item.authorizationItem.split(","),
+                    id: item.authorizationId,
                 }));
             } catch (error) {
-                console.error('無法獲取權限資料:', error);
-                Swal.fire('錯誤', '無法獲取權限資料', 'error');
+                console.error("無法獲取權限資料:", error);
+                Swal.fire("錯誤", "無法獲取權限資料", "error");
             }
         },
         openEditModal(permission) {
@@ -43,44 +43,44 @@ export default {
                 const requestData = {
                     authorizationId: this.selectedPermission.id,
                     authorizationName: this.selectedPermission.name,
-                    authorizationItem: this.selectedPermission.managedAreas.join(',')
+                    authorizationItem: this.selectedPermission.managedAreas.join(","),
                 };
 
-                fetch('http://localhost:8080/api/authorization/update', {
-                    method: 'POST',
+                fetch("http://localhost:8080/api/authorization/update", {
+                    method: "POST",
                     headers: {
-                        'Content-Type': 'application/json'
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify(requestData)
+                    body: JSON.stringify(requestData),
                 })
-                    .then(response => {
+                    .then((response) => {
                         if (response.ok) {
                             return response.json();
                         } else {
-                            throw new Error('更新權限時發生錯誤');
+                            throw new Error("更新權限時發生錯誤");
                         }
                     })
-                    .then(data => {
+                    .then((data) => {
                         if (data.code == "200") {
                             Swal.fire({
                                 title: data.message,
-                                icon: 'success',
-                                confirmButtonText: '確定',
+                                icon: "success",
+                                confirmButtonText: "確定",
                             });
-                            this.fetchPermissions();  // 重新抓取權限資料以更新顯示
+                            this.fetchPermissions(); // 重新抓取權限資料以更新顯示
                             this.resetNewPermission(); // 重置表單
-                            this.$emit('refreshLeftBar'); // 發出事件
+                            this.$emit("refreshLeftBar"); // 發出事件
                         } else {
                             Swal.fire({
                                 title: data.message,
-                                icon: 'error',
-                                confirmButtonText: '確定',
+                                icon: "error",
+                                confirmButtonText: "確定",
                             });
                         }
                     })
-                    .catch(error => {
-                        console.error('更新權限時發生錯誤:', error);
-                        Swal.fire('錯誤', '更新權限時發生錯誤', 'error');
+                    .catch((error) => {
+                        console.error("更新權限時發生錯誤:", error);
+                        Swal.fire("錯誤", "更新權限時發生錯誤", "error");
                     });
             }
         },
@@ -88,52 +88,52 @@ export default {
             if (this.newPermission.name && this.newPermission.managedAreas.length > 0) {
                 const requestData = {
                     authorizationName: this.newPermission.name,
-                    authorizationItem: this.newPermission.managedAreas.join(',')
+                    authorizationItem: this.newPermission.managedAreas.join(","),
                 };
 
                 try {
-                    fetch('http://localhost:8080/api/authorization/insert', {
-                        method: 'POST',
+                    fetch("http://localhost:8080/api/authorization/insert", {
+                        method: "POST",
                         headers: {
-                            'Content-Type': 'application/json'
+                            "Content-Type": "application/json",
                         },
-                        body: JSON.stringify(requestData)
+                        body: JSON.stringify(requestData),
                     })
-                        .then(response => {
+                        .then((response) => {
                             if (response.ok) {
                                 return response.json();
                             } else {
-                                throw new Error('新增權限時發生錯誤');
+                                throw new Error("新增權限時發生錯誤");
                             }
                         })
-                        .then(data => {
+                        .then((data) => {
                             this.fetchPermissions();
 
                             if (data.code == "200") {
                                 Swal.fire({
                                     title: data.message,
-                                    icon: 'success',
-                                    confirmButtonText: '確定',
+                                    icon: "success",
+                                    confirmButtonText: "確定",
                                 });
                                 this.resetNewPermission();
                             } else {
                                 Swal.fire({
                                     title: data.message,
-                                    icon: 'error',
-                                    confirmButtonText: '確定',
+                                    icon: "error",
+                                    confirmButtonText: "確定",
                                 });
                             }
                         })
-                        .catch(error => {
-                            console.error('新增權限時發生錯誤:', error);
-                            Swal.fire('錯誤', '新增權限時發生錯誤', 'error');
+                        .catch((error) => {
+                            console.error("新增權限時發生錯誤:", error);
+                            Swal.fire("錯誤", "新增權限時發生錯誤", "error");
                         });
                 } catch (error) {
-                    console.error('捕獲的錯誤:', error);
-                    Swal.fire('錯誤', '新增權限時發生錯誤', 'error');
+                    console.error("捕獲的錯誤:", error);
+                    Swal.fire("錯誤", "新增權限時發生錯誤", "error");
                 }
             } else {
-                Swal.fire('錯誤', '請輸入完整的權限名稱與管理項目', 'error');
+                Swal.fire("錯誤", "請輸入完整的權限名稱與管理項目", "error");
             }
         },
         toggleArea(area) {
@@ -159,55 +159,56 @@ export default {
             const permissionId = permissionToDelete.id;
 
             const result = await Swal.fire({
-                title: '確認刪除?',
-                text: '您確定要刪除這個權限嗎?',
-                icon: 'warning',
+                title: "確認刪除?",
+                text: "您確定要刪除這個權限嗎?",
+                icon: "warning",
                 showCancelButton: true,
-                confirmButtonText: '刪除',
-                cancelButtonText: '取消'
+                confirmButtonText: "刪除",
+                cancelButtonText: "取消",
             });
 
             if (result.isConfirmed) {
                 try {
                     const response = await fetch(`http://localhost:8080/api/authorization/delete/${permissionId}`, {
-                        method: 'DELETE',
-                    }).then(response => {
-                        if (response.ok) {
-                            return response.json();
-                        } else {
-                            throw new Error('刪除權限時發生錯誤');
-                        }
+                        method: "DELETE",
                     })
-                        .then(data => {
+                        .then((response) => {
+                            if (response.ok) {
+                                return response.json();
+                            } else {
+                                throw new Error("刪除權限時發生錯誤");
+                            }
+                        })
+                        .then((data) => {
                             this.fetchPermissions();
 
                             if (data.code == "200") {
                                 Swal.fire({
                                     title: data.message,
-                                    icon: 'success',
-                                    confirmButtonText: '確定',
+                                    icon: "success",
+                                    confirmButtonText: "確定",
                                 });
                                 this.resetNewPermission();
                             } else {
                                 Swal.fire({
                                     title: data.message,
-                                    icon: 'error',
-                                    confirmButtonText: '確定',
+                                    icon: "error",
+                                    confirmButtonText: "確定",
                                 });
                             }
-                        })
+                        });
                 } catch (error) {
-                    console.error('刪除權限時發生錯誤:', error);
+                    console.error("刪除權限時發生錯誤:", error);
                     Swal.fire({
-                        title: '刪除權限時發生錯誤',
-                        icon: 'error',
-                        confirmButtonText: '確定',
+                        title: "刪除權限時發生錯誤",
+                        icon: "error",
+                        confirmButtonText: "確定",
                     });
                 }
             }
         },
         resetNewPermission() {
-            this.newPermission = { name: '', managedAreas: [] };
+            this.newPermission = { name: "", managedAreas: [] };
             this.showAddModal = false;
             this.showModal = false;
             this.isAllSelected = false;
@@ -234,7 +235,7 @@ export default {
         updateSelectAllStateForEdit() {
             this.isAllSelected = this.selectedPermission.managedAreas.length === this.allAreas.length; // 更新編輯視窗的全選狀態
         },
-    }
+    },
 };
 </script>
 
@@ -253,10 +254,10 @@ export default {
                 <tbody>
                     <tr v-for="(permission, index) in permissions" :key="index">
                         <td>{{ permission.name }}</td>
-                        <td>{{ permission.managedAreas.join(', ') }}</td>
+                        <td>{{ permission.managedAreas.join(", ") }}</td>
                         <td>
                             <button @click="openEditModal(permission)">編輯</button>
-                            <button @click="deletePermission(index)" style="margin-left: 10px;">刪除</button>
+                            <button @click="deletePermission(index)" style="margin-left: 10px">刪除</button>
                         </td>
                     </tr>
                 </tbody>
@@ -269,7 +270,7 @@ export default {
         <div v-if="showAddModal" class="modal">
             <div class="modal-content">
                 <h2>新增權限</h2>
-                <input v-model="newPermission.name" placeholder="權限名稱">
+                <input v-model="newPermission.name" placeholder="權限名稱" />
                 <table>
                     <thead>
                         <tr>
@@ -281,18 +282,15 @@ export default {
                         <tr>
                             <td class="checkbox-cell">
                                 <label>
-                                    <input type="checkbox" :checked="isAllSelected" @change="toggleSelectAll">
+                                    <input type="checkbox" :checked="isAllSelected" @change="toggleSelectAll" />
                                 </label>
                             </td>
-                            <td class="name-cell">
-                                全選
-                            </td>
+                            <td class="name-cell">全選</td>
                         </tr>
                         <tr v-for="area in allAreas" :key="area">
                             <td class="checkbox-cell">
                                 <label>
-                                    <input type="checkbox" :value="area"
-                                        :checked="newPermission.managedAreas.includes(area)" @change="toggleArea(area)">
+                                    <input type="checkbox" :value="area" :checked="newPermission.managedAreas.includes(area)" @change="toggleArea(area)" />
                                 </label>
                             </td>
                             <td class="name-cell">
@@ -310,7 +308,7 @@ export default {
         <div v-if="showModal" class="modal">
             <div class="modal-content">
                 <h2>編輯權限</h2>
-                <input v-model="selectedPermission.name" placeholder="權限名稱">
+                <input v-model="selectedPermission.name" placeholder="權限名稱" />
                 <table>
                     <thead>
                         <tr>
@@ -322,19 +320,15 @@ export default {
                         <tr>
                             <td class="checkbox-cell">
                                 <label>
-                                    <input type="checkbox" :checked="isAllSelected" @change="toggleSelectAllForEdit">
+                                    <input type="checkbox" :checked="isAllSelected" @change="toggleSelectAllForEdit" />
                                 </label>
                             </td>
-                            <td class="name-cell">
-                                全選
-                            </td>
+                            <td class="name-cell">全選</td>
                         </tr>
                         <tr v-for="area in allAreas" :key="area">
                             <td class="checkbox-cell">
                                 <label>
-                                    <input type="checkbox" :value="area"
-                                        :checked="selectedPermission.managedAreas.includes(area)"
-                                        @change="toggleEditArea(area)">
+                                    <input type="checkbox" :value="area" :checked="selectedPermission.managedAreas.includes(area)" @change="toggleEditArea(area)" />
                                 </label>
                             </td>
                             <td class="name-cell">
@@ -349,8 +343,6 @@ export default {
         </div>
     </div>
 </template>
-
-
 
 <style scoped lang="scss">
 $divColor: #fff;
