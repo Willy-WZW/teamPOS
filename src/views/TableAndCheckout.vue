@@ -87,7 +87,13 @@ export default {
         interact('.tableItem').draggable({
             listeners: {
                 start(event) {
-                    console.log('拖動開始');
+                    // 這裡要確保 target 從 event 正確取得
+                    const target = event.target;
+                    if (target) {
+                        // 改變邊框顏色
+                        target.style.borderColor = '#e6b800'; // 拖曳開始時邊框變紅
+                        console.log('拖動開始');
+                    }
                 },
 
                 move(event) {
@@ -106,16 +112,21 @@ export default {
 
                 end(event) {
                     const target = event.target;
-                    const x = target.getAttribute('data-x');
-                    const y = target.getAttribute('data-y');
+                    if (target) {
+                        const x = target.getAttribute('data-x');
+                        const y = target.getAttribute('data-y');
 
-                    // 保存桌位的位置信息到 LocalStorage
-                    const tableId = target.getAttribute('data-id');
-                    const positions = JSON.parse(localStorage.getItem('tablePositions')) || {};
-                    positions[tableId] = { x, y };
-                    localStorage.setItem('tablePositions', JSON.stringify(positions));
+                        // 恢復原本邊框顏色
+                        target.style.borderColor = '#DDE1E6'; // 拖曳結束時恢復原本的灰色邊框
 
-                    console.log(`桌位 ${tableId} 的位置已保存`, { x, y });
+                        // 保存桌位的位置信息到 LocalStorage
+                        const tableId = target.getAttribute('data-id');
+                        const positions = JSON.parse(localStorage.getItem('tablePositions')) || {};
+                        positions[tableId] = { x, y };
+                        localStorage.setItem('tablePositions', JSON.stringify(positions));
+
+                        console.log(`桌位 ${tableId} 的位置已保存`, { x, y });
+                    }
                 }
             },
 
@@ -184,50 +195,69 @@ export default {
         // 加載桌位
         async fetchTables() {
             try {
-                const response = await axios.get('http://localhost:8080/tableManagement/getTodayTableStatuses');
-
-                // 存儲整個時間段對象，而不只是時間段字串
-                this.timeSlots = response.data;
-
-                if (this.timeSlots.length > 0) {
-                    this.selectedTimeSlot = this.timeSlots[0].timeSlot;  // 預設選擇第一個時間段
-                    this.updateTablesForTimeSlot(this.selectedTimeSlot);
-                }
+                const response = await axios.get('http://localhost:8080/tableManagement/getAllTables');
+                // 將 API 返回的桌位數據轉換成符合前端顯示的結構
+                this.tables = response.data.map(table => ({
+                id: table.tableNumber,
+                capacity: table.tableCapacity,
+                status: table.tableStatus,  // 使用原本的狀態
+                }));
+                console.log('桌位資料加載成功:', this.tables);
             } catch (error) {
-                console.error('無法獲取桌位狀態資料:', error);
-                Swal.fire({
-                    icon: 'error',
-                    title: '錯誤',
-                    text: '無法獲取桌位資料！',
-                });
+                console.error('無法獲取桌位資料:', error);
             }
         },
 
-        // 根據選擇的時間段更新桌位狀態
-        updateTablesForTimeSlot(selectedTimeSlot) {
-            // 找到與選擇時間段匹配的時間段對象
-            const selectedSlot = this.timeSlots.find(slot => slot.timeSlot === selectedTimeSlot);
+        // async fetchTables() {
+        //     try {
+        //         const response = await axios.get('http://localhost:8080/tableManagement/getTodayTableStatuses');
 
-            console.log('選擇的時間段:', selectedTimeSlot);
-            console.log('找到的時間段資料:', selectedSlot);
+        //         // 存儲整個時間段對象，而不只是時間段字串
+        //         this.timeSlots = response.data;
 
-            if (selectedSlot) {
-                // 更新桌位資料以顯示在前端
-                this.tables = selectedSlot.tableStatuses.map(table => ({
-                    id: table.tableNumber,
-                    capacity: table.tableCapacity,
-                    status: table.tableStatus,
-                    reservations: table.reservations || []
-                }));
-                console.log('更新後的桌位資料:', this.tables);
-            } else {
-                console.warn('選擇的時間段沒有對應的桌位資料');
-                Swal.fire({
-                    icon: 'error',
-                    title: '錯誤',
-                    text: '選擇的時間段沒有對應的桌位資料！',
-                });
-            }
+        //         if (this.timeSlots.length > 0) {
+        //             this.selectedTimeSlot = this.timeSlots[0].timeSlot;  // 預設選擇第一個時間段
+        //             this.updateTablesForTimeSlot(this.selectedTimeSlot);
+        //         }
+        //     } catch (error) {
+        //         console.error('無法獲取桌位狀態資料:', error);
+        //         Swal.fire({
+        //             icon: 'error',
+        //             title: '錯誤',
+        //             text: '無法獲取桌位資料！',
+        //         });
+        //     }
+        // },
+
+        // // 根據選擇的時間段更新桌位狀態
+        // updateTablesForTimeSlot(selectedTimeSlot) {
+        //     // 找到與選擇時間段匹配的時間段對象
+        //     const selectedSlot = this.timeSlots.find(slot => slot.timeSlot === selectedTimeSlot);
+
+        //     console.log('選擇的時間段:', selectedTimeSlot);
+        //     console.log('找到的時間段資料:', selectedSlot);
+
+        //     if (selectedSlot) {
+        //         // 更新桌位資料以顯示在前端
+        //         this.tables = selectedSlot.tableStatuses.map(table => ({
+        //             id: table.tableNumber,
+        //             capacity: table.tableCapacity,
+        //             status: table.tableStatus,
+        //             reservations: table.reservations || []
+        //         }));
+        //         console.log('更新後的桌位資料:', this.tables);
+        //     } else {
+        //         console.warn('選擇的時間段沒有對應的桌位資料');
+        //         Swal.fire({
+        //             icon: 'error',
+        //             title: '錯誤',
+        //             text: '選擇的時間段沒有對應的桌位資料！',
+        //         });
+        //     }
+        // },
+
+        refresh() {
+            this.fetchTables()
         },
 
         // 根據容納人數不同調整桌位寬度
@@ -1035,6 +1065,18 @@ export default {
                     icon: 'success',
                     confirmButtonText: '確定'
                 });
+
+                // 清除候位欄位資料
+                this.newWaitlist = {
+                    people: 2,  // 預設人數為 2
+                    date: this.formatDate(new Date()), // 預設為當前日期
+                    time: this.getCurrentTime(), // 設定為當前時間
+                    name: '', 
+                    title: '先生', 
+                    phone: '', 
+                    email: ''
+                };
+
                 this.closeWaitlistModal();
                 this.fetchAllWaitlists();
             } catch (error) {
@@ -1064,15 +1106,10 @@ export default {
             <!-- 桌位標題、刷新 Button -->
             <div class="tableHeader">
                 <h1 class="tableTitle">桌位圖</h1>
-                <div class="timeSlotsArea">
-                    <!-- 時段選擇 -->
-                    <label for="timeSlots">時間</label>
-                    <select class="selectedTime" id="timeSlots" v-model="selectedTimeSlot" @change="updateTablesForTimeSlot(selectedTimeSlot)">
-                        <option v-for="slot in timeSlots" :key="slot.timeSlot" :value="slot.timeSlot">
-                            {{ slot.timeSlot }}
-                        </option>
-                    </select>
-                </div>
+                <!-- 刷新按鈕 -->
+                <button class="refreshButton" @click="refresh">
+                    <i class="fa-solid fa-arrows-rotate"></i>刷新
+                </button>
             </div>
 
             <!-- 桌位狀態 -->
@@ -1545,14 +1582,15 @@ export default {
 </template>
 
 <style scoped lang="scss">
-$divColor: #fff;
-$addDiv: #343a3f;
 $available-color: #28A745;
-$active-color: rgb(224, 45, 17, 0.8);
-$borderBot: #697077;
+$active-color: #e02d11cc;
 $editColor: #e6b800;
 $reserve-color: #FFC90E;
-$subColor: #000000;
+$boxShadow: #2d2d2d;
+$background-color: #FFFFFF;
+$black-color: #1E1E1E;
+$gray-color: #DDE1E6;
+$radius:10px;
 
 .big {
     width: 100%;
@@ -1572,87 +1610,82 @@ $subColor: #000000;
     }
 
     .tableReservationArea {
-        letter-spacing: 0.2dvw;
         width: 100%;
-        height: 100%;
+        height: 99.5%;
         display: flex;
         justify-content: space-between;
-        padding: 16px; //20px
+        padding: 1%; //20px
         letter-spacing: 0.2dvw;
 
         .tableArea {
-            width: 68%;
+            width: 62%;
+            height: 100%;
             border: 1px solid rgba(grey, 0.5);
-            box-shadow: -3px 3px 4px black;
-            padding: 2%;
-            border-radius: 10px;
+            box-shadow: -3px 3px 4px $boxShadow;
             border: 1px solid;
-            background-color: white;
+            padding: 1.5%;
+            border-radius: $radius;
+            background-color: $background-color;
 
             .tableHeader {
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-                margin-bottom: 10px;
+                margin-bottom: 0.8%;
 
                 .tableTitle {
                     letter-spacing: 4px;
                 }
                 
-                .timeSlotsArea {
-                    width: 35%;
+                .refreshButton {
+                    width: 15%;
+                    border-radius: $radius;
+                    border: 2px solid $black-color;
+                    background-color: transparent;
+                    font-size: 1.1rem;
+                    color: $black-color;
                     display: flex;
+                    justify-content: space-evenly;
                     align-items: center;
-                    justify-content: end;
+                    padding: 1%;
+                    cursor: pointer;
+                    transition: 0.2s;
 
-                    label {
-                        font-size: 19px;
-                        letter-spacing: 5px;
-                        margin-right: 4%;
+                    &:hover {
+                        background-color: $editColor;
                     }
 
-                    .selectedTime {
-                        width: 60%;
-                        height: 35px;
-                        border-radius: 10px;
-                        border: 1px solid #C1C7CD;
-                        letter-spacing: 5px;
-                        padding-left: 10px;
-                        appearance: none; /* 隱藏默認的箭頭 */
-                        background: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyLjcxNzUgNi41NDc1QzEzLjE3OTcgNi4xNDcyIDEzLjI4MjIgNS40MTMgMTIuOTg3MiA0LjkzMjVDMTIuNjkzMiA0LjQ1MjUgMTIuMDEwNCA0LjQ1MjUgMTEuNzE3IDQuOTMyNUw4IDkuMzM1NEw0LjI4MjUgNC45MzI1QzMuOTg5NiA0LjQ1MjUgMy4zMDY4IDQuNDUyNSAyLjAxMjggNC45MzI1QzEuNzE4OCA1LjQxMyAxLjgyMTEgNi4xNDcyIDIuMjg0MTIgNi41NDc1TDcuMzE1MTIgMTEuNTA2QzcuNzU4NDEgMTEuOTYxIDguMjQxNiAxMS45NjEgOC42ODY4IDExLjUwNkMxMC4xNzA4IDEwLjI1NyAxMS41OTExIDguOTAzNTggMTIuNzE3NSA3LjY2MjVIMTIuNzE3NVoiIGZpbGw9IiMyMjIyMjIiLz4KPC9zdmc+') no-repeat; /* 使用 base64 格式的箭頭圖標 */
-                        background-position: calc(100% - 14px) center; /* 調整箭頭的位置，讓它距離左邊更近 */
-                        background-size: 10px; /* 調整箭頭大小 */
-                        outline: none;
-                        cursor: pointer;
+                    &:active {
+                        scale: 0.95;
                     }
                 }
             }
 
             .status {
                 width: 35%;
-                font-size: 18px;
+                font-size: 1.1rem;
                 display: flex;
                 justify-content: space-evenly;
                 align-items: center;
-                margin-bottom: 15px;
+                margin-bottom: 1.5%;
 
                 .activeDot {
-                    width: 12px;
-                    height: 12px;
+                    width: 0.9rem;
+                    height: 0.9rem;
                     border-radius: 50%;
                     background-color: $active-color;
                 }
 
                 .reservedDot {
-                    width: 12px;
-                    height: 12px;
+                    width: 0.9rem;
+                    height: 0.9rem;
                     border-radius: 50%;
                     background-color: $reserve-color;
                 }
 
                 .availableDot {
-                    width: 12px;
-                    height: 12px;
+                    width: 0.9rem;
+                    height: 0.9rem;
                     border-radius: 50%;
                     background-color: $available-color;
                 }
@@ -1660,20 +1693,17 @@ $subColor: #000000;
 
             .tableGrid {
                 height: 90%;
-                /* 確保父容器有具體高度 */
-                border-radius: 10px;
+                border-radius: $radius;
                 background-color: #f2f4f8;
                 display: grid;
                 grid-template-columns: repeat(4, 1fr);
-                gap: 20px;
                 justify-items: center;
                 overflow: hidden;
-                /* 防止元素超出容器 */
 
                 .tableItem {
-                    border: 1px solid #ccc;
-                    border-radius: 10px;
-                    background-color: white;
+                    border: 2px solid $gray-color;
+                    border-radius: $radius;
+                    background-color: $background-color;
                     display: flex;
                     flex-direction: column;
                     justify-content: center;
@@ -1685,7 +1715,6 @@ $subColor: #000000;
                         width: 80px;
                         height: 80px;
                         border-radius: 50%;
-                        background-color: #f4f6f9;
                         display: flex;
                         justify-content: center;
                         align-items: center;
@@ -1708,12 +1737,12 @@ $subColor: #000000;
                         }
 
                         .tableNumber {
-                            font-size: 20px;
+                            font-size: 1.1rem;
                             font-weight: bold;
                         }
 
                         .tableCapacity {
-                            font-size: 15px;
+                            font-size: 1rem;
                         }
                     }
                 }
@@ -1735,6 +1764,8 @@ $subColor: #000000;
                 width: 100vw;
                 height: 100vh;
                 background: rgba(0, 0, 0, 0.5);
+                display: flex;
+                align-items: center;
                 /* 半透明的黑色遮罩 */
                 position: absolute;
                 top: 0;
@@ -1744,7 +1775,7 @@ $subColor: #000000;
 
             .sidebar {
                 width: 50%;
-                height: 100%;
+                height: 96%;
                 border-radius: 10px;
                 background-color: #fff;
                 padding: 20px;
@@ -1777,7 +1808,7 @@ $subColor: #000000;
 
                         .tableNumber {
                             border-radius: 10px;
-                            background-color: #DDE1E6;
+                            background-color: $gray-color;
                             font-size: 22px;
                             font-weight: bolder;
                             padding: 20px 15px;
@@ -1886,7 +1917,7 @@ $subColor: #000000;
                                     ul {
                                         font-size: 15px;
                                         letter-spacing: 1px;
-                                        color: #21272A;
+                                        color: $black-color;
                                         margin-left: 20px;
 
                                         li {
@@ -1930,7 +1961,7 @@ $subColor: #000000;
                                 font-size: 17px;
                                 font-weight: bold;
                                 letter-spacing: 3px;
-                                color: #1e1e1e;
+                                color: $black-color;
                                 display: flex;
                                 justify-content: space-between;
                             }
@@ -1980,7 +2011,7 @@ $subColor: #000000;
                             input {
                                 width: 100%;
                                 height: 40%;
-                                border: 1px solid #DDE1E6;
+                                border: 1px solid $gray-color;
                                 border-radius: 10px;
                                 font-size: 16px;
                                 color: #697077;
@@ -1997,7 +2028,7 @@ $subColor: #000000;
                                 background-color: #343A3F;
                                 font-size: 16px;
                                 letter-spacing: 3px;
-                                color: #ffffff;
+                                color: $background-color;
                                 padding: 15px;
                                 position: absolute;
                                 bottom: 4%;
@@ -2013,7 +2044,7 @@ $subColor: #000000;
                             input {
                                 width: 100%;
                                 height: 40%;
-                                border: 1px solid #DDE1E6;
+                                border: 1px solid $gray-color;
                                 border-radius: 10px;
                                 background-color: #F2F4F8;
                                 font-size: 16px;
@@ -2051,7 +2082,7 @@ $subColor: #000000;
                                     font-size: 18px;
                                     font-weight: bold;
                                     letter-spacing: 3px;
-                                    color: #1e1e1e;
+                                    color: $black-color;
                                     display: flex;
                                     justify-content: space-between;
                                 }
@@ -2064,7 +2095,7 @@ $subColor: #000000;
                                 background-color: #343A3F;
                                 font-size: 16px;
                                 letter-spacing: 3px;
-                                color: #ffffff;
+                                color: $background-color;
                                 padding: 15px;
                                 position: absolute;
                                 bottom: 4%;
@@ -2077,13 +2108,13 @@ $subColor: #000000;
         }
 
         .reservationArea {
-            width: 32%;
+            width: 38%;
             height: 100%;
             border: 1px solid rgba(grey, 0.5);
             border: 1px solid;
-            border-radius: 10px;
-            background-color: white;
-            box-shadow: -3px 3px 4px black;
+            border-radius: $radius;
+            background-color: $background-color;
+            box-shadow: -3px 3px 4px $boxShadow;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -2095,42 +2126,43 @@ $subColor: #000000;
                 width: 95%;
                 display: flex;
                 justify-content: center;
-                margin-bottom: 10px;
+                margin-bottom: 4%;
 
                 button {
                     width: 50%;
                     border: none;
-                    border-radius: 10px;
-                    background-color: #FFFFFF;
-                    font-size: 20px;
+                    border-radius: $radius;
+                    background-color: $background-color;
+                    font-size: 1.1rem;
+                    font-weight: bold;
                     color: #4D5358;
                     letter-spacing: 5px;
-                    padding: 15px;
+                    padding: 5%;
                     cursor: pointer;
 
                     &.active {
-                        background-color: #DDE1E6;
+                        background-color: $reserve-color;
                     }
                 }
             }
 
             .datePicker {
                 width: 95%;
-                font-size: 20px;
-                color: #343A3F;
+                font-size: 1.35rem;
+                color: $black-color;
                 display: flex;
                 justify-content: center;
                 align-items: center;
-                margin-bottom: 10px;
+                margin-bottom: 3%;
                 position: relative;
 
                 .leftButton {
                     background: none;
                     border: none;
-                    font-size: 25px;
-                    color: #697077;
+                    font-size: 1.7rem;
+                    color: $black-color;
                     cursor: pointer;
-                    padding: 10px;
+                    padding: 3%;
                     position: absolute;
                     left: 0%;
                 }
@@ -2138,10 +2170,10 @@ $subColor: #000000;
                 .rightButton {
                     background: none;
                     border: none;
-                    font-size: 25px;
-                    color: #697077;
+                    font-size: 1.7rem;
+                    color: $black-color;
                     cursor: pointer;
-                    padding: 10px;
+                    padding: 3%;
                     position: absolute;
                     right: 0%;
                 }
@@ -2149,62 +2181,61 @@ $subColor: #000000;
 
             .reservations {
                 width: 100%;
-                max-height: 720px;
+                max-height: 73%;
                 overflow: auto;
-                border-top: 2.5px solid #DDE1E6;
+                border-top: 3px solid $gray-color;
                 display: flex;
                 flex-direction: column;
-                padding: 10px 0;
+                padding: 2% 0;
 
                 .reminderAndSearchArea {
                     width: 100%;
-                    padding: 13px 10px;
-                    margin-bottom: 5px;
+                    padding: 2.5% 2%;
+                    margin-bottom: 2%;
                     display: flex;
                     justify-content: space-between;
-                    align-items: center; /* 垂直居中對齊 */
+                    align-items: center;
 
                     .reminderText {
-                        font-size: 17px;
-                        color: black;
+                        font-size: 1.1rem;
+                        color: $black-color;
                         opacity: 0.6;
                     }
 
                     .phoneSearch {
                         background: transparent;
                         border: none;
-                        font-size: 20px;
-                        color: #697077;
+                        font-size: 1.2rem;
+                        color: $black-color;
                         cursor: pointer;
-                        margin-right: 10px;
+                        margin-right: 2%;
                     }
 
                     .searchInput {
                         width: 250px;
-                        border: 1px solid #ccc;
-                        border-radius: 10px;
-                        border-radius: 4px;
-                        font-size: 17px;
+                        border: 1px solid $gray-color;
+                        border-radius: $radius;
+                        font-size: 1.1rem;
                         text-indent: 10px;
                         outline: none;
-                        padding: 5px;
+                        padding: 2%;
                     }
                 }
 
                 .reservationItem {
                     width: 100%;
-                    border-radius: 10px;
-                    border: 1px solid #697077;
+                    border-radius: $radius;
+                    border: 2px solid $gray-color;
                     display: flex;
                     justify-content: space-around;
                     align-items: center;
-                    padding: 13px 5px;
-                    margin-bottom: 20px;
+                    padding: 3% 1.5%;
+                    margin-bottom: 5%;
 
                     .customerName {
-                        font-size: 20px;
+                        font-size: 1.1rem;
                         letter-spacing: 2px;
-                        color: #4D5358;
+                        color: $black-color;
                     }
 
                     .customerPhoneAndParty {
@@ -2214,50 +2245,50 @@ $subColor: #000000;
                         .customerPhone {
                             display: flex;
                             align-items: center;
-                            font-size: 18px;
-                            color: #697077;
+                            font-size: 1.15rem;
+                            color: $black-color;
                             letter-spacing: 2px;
-                            margin-bottom: 15px;
+                            margin-bottom: 10%;
 
                             i {
-                                color: #697077;
-                                margin-right: 10px;
+                                color: $black-color;
+                                margin-right: 7%;
                             }
                         }
 
                         .customerPartySize {
                             display: flex;
                             align-items: center;
-                            color: #697077;
-                            font-size: 18px;
+                            color: $black-color;
+                            font-size: 1.15rem;
                             letter-spacing: 2px;
 
                             i {
-                                color: #697077;
-                                margin-right: 10px;
+                                color: $black-color;
+                                margin-right: 7%;
                             }
                         }
                     }
 
                     .tableNumberAndTime {
                         width: 25%;
-                        border-radius: 10px;
-                        background-color: #DDE1E6;
-                        color: #4D5358;
+                        border-radius: $radius;
+                        background-color: $gray-color;
+                        color: $black-color;
                         display: flex;
                         flex-direction: column;
                         align-items: center;
-                        padding: 10px;
+                        padding: 3%;
 
                         .tableNumbers {
-                            font-size: 18px;
+                            font-size: 1.1rem;
                             font-weight: bold;
-                            letter-spacing: 2px;
-                            margin-bottom: 10px;
+                            letter-spacing: 3px;
+                            margin-bottom: 10%;
                         }
 
                         .reservationTime {
-                            font-size: 16px;
+                            font-size: 1rem;
                             font-weight: bold;
                             letter-spacing: 1px;
                         }
@@ -2268,21 +2299,21 @@ $subColor: #000000;
                         flex-direction: column;
 
                         .checkinArea {
-                            color: #697077;
-                            font-size: 20px;
-                            margin-bottom: 15px;
+                            color: $black-color;
+                            font-size: 1.2rem;
+                            margin-bottom: 30%;
 
                             input[type="checkbox"] {
-                                margin-right: 5px;
+                                margin-right: 5%;
                             }
                         }
 
                         .cancelArea {
-                            color: #697077;
-                            font-size: 20px;
+                            color: $black-color;
+                            font-size: 1.2rem;
 
                             input[type="checkbox"] {
-                                margin-right: 5px;
+                                margin-right: 5%;
                             }
                         }
                     }
@@ -2291,81 +2322,79 @@ $subColor: #000000;
 
             .newReservation {
                 width: 70%;
-                border-radius: 10px;
-                background-color: #343A3F;
-                color: white;
+                border: none;
+                border-radius: $radius;
+                background-color: $reserve-color;
                 text-align: center;
-                font-size: 20px;
+                font-size: 1.1rem;
                 letter-spacing: 3px;
                 cursor: pointer;
-                padding: 15px;
-                margin-top: 20px;
+                padding: 3%;
                 position: absolute;
-                bottom: 20px;
+                bottom: 2%;
 
-                &:hover {
-                    background-color: #333;
+                &:active {
+                    scale: 0.95;
                 }
             }
 
             .waitlist {
                 width: 100%;
-                max-height: 720px;
+                max-height: 73%;
                 overflow: auto;
-                border-top: 2.5px solid #DDE1E6;
+                border-top: 3px solid $gray-color;
                 display: flex;
                 flex-direction: column;
-                padding: 10px 0;
+                padding: 2% 0;
 
                 .reminderAndSearchArea {
                     width: 100%;
-                    padding: 13px 10px;
-                    margin-bottom: 5px;
+                    padding: 2.5% 2%;
+                    margin-bottom: 2%;
                     display: flex;
                     justify-content: space-between;
-                    align-items: center; /* 垂直居中對齊 */
+                    align-items: center;
 
                     .reminderText {
-                        font-size: 17px;
-                        color: black;
+                        font-size: 1.1rem;
+                        color: $black-color;
                         opacity: 0.6;
                     }
 
                     .phoneSearch {
                         background: transparent;
                         border: none;
-                        font-size: 20px;
-                        color: #697077;
+                        font-size: 1.2rem;
+                        color: $black-color;
                         cursor: pointer;
-                        margin-right: 10px;
+                        margin-right: 2%;
                     }
 
                     .searchInput {
                         width: 250px;
-                        border: 1px solid #ccc;
-                        border-radius: 10px;
-                        border-radius: 4px;
-                        font-size: 17px;
+                        border: 1px solid $gray-color;
+                        border-radius: $radius;
+                        font-size: 1.1rem;
                         text-indent: 10px;
                         outline: none;
-                        padding: 5px;
+                        padding: 2%;
                     }
                 }
 
                 .waitlistItem {
                     width: 100%;
-                    border-radius: 10px;
-                    border: 1px solid #697077;
+                    border-radius: $radius;
+                    border: 2px solid $gray-color;
                     display: flex;
                     justify-content: space-around;
                     align-items: center;
-                    padding: 13px 5px;
-                    margin-bottom: 20px;
+                    padding: 3% 1.5%;
+                    margin-bottom: 4%;
 
                     .customerName {
-                        font-size: 20px;
+                        font-size: 1.1rem;
                         letter-spacing: 2px;
-                        color: #4D5358;
+                        color: $black-color;
                     }
 
                     .customerPhoneAndParty {
@@ -2375,27 +2404,27 @@ $subColor: #000000;
                         .customerPhone {
                             display: flex;
                             align-items: center;
-                            font-size: 18px;
-                            color: #697077;
+                            font-size: 1.15rem;
+                            color: $black-color;
                             letter-spacing: 2px;
-                            margin-bottom: 25px;
+                            margin-bottom: 10%;
 
                             i {
-                                color: #697077;
-                                margin-right: 10px;
+                                color: $black-color;
+                                margin-right: 7%;
                             }
                         }
 
                         .customerPartySize {
                             display: flex;
                             align-items: center;
-                            color: #697077;
-                            font-size: 18px;
+                            color: $black-color;
+                            font-size: 1.15rem;
                             letter-spacing: 2px;
 
                             i {
-                                color: #697077;
-                                margin-right: 10px;
+                                color: $black-color;
+                                margin-right: 7%;
                             }
                         }
                     }
@@ -2403,22 +2432,22 @@ $subColor: #000000;
                     .tableNumberAndTime {
                         width: 25%;
                         border-radius: 10px;
-                        background-color: #DDE1E6;
-                        color: #4D5358;
+                        background-color: $gray-color;
+                        color: $black-color;
                         display: flex;
                         flex-direction: column;
                         align-items: center;
-                        padding: 10px;
+                        padding: 3%;
 
                         .waitPosition {
-                            font-size: 18px;
-                            letter-spacing: 3px;
+                            font-size: 1.1rem;
                             font-weight: bold;
-                            margin-bottom: 20px;
+                            letter-spacing: 3px;
+                            margin-bottom: 10%;
                         }
 
                         .registrationTime {
-                            font-size: 16px;
+                            font-size: 1rem;
                             font-weight: bold;
                             letter-spacing: 1px;
                         }
@@ -2429,21 +2458,21 @@ $subColor: #000000;
                         flex-direction: column;
 
                         .checkinArea {
-                            color: #697077;
-                            font-size: 20px;
+                            color: $black-color;
+                            font-size: 1.2rem;
                             margin-bottom: 15px;
 
                             input[type="checkbox"] {
-                                margin-right: 5px;
+                                margin-right: 5%;
                             }
                         }
 
                         .cancelArea {
-                            color: #697077;
-                            font-size: 20px;
+                            color: $black-color;
+                            font-size: 1.2rem;
 
                             input[type="checkbox"] {
-                                margin-right: 5px;
+                                margin-right: 5%;
                             }
                         }
                     }
@@ -2452,20 +2481,19 @@ $subColor: #000000;
 
             .newWaitlist {
                 width: 70%;
-                border-radius: 10px;
-                background-color: #343A3F;
-                color: white;
+                border: none;
+                border-radius: $radius;
+                background-color: $reserve-color;
                 text-align: center;
-                font-size: 20px;
+                font-size: 1.1rem;
                 letter-spacing: 3px;
                 cursor: pointer;
-                padding: 15px;
-                margin-top: 20px;
+                padding: 3%;
                 position: absolute;
-                bottom: 20px;
+                bottom: 2%;
 
-                &:hover {
-                    background-color: #333;
+                &:active {
+                    scale: 0.95;
                 }
             }
         }
@@ -2485,26 +2513,26 @@ $subColor: #000000;
             .modalContent {
                 width: 50%;
                 height: 75%;
-                border-radius: 10px;
-                background: white;
-                padding: 20px;
+                border-radius: $radius;
+                background: $background-color;
+                padding: 1.5%;
 
                 .reserveInfoArea {
                     width: 100%;
                     height: 40%;
 
                     .reserveInfoTitle {
-                        font-size: 20px;
+                        font-size: 1.2rem;
                         letter-spacing: 3px;
-                        margin-bottom: 8px;
+                        margin-bottom: 2%;
                     }
 
                     .partySizeAndDateArea {
                         height: 35%;
-                        border-top: 2px solid #C1C7CD;
+                        border-top: 2px solid $gray-color;
                         display: flex;
                         justify-content: space-between;
-                        padding: 10px;
+                        padding: 1%;
 
                         .partySizeArea {
                             width: 50%;
@@ -2523,7 +2551,7 @@ $subColor: #000000;
                                 width: 65%;
                                 height: 35px;
                                 border-radius: 10px;
-                                border: 1px solid #C1C7CD;
+                                border: 1px solid $gray-color;
                                 letter-spacing: 5px;
                                 padding-left: 10px;
                                 appearance: none;
@@ -2556,7 +2584,7 @@ $subColor: #000000;
                                 width: 90%;
                                 height: 35px;
                                 border-radius: 10px;
-                                border: 1px solid #C1C7CD;
+                                border: 1px solid $gray-color;
                                 text-indent: 3px;
                                 outline: none;
                                 cursor: pointer;
@@ -2592,7 +2620,7 @@ $subColor: #000000;
 
                                 &.selected {
                                     background-color: #4D5358;
-                                    color: #FFFFFF;
+                                    color: $background-color;
                                 }
                             }
                         }
@@ -2604,14 +2632,14 @@ $subColor: #000000;
                     height: 45%;
 
                     .contactInfoTitle {
-                        font-size: 20px;
+                        font-size: 1.2rem;
                         letter-spacing: 3px;
-                        margin-bottom: 8px;
+                        margin-bottom: 2%;
                     }
 
                     .nameAndTitleArea {
                         height: 30%;
-                        border-top: 2px solid #C1C7CD;
+                        border-top: 2px solid $gray-color;
                         display: flex;
                         padding: 10px;
 
@@ -2632,7 +2660,7 @@ $subColor: #000000;
                                 width: 90%;
                                 height: 35px;
                                 border-radius: 10px;
-                                border: 1px solid #C1C7CD;
+                                border: 1px solid $gray-color;
                                 text-indent: 5px;
                                 letter-spacing: 3px;
                                 outline: none;
@@ -2681,7 +2709,7 @@ $subColor: #000000;
                             width: 70%;
                             height: 35px;
                             border-radius: 10px;
-                            border: 1px solid #C1C7CD;
+                            border: 1px solid $gray-color;
                             text-indent: 5px;
                             letter-spacing: 3px;
                             outline: none;
@@ -2707,7 +2735,7 @@ $subColor: #000000;
                             width: 70%;
                             height: 35px;
                             border-radius: 10px;
-                            border: 1px solid #C1C7CD;
+                            border: 1px solid $gray-color;
                             text-indent: 5px;
                             letter-spacing: 3px;
                             outline: none;
@@ -2725,25 +2753,25 @@ $subColor: #000000;
                     .cancelButton {
                         border: none;
                         border-radius: 10px;
-                        background-color: #DDE1E6;
+                        background-color: $gray-color;
                         font-size: 15px;
                         letter-spacing: 3px;
                         margin-top: 15px;
                         padding: 15px 140px;
                         cursor: pointer;
-                        color: #21272A;
+                        color: $black-color;
                     }
 
                     .addButton {
                         border: none;
                         border-radius: 10px;
-                        background-color: #343A3F;
+                        background-color: $reserve-color;
                         font-size: 15px;
                         letter-spacing: 3px;
                         padding: 15px 140px;
                         margin-top: 15px;
                         cursor: pointer;
-                        color: white;
+                        color: $black-color;
                     }
                 }
             }
@@ -2763,24 +2791,24 @@ $subColor: #000000;
 
             .modalContent {
                 width: 50%;
-                height: 70%;
-                border-radius: 10px;
-                background: white;
-                padding: 20px;
+                height: 75%;
+                border-radius: $radius;
+                background: $background-color;
+                padding: 1.5%;
 
                 .waitlistInfoArea {
                     width: 100%;
                     height: 40%;
 
                     .waitlistInfoTitle {
-                        font-size: 20px;
+                        font-size: 1.2rem;
                         letter-spacing: 3px;
-                        margin-bottom: 8px;
+                        margin-bottom: 2%;
                     }
 
                     .partySizeAndDateArea {
                         height: 35%;
-                        border-top: 2px solid #C1C7CD;
+                        border-top: 2px solid $gray-color;
                         display: flex;
                         justify-content: space-between;
                         padding: 10px;
@@ -2802,7 +2830,7 @@ $subColor: #000000;
                                 width: 65%;
                                 height: 35px;
                                 border-radius: 10px;
-                                border: 1px solid #C1C7CD;
+                                border: 1px solid $gray-color;
                                 letter-spacing: 5px;
                                 padding-left: 10px;
                                 appearance: none;
@@ -2835,7 +2863,7 @@ $subColor: #000000;
                                 width: 90%;
                                 height: 35px;
                                 border-radius: 10px;
-                                border: 1px solid #C1C7CD;
+                                border: 1px solid $gray-color;
                                 text-indent: 3px;
                                 outline: none;
                                 cursor: pointer;
@@ -2866,7 +2894,7 @@ $subColor: #000000;
                                 width: 65%;
                                 height: 35px;
                                 border-radius: 10px;
-                                border: 1px solid #C1C7CD;
+                                border: 1px solid $gray-color;
                                 text-indent: 3px;
                                 outline: none;
                                 cursor: pointer;
@@ -2890,7 +2918,7 @@ $subColor: #000000;
                                 width: 90%;
                                 height: 35px;
                                 border-radius: 10px;
-                                border: 1px solid #C1C7CD;
+                                border: 1px solid $gray-color;
                                 text-indent: 5px;
                                 outline: none;
                                 cursor: pointer;
@@ -2904,14 +2932,14 @@ $subColor: #000000;
                     height: 45%;
 
                     .contactInfoTitle {
-                        font-size: 20px;
+                        font-size: 1.2rem;
                         letter-spacing: 3px;
-                        margin-bottom: 8px;
+                        margin-bottom: 2%;
                     }
 
                     .nameAndTitleArea {
                         height: 30%;
-                        border-top: 2px solid #C1C7CD;
+                        border-top: 2px solid $gray-color;
                         display: flex;
                         padding: 10px;
 
@@ -2932,7 +2960,7 @@ $subColor: #000000;
                                 width: 90%;
                                 height: 35px;
                                 border-radius: 10px;
-                                border: 1px solid #C1C7CD;
+                                border: 1px solid $gray-color;
                                 text-indent: 5px;
                                 letter-spacing: 3px;
                                 outline: none;
@@ -2981,7 +3009,7 @@ $subColor: #000000;
                             width: 70%;
                             height: 35px;
                             border-radius: 10px;
-                            border: 1px solid #C1C7CD;
+                            border: 1px solid $gray-color;
                             text-indent: 5px;
                             letter-spacing: 3px;
                             outline: none;
@@ -3007,7 +3035,7 @@ $subColor: #000000;
                             width: 70%;
                             height: 35px;
                             border-radius: 10px;
-                            border: 1px solid #C1C7CD;
+                            border: 1px solid $gray-color;
                             text-indent: 5px;
                             letter-spacing: 3px;
                             outline: none;
@@ -3025,25 +3053,25 @@ $subColor: #000000;
                     .cancelButton {
                         border: none;
                         border-radius: 10px;
-                        background-color: #DDE1E6;
+                        background-color: $gray-color;
                         font-size: 15px;
                         letter-spacing: 3px;
                         margin-top: 15px;
                         padding: 15px 140px;
                         cursor: pointer;
-                        color: #21272A;
+                        color: $black-color;
                     }
 
                     .addButton {
                         border: none;
                         border-radius: 10px;
-                        background-color: #343A3F;
+                        background-color: $reserve-color;
                         font-size: 15px;
                         letter-spacing: 3px;
                         padding: 15px 140px;
                         margin-top: 15px;
                         cursor: pointer;
-                        color: white;
+                        color: $black-color;
                     }
                 }
             }
