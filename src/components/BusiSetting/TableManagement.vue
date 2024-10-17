@@ -310,7 +310,7 @@ $boxShadow: #F2F4F8;
         height: 85%;
         border: 0.125rem solid $gray-color; // 2px -> 0.125rem
         padding: 0.9375rem 0.625rem; // 15px 10px -> 0.9375rem 0.625rem
-        max-height: 40.625rem; // 650px -> 40.625rem
+        max-height: 37.625rem; // 650px -> 40.625rem
         overflow-y: auto;
 
         .tableList {
