@@ -236,28 +236,28 @@ export default {
             <div class="timeStyle" :style="{ fontFamily: currentFont }">{{ dateCode }}</div>
         </div>
         <div class="control">
-            <div class="event" @click="goEvent()"
-                :class="{ 'selected': this.$route.path == '/event', 'disabled': !managedAreas.includes('活動') }">
+            <div class="event" @click="goEvent()" :class="{ 'selected': this.$route.path == '/event' }"
+                v-if="managedAreas.includes('活動')">
                 <i class="fa-regular fa-calendar-check"></i>
                 <h3>活動</h3>
             </div>
-            <div class="order" @click="managedAreas.includes('點餐') ? goOrder() : null"
-                :class="{ 'selected': this.$route.path == '/order', 'disabled': !managedAreas.includes('點餐') }">
+            <div class="order" @click="goOrder()" :class="{ 'selected': this.$route.path == '/order' }"
+                v-if="managedAreas.includes('點餐')">
                 <i class="fa-solid fa-utensils"></i>
                 <h3>點餐</h3>
             </div>
-            <div class="orderStatus" @click="managedAreas.includes('點餐狀態') ? goStatus() : null"
-                :class="{ 'selected': this.$route.path == '/orderStatus', 'disabled': !managedAreas.includes('點餐狀態') }">
+            <div class="orderStatus" @click="goStatus()" :class="{ 'selected': this.$route.path == '/orderStatus' }"
+                v-if="managedAreas.includes('點餐狀態')">
                 <i class="fa-solid fa-list-check"></i>
                 <h3>餐點狀態</h3>
             </div>
-            <div class="workstation" @click="managedAreas.includes('工作檯') ? goWorkstation() : null"
-                :class="{ 'selected': this.$route.path == '/workstation', 'disabled': !managedAreas.includes('工作檯') }">
+            <div class="workstation" @click="goWorkstation()"
+                :class="{ 'selected': this.$route.path == '/workstation' }" v-if="managedAreas.includes('工作檯')">
                 <i class="fa-solid fa-fire-burner"></i>
                 <h3>工作檯</h3>
             </div>
-            <div class="tableChechout" @click="managedAreas.includes('桌位結帳') ? goTCheckout() : null"
-                :class="{ 'selected': this.$route.path == '/tableAndCheckout', 'disabled': !managedAreas.includes('桌位結帳') }">
+            <div class="tableChechout" @click="goTCheckout()"
+                :class="{ 'selected': this.$route.path == '/tableAndCheckout' }" v-if="managedAreas.includes('桌位結帳')">
                 <div>
                     <span class="material-symbols-outlined">
                         table_restaurant
@@ -268,23 +268,23 @@ export default {
                 </div>
                 <h3>桌位結帳</h3>
             </div>
-            <div class="history" @click="managedAreas.includes('歷史紀錄') ? goHistory() : null"
-                :class="{ 'selected': this.$route.path == '/history', 'disabled': !managedAreas.includes('歷史紀錄') }">
+            <div class="history" @click="goHistory()" :class="{ 'selected': this.$route.path == '/history' }"
+                v-if="managedAreas.includes('歷史紀錄')">
                 <i class="fa-solid fa-clock-rotate-left"></i>
                 <h3>歷史紀錄</h3>
             </div>
-            <div class="operation" @click="managedAreas.includes('營運') ? goOperation() : null"
-                :class="{ 'selected': this.$route.path == '/operation', 'disabled': !managedAreas.includes('營運') }">
+            <div class="operation" @click="goOperation()" :class="{ 'selected': this.$route.path == '/operation' }"
+                v-if="managedAreas.includes('營運')">
                 <i class="fa-solid fa-chart-simple"></i>
                 <h3>營運</h3>
             </div>
-            <div class="staffInfo" @click="managedAreas.includes('員工管理') ? goStaffInfo() : null"
-                :class="{ 'selected': this.$route.path == '/staffInfo', 'disabled': !managedAreas.includes('員工管理') }">
+            <div class="staffInfo" @click="goStaffInfo()" :class="{ 'selected': this.$route.path == '/staffInfo' }"
+                v-if="managedAreas.includes('員工管理')">
                 <i class="fa-solid fa-user"></i>
                 <h3>員工管理</h3>
             </div>
-            <div class="setting" @click="managedAreas.includes('設定') ? goSetting() : null"
-                :class="{ 'selected': this.$route.path == '/setting', 'disabled': !managedAreas.includes('設定') }">
+            <div class="setting" @click="goSetting()" :class="{ 'selected': this.$route.path == '/setting' }"
+                v-if="managedAreas.includes('設定')">
                 <i class="fa-solid fa-gear"></i>
                 <h3>設定</h3>
             </div>
@@ -292,6 +292,7 @@ export default {
         </div>
         <div class="userAndlogoutArea">
             <div class="Permissions" @click="goUserInfo()" :class="{ 'selected': this.$route.path == '/userInfo' }">
+                <i class="fa-regular fa-circle-user"></i>
                 <h3>{{ this.userName }}</h3>
                 <p>{{ this.role }}</p>
             </div>
