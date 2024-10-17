@@ -420,6 +420,7 @@ export default {
         </div>
         <div class="windowArea" v-if="editeMode">
             <div class="comboName">
+                <p class="necessaryName">*必填</p>
                 <input type="text" placeholder="套餐名稱" v-model="comboName">
             </div>
             <!-- <h1>{{ comboName }}</h1> -->
@@ -549,6 +550,7 @@ export default {
 <style scoped lang="scss">
 $divColor: #fff;
 $addDiv: #343a3f;
+$soldOut: #e02d11;
 
 .ComboMainArea {
     width: 100%;
@@ -590,6 +592,12 @@ $addDiv: #343a3f;
         .comboName {
             margin: 5% 0 10% 0;
 
+            .necessaryName {
+                font-family: "Noto Sans TC", sans-serif;
+                font-weight: bold;
+                color: $soldOut;
+            }
+
             h1 {
                 font-size: 20px;
             }
@@ -602,6 +610,9 @@ $addDiv: #343a3f;
                 border: 1px solid rgba(0, 0, 0, 0.4);
                 background-color: white;
                 padding: 2% 5%;
+                box-shadow: 0px 0px 5px rgba(255, 0, 0, 0.8),
+                    0px 0px 10px rgba(255, 0, 0, 0.4),
+                    0px 0px 15px rgba(255, 0, 0, 0.1), ;
 
                 &:focus {
                     outline: none;
