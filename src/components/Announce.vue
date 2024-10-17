@@ -307,7 +307,7 @@ export default {
                 <div class="listArea">
                     <div v-for="announce in displayedAnnouncements" :key="announce.announceId"
                         class="announcement-item">
-                        <img :src="announce.announcePictureName || '/images/Logo.jpg'" class="previewlist-image"
+                        <img :src="announce.announcePictureName || '/images/default-menu-img.png'" class="previewlist-image"
                             @click="showAnnouncePreview(announce)" />
                         <div class="item-content">
                             <div class="textlistArea">

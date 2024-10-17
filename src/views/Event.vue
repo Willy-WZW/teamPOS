@@ -203,7 +203,7 @@ export default {
                             class="announcement-item" @click="showAnnouncePreview(announce)">
                             <img v-if="announce.announcePictureName" :src="announce.announcePictureName"
                                 class="preview-image" />
-                            <img v-else src="/images/Logo.jpg" class="preview-image" />
+                            <img v-else src="/images/default-menu-img.png" class="preview-image" />
                             <div class="announcetext">
                                 <h3
                                     style="text-overflow: ellipsis; overflow: hidden; white-space: nowrap; margin-bottom: 2%;">
@@ -220,9 +220,7 @@ export default {
 </template>
 
 <style scoped lang="scss">
-* {
-    letter-spacing: 0.2dvw;
-}
+
 
 .big {
     width: 100%;
@@ -248,7 +246,7 @@ export default {
         display: flex;
         justify-content: start;
         overflow: hidden;
-
+        letter-spacing: 0.2dvw;
         .mainbox {
             width: 65%;
             height: 100%;

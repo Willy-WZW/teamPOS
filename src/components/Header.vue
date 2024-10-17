@@ -1,7 +1,7 @@
 <script>
 export default {
-    data(){
-        return{
+    data() {
+        return {
             selected: "menuManage"
         }
     },
@@ -22,11 +22,11 @@ export default {
             this.$emit('changeComponent', 'BusiSetting');
             this.selectRoute('busiSetting');
         },
-        authorizations(){
+        authorizations() {
             this.$emit('changeComponent', 'Authorizations');
             this.selectRoute('authorizations');
         },
-        selectRoute(option){
+        selectRoute(option) {
             this.selected = option
         }
     }
@@ -35,19 +35,19 @@ export default {
 
 <template>
     <div class="headerBar">
-        <div class="menuManage" :class="{isSelected: selected === 'menuManage'}" @click="selectMenu">
+        <div class="menuManage" :class="{ isSelected: selected === 'menuManage' }" @click="selectMenu">
             <span>菜單管理</span>
         </div>
-        <div class="workbench":class="{isSelected: selected === 'workbench'}" @click="selectWorkbench">
+        <div class="workbench" :class="{ isSelected: selected === 'workbench' }" @click="selectWorkbench">
             <span>工作檯</span>
         </div>
-        <div class="announce":class="{isSelected: selected === 'announce'}" @click="selectAnnounce">
+        <div class="announce" :class="{ isSelected: selected === 'announce' }" @click="selectAnnounce">
             <span>公告設定</span>
         </div>
-        <div class="busiSetting":class="{isSelected: selected === 'busiSetting'}" @click="selectBusiSetting">
+        <div class="busiSetting" :class="{ isSelected: selected === 'busiSetting' }" @click="selectBusiSetting">
             <span>桌位與訂位</span>
         </div>
-        <div class="authorizations":class="{isSelected: selected === 'authorizations'}" @click="authorizations">
+        <div class="authorizations" :class="{ isSelected: selected === 'authorizations' }" @click="authorizations">
             <span>權限管理</span>
         </div>
         <!-- <router-link class="comboLink" :to="{ name: 'comboPage' }">套餐入口</router-link> -->
@@ -64,6 +64,7 @@ $textColor: #697077;
     height: 100%;
     border-radius: 10px;
     border: 1px solid;
+    box-shadow: -2px 2px 2px black;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -73,7 +74,7 @@ $textColor: #697077;
     .menuManage,
     .workbench,
     .announce,
-    .busiSetting ,
+    .busiSetting,
     .authorizations {
         width: 10%;
         height: 100%;
@@ -87,40 +88,49 @@ $textColor: #697077;
         font-weight: bold;
         font-family: "Noto Sans TC", sans-serif;
         transition: transform 0.3s, color 0.3s, border-bottom 0.3s;
+
+        span {
+            z-index: 1;
+        }
     }
 
     .menuManage::before,
     .workbench::before,
     .announce::before,
     .busiSetting::before,
-    .authorizations::before{
-        content: "";
+    .authorizations::before {
+        content: '';
         position: absolute;
-        bottom: 0;
-        left: 0;
-        height: 5px;
-        width: 0;
-        background-color: $selectedTextColor;
-        transition: width 0.3s ease-in-out;
+        top: 12px;
+        left: 15px;
+        width: 100%;
+        height: 100%;
+        background-image: url('/src/assets/highlightpen1.png');
+        background-repeat: no-repeat;
+        background-position: left;
+        background-size: 80%;
+        opacity: 1; //0.8
+        clip-path: inset(0 100% 0 0); // 完全遮擋
+        transition: clip-path 0.7s ease;
     }
 
     .isSelected {
-        color: $selectedTextColor;
+        color: #000; //$selectedTextColor
     }
 
     .isSelected::before {
-        width: 100%;
+        clip-path: inset(0 0 0 0); // 全部顯示
     }
 
-    .comboLink{
+    .comboLink {
         position: absolute;
         left: 0;
         top: 0;
         font-size: 20px;
-        color:red;
+        color: red;
         // background-color: red;
         text-decoration: none;
-        cursor:default;
+        cursor: default;
     }
 }
 </style>

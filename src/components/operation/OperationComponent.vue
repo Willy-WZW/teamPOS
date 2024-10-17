@@ -69,7 +69,7 @@ export default{
                 },
                 series: [
                     {
-                        name:'銷售額',
+                        name:'餐點銷售量',
                         type: 'bar',
                         label: {
                                 show: false,  // 顯示數據標籤
@@ -161,7 +161,7 @@ export default{
                 },
                 legend: {
                     data: ['去年', '今年'],
-                    left: 'left' // 圖例顯示在左側
+                    left: 'center' // 圖例顯示在左側
                 },
                 toolbox: {
                     show: true,
@@ -335,10 +335,10 @@ export default{
             this.preCurrentMonth
 
             //這是為了計算第二張圖用的
-            this.option.legend.data[1] = String(year)
-            this.option.series[1].name = String(year)
-            this.option.legend.data[0] = String(year-1)
-            this.option.series[0].name = String(year-1)
+            // this.option.legend.data[1] = String(year)
+            // this.option.series[1].name = String(year)
+            // this.option.legend.data[0] = String(year-1)
+            // this.option.series[0].name = String(year-1)
 
 
             // 接下來送出一年的12個月份
@@ -421,10 +421,10 @@ export default{
             this.preCurrentSeason
 
             //這是為了計算第二張圖用的
-            this.option.legend.data[1] = String(year)
-            this.option.series[1].name = String(year)
-            this.option.legend.data[0] = String(year-1)
-            this.option.series[0].name = String(year-1)
+            // this.option.legend.data[1] = String(year)
+            // this.option.series[1].name = String(year)
+            // this.option.legend.data[0] = String(year-1)
+            // this.option.series[0].name = String(year-1)
 
             // 接下來送出一年的12個月份
             //[preDates,currentDates]
@@ -560,13 +560,15 @@ export default{
     },
     methods:{
         postEveryMonthOfYearDishes(mealName){
+            if (this.currentHead != '年'){
+
             //這是年在用的
+            //為了bar的統計圖 x軸應該是月份
+            //當前年當月
             this.analysisMealVoList = []
             this.analysis12Month = []
             this.lastYearAnalysis12Month = []
             let result = this.getFirstAndLastDaysOfYear(this.dateForYear.getFullYear())
-            //為了bar的統計圖 x軸應該是月份
-            //當前年當月
             let currentDate = result[1]
             let promisesCurrrDate = [];
             for (let month=0; month<12; month++){
@@ -593,7 +595,7 @@ export default{
                     console.error("Error in one or more requests:", error);
                 });    
 
-            //這是年在用的    x軸應該是月份
+            //這是年在用的x軸應該是月份
             //為了bar的統計圖
             //去年同月    
             let lastYearDate = result[2]
@@ -652,8 +654,84 @@ export default{
                 .catch(error => {
                     console.error("Error in one or more requests:", error);
                 }); 
+
+            }
+
+            
+            //這是給年用的 x軸是每一季
+            if (this.currentHead == '年'){
+                console.log('進入年的領域')
+                this.analysisMealVoList = []
+                this.analysis4Season = []
+                this.lastYearAnalysis4Season = []
+                //先獲取時間段
+                let seasonTimeresult = this.getFirstAndLastDaysOfSeason(this.dateForYear.getFullYear())
+                console.log(seasonTimeresult)
+                
+                let currentYearSeason = seasonTimeresult[1] //今年
+                let lastYearSeason = seasonTimeresult[2] //去年
+                let promisesCurrrYearSeason = [];
+                let promisesLastYearSeason = [];
+                
+                // 當前年份请求 季度x軸
+                for (let season = 0; season < 4; season++) {
+                    let promiseCurrent = axios.post("http://localhost:8080/pos/analysis", {
+                        "startDate": currentYearSeason[season][0],
+                        "endDate": currentYearSeason[season][1],
+                        "mealName":mealName
+                    });
+                    promisesCurrrYearSeason.push(promiseCurrent);
+                }
+                // 去年年份请求 季度x軸
+                for (let season = 0; season < 4; season++) {
+                    let promiseLastYear = axios.post("http://localhost:8080/pos/analysis", {
+                        "startDate": lastYearSeason[season][0],
+                        "endDate": lastYearSeason[season][1],
+                        "mealName":mealName
+                    });
+                    promisesLastYearSeason.push(promiseLastYear);
+                }
+                // 同時處理兩個Promise.all
+                Promise.all([...promisesCurrrYearSeason, ...promisesLastYearSeason])
+                    .then(responses=>{
+                        // 處理當前年份數據 (前4個response對應當前年分)
+                        responses.slice(0, 4).forEach(response=>{
+                            this.analysis4Season.push(response.data.analysis);
+                        })
+
+                        let mealTotalOrders = this.analysis4Season.map(item=>item.analysisMealVo.mealTotalOrders)
+                        console.log('mealTotalOrders' + mealTotalOrders)
+                        this.option.series[1].data = mealTotalOrders;
+                        this.option.xAxis[0].data = ["第一季", "第二季", "第三季", "第四季"];
+                        
+                        //處理去年同月數據 (後4個response對應去年年分)
+                        responses.slice(4).forEach(response=>{
+                            this.lastYearAnalysis4Season.push(response.data.analysis);
+                        })
+                        let lastMealTotalOrders = this.lastYearAnalysis4Season.map(item=>item.analysisMealVo.mealTotalOrders)
+                        console.log('lastMealTotalOrders' + lastMealTotalOrders)
+                        this.option.series[0].data = lastMealTotalOrders;
+                        this.option.xAxis[0].data = ["第一季", "第二季", "第三季", "第四季"];
+
+                        //繪製圖表
+                        this.drawChart();
+                    })
+                    .catch(error => {
+                        console.error("Error in one or more requests:", error);
+                    });
+
+            }
+                
+
         },
         getFirstAndLastDaysOfSeason(year){
+            this.option.legend.data[0] = String(year-1)
+            this.option.series[0].name = String(year-1)
+            this.option.legend.data[1] = String(year)
+            this.option.series[1].name = String(year)
+
+
+
             const currentDates = [];
             for (let season = 0; season < 4; season++) {
                 // 第一個月的第一天
@@ -696,54 +774,61 @@ export default{
             return [preDates, currentDates, lastYearDates]
         },
         postEveryMonthOfSeason(result){
+            this.analysis4Season = [];
+            this.preAnalysis4Season = [];
+            this.lastYearAnalysis4Season = [];
+
             // 當前年當月
-            let currentDate = result[1]
+            let currentDate = result[1];
+            let lastYearDate = result[2];
+
             let promisesCurrrDate = [];
-            for (let month=0; month<4; month++){
-                let promise = axios.post("http://localhost:8080/pos/analysis", {   
-                            "startDate":currentDate[month][0],
-                            "endDate":currentDate[month][1]
-                })
-                promisesCurrrDate.push(promise)
+            let promisesLastYearDate = [];
+
+            // 当前年份请求
+            for (let month = 0; month < 4; month++) {
+                let promiseCurrent = axios.post("http://localhost:8080/pos/analysis", {
+                    "startDate": currentDate[month][0],
+                    "endDate": currentDate[month][1]
+                });
+                promisesCurrrDate.push(promiseCurrent);
             }
-            Promise.all(promisesCurrrDate)
-                .then(responses=>{
-                    responses.forEach(response => {
+
+            // 去年同月请求
+            for (let month = 0; month < 4; month++) {
+                let promiseLastYear = axios.post("http://localhost:8080/pos/analysis", {
+                    "startDate": lastYearDate[month][0],
+                    "endDate": lastYearDate[month][1]
+                });
+                promisesLastYearDate.push(promiseLastYear);
+            }
+
+            // 同时处理两个Promise.all
+            Promise.all([...promisesCurrrDate, ...promisesLastYearDate])
+                .then(responses => {
+                    // 处理当前年份数据 (前4个response对应当前年份)
+                    responses.slice(0, 4).forEach(response => {
                         this.analysis4Season.push(response.data.analysis);
                     });
                     let totalRevenueList = this.analysis4Season.map(item => item.totalRevenue);
-                    this.option.series[1].data = totalRevenueList
-                    this.option.xAxis[0].data = ["第一季", "第二季", "第三季", "第四季"]
-                    this.drawChart()
-                })
-                .catch(error => {
-                    console.error("Error in one or more requests:", error);
-                });    
+                    console.log('今年' + totalRevenueList);
+                    this.option.series[1].data = totalRevenueList;
+                    this.option.xAxis[0].data = ["第一季", "第二季", "第三季", "第四季"];
 
-                
-            //去年同月    
-            let lastYearDate = result[2]
-            let promisesLastYearDate = [];
-            for (let month=0; month<4; month++){
-                let promise = axios.post("http://localhost:8080/pos/analysis", {   
-                            "startDate":lastYearDate[month][0],
-                            "endDate":lastYearDate[month][1]
-                })
-                promisesLastYearDate.push(promise)
-            }
-            Promise.all(promisesLastYearDate)
-                .then(responses=>{
-                    responses.forEach(response => {
+                    // 处理去年同月数据 (后4个response对应去年数据)
+                    responses.slice(4).forEach(response => {
                         this.lastYearAnalysis4Season.push(response.data.analysis);
                     });
-                    let totalRevenueList = this.lastYearAnalysis4Season.map(item => item.totalRevenue);
-                    this.option.series[0].data = totalRevenueList
-                    this.option.xAxis[0].data = ["第一季", "第二季", "第三季", "第四季"]
-                    this.drawChart()
+                    let lastYearRevenueList = this.lastYearAnalysis4Season.map(item => item.totalRevenue);
+                    console.log('去年' + lastYearRevenueList);
+                    this.option.series[0].data = lastYearRevenueList;
+
+                    // 绘制图表
+                    this.drawChart();
                 })
                 .catch(error => {
                     console.error("Error in one or more requests:", error);
-                });    
+                });
 
         },
         getFirstAndLastDaysOfYear(year){
@@ -836,7 +921,13 @@ export default{
                 })
                 .catch(error => {
                     console.error("Error in one or more requests:", error);
-                });    
+                });
+                
+                
+            // this.option.legend.data[1] = String(year)
+            // this.option.series[1].name = String(year)
+            // this.option.legend.data[0] = String(year-1)
+            // this.option.series[0].name = String(year-1)
 
         },
         todayDate(){
@@ -1160,7 +1251,7 @@ export default{
                         </div>
                     </div>
                     <div class="chartContainer2" v-if="currentHead=='年'">
-                        <h1>每月比較圖</h1>
+                        <h1>季比較圖</h1>
                         <div id="echart2" >
                         </div>
                     </div>
@@ -1531,7 +1622,7 @@ $down-font: #388e3c;
                     background-color: white;
                     border: 2px solid rgba(0, 0, 0, 0.25);
                     padding: 2% 2%;
-                    margin: 0 2% 0 0;
+                    margin: 0 0 0 0;
                     h1{
                         font-size: 25px;
                         margin: 0 0 20px 0;
