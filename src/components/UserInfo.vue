@@ -93,13 +93,23 @@ export default {
                             return response.json();
                         })
                         .then(data => {
-                            Swal.fire({
-                                title: data.message,
-                                icon: 'success',
-                                confirmButtonText: '確定',
-                            });
-                            this.newPassword = '';
-                            this.confirmPassword = '';
+                            console.log(data);
+                            if (data.code == 200) {
+                                Swal.fire({
+                                    title: data.message,
+                                    icon: 'success',
+                                    confirmButtonText: '確定',
+                                });
+                                this.newPassword = '';
+                                this.confirmPassword = '';
+                            }else{
+                                Swal.fire({
+                                    title: data.message,
+                                    icon: 'error',
+                                    confirmButtonText: '確定',
+                                });
+                            }
+                            
                         })
                         .catch(error => {
                             console.error('修改密碼失敗:', error);
