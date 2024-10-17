@@ -86,7 +86,14 @@ export default {
             }
             return count
 
-        }
+        },
+        formatOptions(options) {
+            if (!options || options.length === 0) {
+                return '';
+            }
+            // 移除每個選項的空白並連接成想要的格式
+            return `(${options.map(option => option.trim()).join(', ')})`;
+            }
     }
 }
 </script>
@@ -115,10 +122,10 @@ export default {
                             <p class="comboName" v-if="meal.comboName">•{{ meal.comboName }}</p>
                             <div class="comboDetailList" v-if="meal.comboName">
                                 <p v-for="(comboDetail) in meal.mealDetail">
-                                    •{{ comboDetail.mealName }}
+                                    •{{ comboDetail.mealName }}{{ formatOptions(comboDetail.options) }}
                                 </p>
                             </div>
-                            <p class="singleName" v-if="!meal.comboName">•{{ meal.mealDetail[0].mealName }}</p>
+                            <p class="singleName" v-if="!meal.comboName">•{{ meal.mealDetail[0].mealName }}{{ formatOptions(meal.mealDetail[0].options) }}</p>
                         </div>
                     </div>
                 </div>
@@ -138,14 +145,14 @@ export default {
                                     <!-- <h1 style="color: black;">{{ meal}} </h1> -->
                                     <input type="checkbox" :id="`${comboDetail.id}`"
                                         @change="changeStatus(comboDetail.id, comboDetail.mealName)">
-                                    <label :for="`${comboDetail.id}`">{{ comboDetail.mealName }}</label>
+                                    <label :for="`${comboDetail.id}`">{{ comboDetail.mealName }}{{ formatOptions(comboDetail.options) }}</label>
                                 </p>
                             </div>
                             <p class="singleName" v-if="!meal.comboName" :key="meal.mealDetail[0].id">
                                 <!-- •{{ meal.mealDetail[0].mealName }} -->
                                 <input type="checkbox" :id="`${meal.mealDetail[0].id}`"
                                     @change="changeStatus(meal.mealDetail[0].id, meal.mealDetail[0].mealName)">
-                                <label :for="`${meal.mealDetail[0].id}`">{{ meal.mealDetail[0].mealName }}</label>
+                                <label :for="`${meal.mealDetail[0].id}`">{{ meal.mealDetail[0].mealName }}{{ formatOptions(meal.mealDetail[0].options) }}</label>
                             </p>
                         </div>
                     </div>
@@ -161,10 +168,10 @@ export default {
                             <p class="comboName" v-if="meal.comboName">•{{ meal.comboName }}</p>
                             <div class="comboDetailList" v-if="meal.comboName">
                                 <p v-for="(comboDetail) in meal.mealDetail">
-                                    •{{ comboDetail.mealName }}
+                                    •{{ comboDetail.mealName }}{{ formatOptions(comboDetail.options) }}
                                 </p>
                             </div>
-                            <p class="singleName" v-if="!meal.comboName">•{{ meal.mealDetail[0].mealName }}</p>
+                            <p class="singleName" v-if="!meal.comboName">•{{ meal.mealDetail[0].mealName }}{{ formatOptions(meal.mealDetail[0].options) }}</p>
                         </div>
                     </div>
                 </div>
