@@ -81,11 +81,11 @@ export default {
     height: 200px;
     cursor: pointer;
     padding: 1%;
-    border: 1px solid rgba(grey, 0.5);
+    border: 1px solid rgba(black, 0.5);
     border-radius: 10px;
     transition: background-color 0.3s;
     &:hover {
-        border: 2px solid rgba(grey, 0.8);
+        border: 2px solid rgba(black, 1);
     }
 
     .imgContainer {
@@ -143,11 +143,11 @@ export default {
     height: 200px;
     cursor: pointer;
     padding: 1%;
-    border: 1px solid rgba(grey, 0.5);
+    border: 1px solid rgba(black, 0.5);
     border-radius: 10px;
     transition: background-color 0.3s;
     &:hover {
-        border: 2px solid rgba(grey, 0.8);
+        border: 2px solid rgba(black, 0.8);
     }
 
     .imgContainer {

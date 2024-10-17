@@ -537,7 +537,7 @@ h3 {
 }
 
 .singleorderBlock {
-    border: 1px solid #ccc;
+    border: 1px solid rgba(black, 1);
     padding: 10px;
     border-radius: 5px;
     position: relative;
@@ -554,7 +554,7 @@ h3 {
         display: flex;
         justify-content: space-between;
         padding: 3% 0;
-        border-bottom: 1px dashed rgba(grey, 0.8);
+        border-bottom: 1px dashed rgba(black, 1);
     }
 
     .singleBottom {
@@ -580,7 +580,7 @@ h3 {
 }
 
 .comboBlock {
-    border: 1px solid #ccc;
+    border: 1px solid rgba(black, 1);
     padding: 10px;
     border-radius: 5px;
     position: relative;
@@ -598,7 +598,7 @@ h3 {
         display: flex;
         justify-content: space-between;
         padding: 3% 0;
-        border-bottom: 1px dashed rgba(grey, 0.8);
+        border-bottom: 1px dashed rgba(black, 1);
 
         ul {
             list-style-type: none;

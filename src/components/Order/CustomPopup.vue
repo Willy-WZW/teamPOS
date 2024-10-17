@@ -503,7 +503,7 @@ button.submit {
         padding: 3%;
         display: flex;
         justify-content: space-between;
-        background-color: rgba(grey, 0.2);
+        background-color: #FFC90E;
         margin: 2% 0;
         border-radius: 5px;
     }
@@ -561,12 +561,12 @@ button.submit {
             padding-bottom: 2%;
 
             h4 {
-                color: white;
+                color: black;
                 width: 40%;
                 text-align: center;
                 font-size: 1.2rem;
                 margin-bottom: 10px;
-                background-color: rgba(grey, 0.8);
+                background-color: #FFC90E;
                 padding: 5px;
                 border-radius: 20px;
             }
