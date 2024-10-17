@@ -1,7 +1,7 @@
 <script>
 import LeftBar from "@/components/LeftBar.vue";
 import axios from "axios";
-import Swal from 'sweetalert2';
+import Swal from "sweetalert2";
 
 export default {
     data() {
@@ -112,12 +112,11 @@ export default {
     methods: {
         //發送 POST 請求取得指定日期的訂單資料
         fetchOrders() {
-
             if (this.selectedDate == "") {
                 Swal.fire({
-                    title: '請輸入日期',
-                    icon: 'error',
-                    confirmButtonText: '確定',
+                    title: "請輸入日期",
+                    icon: "error",
+                    confirmButtonText: "確定",
                 });
                 return;
             }
@@ -126,16 +125,14 @@ export default {
 
             // 發送 GET 請求
             fetch(requestUrl)
-                .then(response => {
+                .then((response) => {
                     if (!response.ok) {
-                        throw new Error('Network response was not ok');
+                        throw new Error("Network response was not ok");
                     }
                     return response.json();
                 })
-                .then(data => {
-
+                .then((data) => {
                     if (data.code == 200) {
-
                         // Swal.fire({
                         //     title: data.message,
                         //     icon: 'success',
@@ -143,7 +140,7 @@ export default {
                         // });
 
                         // 處理 checkoutTime 去掉 "T"
-                        this.orderList = data.checkoutList.map(order => {
+                        this.orderList = data.checkoutList.map((order) => {
                             order.checkoutTime = order.checkoutTime.replace("T", " ");
                             order.orderMealId = [];
                             order.single = [];
@@ -152,45 +149,40 @@ export default {
                     } else {
                         Swal.fire({
                             title: data.message,
-                            icon: 'error',
-                            confirmButtonText: '確定',
+                            icon: "error",
+                            confirmButtonText: "確定",
                         });
 
                         this.orderList = [];
                     }
                 })
-                .catch(error => {
+                .catch((error) => {
                     // 處理錯誤響應
                     console.error("Error fetching orders:", error);
                     // alert("查詢失敗，請檢查日期格式或伺服器狀態。");
                 });
 
             this.drawerVisible = false;
-
         },
         // 顯示訂單詳細資料
         showOrderDetail(order) {
-
             const requestUrl = `http://localhost:8080/api/checkout/detailsOrderId/${order.orderId}`;
 
             // 發送 GET 請求
             fetch(requestUrl)
-                .then(response => {
+                .then((response) => {
                     if (!response.ok) {
-                        throw new Error('Network response was not ok');
+                        throw new Error("Network response was not ok");
                     }
                     return response.json();
                 })
-                .then(data => {
-
+                .then((data) => {
                     if (data.code == 200) {
-
                         order.orderMealId = data.data.orderMealId;
                         order.single = data.data.single;
-
                     }
                 })
-                .catch(error => {
+                .catch((error) => {
                     // 處理錯誤響應
                     console.error("Error fetching orders:", error);
                 });
@@ -200,12 +192,11 @@ export default {
         },
     },
     mounted() {
-
         const today = new Date();
         today.setHours(today.getHours() + 8); // 將時間調整為台灣時間
-        const localDate = today.toISOString().split('T')[0];
-        document.querySelector('.dateInput').setAttribute('max', localDate);
-        
+        const localDate = today.toISOString().split("T")[0];
+        document.querySelector(".dateInput").setAttribute("max", localDate);
+
         this.selectedDate = localDate;
 
         //預設加載當日訂單資料
@@ -306,7 +297,6 @@ export default {
         align-items: center;
     }
 
-
     .mainArea {
         letter-spacing: 0.2dvw;
         width: 100%;
@@ -343,10 +333,12 @@ export default {
                 width: 7%;
                 letter-spacing: 0.2dvw;
                 text-align: center;
-                border: none;
-                background-color: rgba(black, 0.8);
+                border: 1px solid rgba(grey, 0.5);
+                border: 1px solid;
+                box-shadow: -3px 3px 4px black;
+                background-color: #ffc90e;
                 border-radius: 10px;
-                color: white;
+                color: black;
                 cursor: pointer;
             }
         }
@@ -382,7 +374,8 @@ export default {
                 }
 
                 th {
-                    background-color: rgba(grey, 0.2);
+                    background-color: rgba(black, 0.7);
+                    color: white;
                     font-weight: bold;
                 }
 
@@ -408,7 +401,7 @@ export default {
                     padding-bottom: 10px;
 
                     .closeButton {
-                        background: rgba(grey, 0.1);
+                        background: #ffc90e;
                         border-radius: 5px;
                         font-size: 1.2rem;
                         border: none;
@@ -432,7 +425,8 @@ export default {
 
                         .tableNumber {
                             font-size: 18px;
-                            background-color: rgba(grey, 0.3);
+                            background-color: rgba(grey, 0.1);
+                            border: 2px solid black;
                             padding: 13px;
                             border-radius: 10px;
                             margin-right: 15px;
