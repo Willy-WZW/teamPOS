@@ -163,7 +163,7 @@ export default {
             }
 
             this.comboDetail = comboItem.comboDetail
-            this.discountAmount = comboItem.discountAmount
+            this.discountAmount = Math.abs(comboItem.discountAmount)
         },
         updateMeal() {
             Swal.fire({
