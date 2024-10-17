@@ -418,6 +418,7 @@ $addDiv: #343a3f;
     display: flex;
     justify-content: center;
     align-items: center;
+    z-index: 2;
 
     .modal-content {
         background-color: #fff;

@@ -1722,7 +1722,7 @@ $down-font: #388e3c;
             box-shadow: -3px 3px 4px black;
             padding: 20px 20px;
             overflow-y: scroll;
-            scrollbar-width: thin;
+            scrollbar-width: none;
             .title{
                 width: 100%;
                 display: flex;
