@@ -133,8 +133,6 @@ export default {
                 this.comboContentInnerQuantity = 0,
                 this.discountAmount = 0
 
-
-
         },
 
         cancelIcon() {
@@ -531,7 +529,7 @@ export default {
                         <div class="discount">
                             <p>折扣 </p>
                             <!-- <input type="text" placeholder="-10" v-model="discountAmount"> -->
-                            <p>{{ comboItem.discountAmount }}</p>
+                            <p>{{ -comboItem.discountAmount }}</p>
                         </div>
                         <div class="total">
                             <p>合計</p>
