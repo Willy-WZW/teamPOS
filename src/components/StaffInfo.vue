@@ -496,6 +496,7 @@ export default {
     height: 90dvh;
     padding: 20px;
 
+
     .employee-management {
         height: 100%;
         width: 100%;
@@ -503,11 +504,9 @@ export default {
         padding: 30px;
         background-color: #fff;
         border-radius: 12px;
+        border: 1px solid rgba(grey, 0.5);
         border: 1px solid;
-        box-shadow: 0 0 5px rgba(0, 0, 0, 0.2),
-                    0 0 10px rgba(0, 0, 0, 0.15),
-                    0 0 15px rgba(0, 0, 0, 0.1),
-                    0 0 20px rgba(0, 0, 0, 0.05); // 0 4px 6px rgba(0, 0, 0, 0.1);
+        box-shadow: -3px 3px 4px black;
 
         h2 {
             color: #333;

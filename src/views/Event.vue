@@ -247,10 +247,14 @@ export default {
         justify-content: start;
         overflow: hidden;
         letter-spacing: 0.2dvw;
+
         .mainbox {
             width: 65%;
             height: 100%;
             background-color: #fff;
+            box-shadow: -3px 3px 4px black;
+            border: 1px solid rgba(grey, 0.5);
+            border: 1px solid;
             border-radius: 10px;
             margin-left: 2%;
             overflow-y: scroll;
@@ -270,12 +274,14 @@ export default {
     width: 400px;
     height: 100%;
     margin-left: 8%;
-    border: 1px solid rgba($color: gray, $alpha: 0.6);
+    border: 1px solid rgba(grey, 0.5);
+    border: 1px solid;
     border-radius: 10px;
     display: flex;
     flex-direction: column;
     align-items: center;
     background-color: #fff;
+    box-shadow: -3px 3px 4px black;
 }
 
 .announcetitle {

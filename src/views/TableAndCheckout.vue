@@ -1549,29 +1549,36 @@ export default {
     width: 100%;
     height: 100dvh;
     display: flex;
+    justify-content: center;
+    align-items: center;
 
     .leftBar {
         width: 10%;
-        height: 100vh;
+        height: 96.4vh;
         position: fixed;
-        top: 0;
-        left: 0;
+        top: 2%;
+        left: 1.4%;
         display: flex;
         align-items: center;
     }
 
     .tableReservationArea {
-        width: 98%;
+        letter-spacing: 0.2dvw;
+        width: 100%;
         height: 100%;
         display: flex;
-        align-items: center;
+        justify-content: space-between;
+        padding: 16px; //20px
+        letter-spacing: 0.2dvw;
 
         .tableArea {
-            width: 65%;
-            height: 100%;
+            width: 68%;
+            border: 1px solid rgba(grey, 0.5);
+            box-shadow: -3px 3px 4px black;
+            padding: 2%;
             border-radius: 10px;
-            background-color: #FFFFFF;
-            padding: 20px;
+            border: 1px solid;
+            background-color: white;
 
             .tableHeader {
                 display: flex;
@@ -2062,15 +2069,18 @@ export default {
         }
 
         .reservationArea {
-            width: 35%;
+            width: 32%;
             height: 100%;
+            border: 1px solid rgba(grey, 0.5);
+            border: 1px solid;
             border-radius: 10px;
-            background-color: #FFFFFF;
+            background-color: white;
+            box-shadow: -3px 3px 4px black;
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 20px;
-            margin-left: 5px;
+            padding: 2%;
+            margin-left: 0.5%;
             position: relative;
 
             .reservationHeader {

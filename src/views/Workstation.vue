@@ -197,6 +197,9 @@ $textColor: #697077;
             scrollbar-width: none;
             padding-left: 4%;
             padding-right: 4%;
+            border: 1px solid rgba(grey, 0.5);
+            border: 1px solid;
+            box-shadow: -3px 3px 4px black;
 
             .headername {
                 min-width: calc(100% / 7);
@@ -244,6 +247,9 @@ $textColor: #697077;
             display: flex;
             overflow-x: auto;
             scrollbar-width: none;
+            border: 1px solid rgba(grey, 0.5);
+            border: 1px solid;
+            box-shadow: -3px 3px 4px black;
 
             .noOrders {
                 width: 100%;
