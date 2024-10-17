@@ -94,7 +94,7 @@ export default {
             axios.post("http://localhost:8080/pos/createCombo", {
                 "comboName": this.comboName,
                 "comboDetail": JSON.stringify(this.comboDetail),
-                "discountAmount": this.discountAmount,
+                "discountAmount": -(this.discountAmount),
                 "categoryId": 8
             })
                 .then(response => {
@@ -185,8 +185,8 @@ export default {
                             "oldComboName": this.oldComboName,
                             "comboName": this.comboName,
                             "comboDetail": JSON.stringify(this.comboDetail),
-                            "discountAmount": this.discountAmount,
-                            "category_id": 9
+                            "discountAmount": -(this.discountAmount),
+                            "category_id": 8
                         })
                             .then(response => {
                                 console.log(response)
