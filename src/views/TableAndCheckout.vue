@@ -948,6 +948,18 @@ export default {
                         icon: 'success',
                         confirmButtonText: '確定'
                     });
+
+                    // 清除訂位內容
+                    this.newReservation = {
+                        people: 2,  // 預設人數為 2
+                        date: this.formatDate(new Date()), // 預設為當前日期
+                        time: '',
+                        name: '', 
+                        title: '先生', 
+                        phone: '', 
+                        email: ''
+                    };
+
                     this.closeReservationModal();
                     this.fetchReservationsByDate(this.currentDate);
                     this.fetchTables(); // 添加這行以刷新桌位
