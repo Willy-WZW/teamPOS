@@ -330,7 +330,9 @@ export default {
                 padding: 8px;
                 font-size: 1rem;
                 margin-right: 30px;
-                border: 1px solid rgba(grey, 0.3);
+                border: 1px solid rgba(grey, 0.5);
+                border: 1px solid;
+                box-shadow: -3px 3px 4px black;
                 border-radius: 10px;
             }
 
@@ -357,6 +359,8 @@ export default {
             border-radius: 10px;
             overflow-y: hidden;
             border: 1px solid rgba(grey, 0.5);
+            border: 1px solid;
+            box-shadow: -3px 3px 4px black;
             padding: 10px 0;
 
             .orderTableContainer {

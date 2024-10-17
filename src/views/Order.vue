@@ -454,6 +454,8 @@ export default {
         .menuArea {
             width: 68%;
             border: 1px solid rgba(grey, 0.5);
+            border: 1px solid;
+            box-shadow: -3px 3px 4px black;
             padding: 2%;
             border-radius: 10px;
             border: 1px solid;
@@ -463,6 +465,8 @@ export default {
         .orderArea {
             width: 32%;
             border: 1px solid rgba(grey, 0.5);
+            border: 1px solid;
+            box-shadow: -3px 3px 4px black;
             padding: 2%;
             border-radius: 10px;
             border: 1px solid;

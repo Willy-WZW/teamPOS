@@ -1359,6 +1359,7 @@ $down-font: #388e3c;
         align-items: center;
         justify-content: space-between;
         margin: 0 0 0 0;
+
         .dashboardLeft{
             width: 90%;
             height: 45px;
@@ -1372,8 +1373,10 @@ $down-font: #388e3c;
                 justify-content: space-evenly;
                 align-items: center;
                 background-color: rgba(255, 255, 255, 0.7);
-                border-radius: 12px;
-                border: 2px solid rgba(0, 0, 0, 0.25);
+                border-radius: 10px;
+                border: 1px solid rgba(grey, 0.5);
+                border: 1px solid;
+                box-shadow: -3px 3px 4px black;
                 padding: 0 0;
                 margin: 0 5% 0 0;
                 position: relative;
@@ -1409,12 +1412,16 @@ $down-font: #388e3c;
                 justify-content: center;
                 background-color: rgba(255, 255, 255, 0.7);
                 border-radius: 12px;
-                border: 2px solid rgba(0, 0, 0, 0.25);
+                border: 1px solid rgba(grey, 0.5);
+                border: 1px solid;
+                box-shadow: -3px 3px 4px black;
+
                 .leftRightContainer{
                     width: 100%;
                     display: flex;
                     align-items: center;
                     justify-content: center;
+
                     i{  
                         width: 50px;
                         display: flex;
@@ -1438,11 +1445,13 @@ $down-font: #388e3c;
                 }
             }
         }
+
         .dashboardRight{
             width: 50%;
             display: flex;
             align-items: center;
             justify-content: flex-end;
+
             i{
                 font-size: 25px;
                 margin: 0 10px 0 0;
@@ -1478,6 +1487,7 @@ $down-font: #388e3c;
             justify-content: flex-start;
             border-radius: 12px;
             margin: 0 1% 0 0;
+
             .compareContainer{
                 width: 100%;
                 height: 25%;
@@ -1486,7 +1496,9 @@ $down-font: #388e3c;
                 justify-content: center;
                 border-radius: 12px;
                 background-color: white;
-                border: 2px solid rgba(0, 0, 0, 0.25);
+                border: 1px solid rgba(grey, 0.5);
+                border: 1px solid;
+                box-shadow: -3px 3px 4px black;
                 margin: 0 0 2% 0;
 
                 .compareItem{
@@ -1605,12 +1617,14 @@ $down-font: #388e3c;
                     }
                 }
             }
+
             .chartArea{
                 width: 100%;
                 height: 100%;
                 display: flex;
                 align-items: center;
                 justify-content: center;
+
                 .chartContainer0{
                     width: 100%;
                     height: 100%;
@@ -1620,7 +1634,9 @@ $down-font: #388e3c;
                     justify-content: flex-start;
                     border-radius: 12px;
                     background-color: white;
-                    border: 2px solid rgba(0, 0, 0, 0.25);
+                    border: 1px solid rgba(grey, 0.5);
+                    border: 1px solid;
+                    box-shadow: -3px 3px 4px black;
                     padding: 2% 2%;
                     margin: 0 0 0 0;
                     h1{
@@ -1696,8 +1712,10 @@ $down-font: #388e3c;
             align-items: flex-start;
             justify-content: flex-start;
             background-color: white;
-            border-radius: 12px;
-            border: 2px solid rgba(0, 0, 0, 0.25);
+            border-radius: 10px;
+            border: 1px solid rgba(grey, 0.5);
+            border: 1px solid;
+            box-shadow: -3px 3px 4px black;
             padding: 20px 20px;
             overflow-y: scroll;
             scrollbar-width: thin;

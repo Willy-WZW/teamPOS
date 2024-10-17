@@ -55,6 +55,9 @@ $boxShadow: #F2F4F8;
     width: 19%; 
     height: 100%;
     border-radius: 0.625rem; /* 10px -> 0.625rem */
+    border: 1px solid rgba(grey, 0.5);
+    border: 1px solid;
+    box-shadow: -3px 3px 4px black;
     background-color: $background-color;
     display: flex;
     justify-content: start;

@@ -189,9 +189,11 @@ $mainColor: #FFC90E;
     .innerContainer {
         width: 100%;
         height: 100%;
-        border-radius: 12px;
-        border: 1px solid;
+        border-radius: 10px;
         background-color: white;
+        border: 1px solid rgba(grey, 0.5);
+        border: 1px solid;
+        box-shadow: -3px 3px 4px black;
 
         .titleContainer {
             display: flex;
