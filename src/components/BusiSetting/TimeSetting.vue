@@ -268,6 +268,9 @@ $boxShadow: #f2f4f8;
     position: absolute;
     top: 0%;
     right: 0%;
+    border: 1px solid rgba(grey, 0.5);
+    border: 1px solid;
+    box-shadow: -3px 3px 4px black;
 
     .reserveTitle {
         font-size: 1.5625rem; // 25px -> 1.5625rem

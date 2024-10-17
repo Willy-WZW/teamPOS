@@ -364,6 +364,9 @@ $addDiv: #343a3f;
     background-color: $divColor;
     padding: 10px;
     border-radius: 10px;
+    border: 1px solid rgba(grey, 0.5);
+    border: 1px solid;
+    box-shadow: -3px 3px 4px black;
 
     h1 {
         font-size: 28px;

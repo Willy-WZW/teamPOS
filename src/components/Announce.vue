@@ -1,14 +1,14 @@
 <script>
-import axios from 'axios';
-import LeftBar from '@/components/LeftBar.vue';
-import Header from '@/components/Header.vue';
-import Swal from 'sweetalert2';
+import axios from "axios";
+import LeftBar from "@/components/LeftBar.vue";
+import Header from "@/components/Header.vue";
+import Swal from "sweetalert2";
 
 export default {
     data() {
         const today = new Date().toISOString().split("T")[0];
         return {
-            currentView: 'createAnnounce',
+            currentView: "createAnnounce",
             imageFile: null,
             imageUrl: null,
             announceTitle: "",
@@ -22,13 +22,13 @@ export default {
             currentPage: 1,
             itemsPerPage: 6,
             totalAnnouncements: 0,
-            filterType: 'upcoming',
+            filterType: "upcoming",
             currentEditingAnnounce: null,
         };
     },
     mounted() {
         this.fetchAllannounceId();
-        this.setFilterType('upcoming');
+        this.setFilterType("upcoming");
     },
     components: {
         LeftBar,
@@ -112,11 +112,11 @@ export default {
 
         switchView(view, announce = null) {
             this.currentView = view;
-            if (view === 'createAnnounce') {
+            if (view === "createAnnounce") {
                 this.clearForm();
-            } else if (view === 'announceList') {
-                this.setFilterType('upcoming');
-            } else if (view === 'announceUpdate' && announce) {
+            } else if (view === "announceList") {
+                this.setFilterType("upcoming");
+            } else if (view === "announceUpdate" && announce) {
                 this.currentEditingAnnounce = announce;
                 this.announceId = announce.announceId;
                 this.announceTitle = announce.announceTitle;
@@ -126,7 +126,6 @@ export default {
                 this.imageUrl = announce.announcePictureName;
             }
         },
-
 
         fetchAllannounceId() {
             axios
@@ -147,16 +146,15 @@ export default {
             const start = (this.currentPage - 1) * this.itemsPerPage;
             const end = start + this.itemsPerPage;
 
-            const filteredAnnouncements = this.announcements.filter(announce => {
-                if (this.filterType === 'upcoming') {
+            const filteredAnnouncements = this.announcements.filter((announce) => {
+                if (this.filterType === "upcoming") {
                     return new Date(announce.announceEndTime) >= new Date(this.today);
                 } else {
                     return new Date(announce.announceEndTime) < new Date(this.today);
                 }
             });
 
-            if (this.filterType === 'upcoming') {
-
+            if (this.filterType === "upcoming") {
                 filteredAnnouncements.sort((a, b) => {
                     const startDiff = new Date(a.announceStartTime) - new Date(b.announceStartTime);
                     if (startDiff !== 0) {
@@ -188,10 +186,10 @@ export default {
             const postData = { announceId: announceId };
 
             const result = await Swal.fire({
-                title: '確定要刪除這個公告嗎?',
+                title: "確定要刪除這個公告嗎?",
                 showCancelButton: true,
-                confirmButtonText: '刪除',
-                cancelButtonText: '取消'
+                confirmButtonText: "刪除",
+                cancelButtonText: "取消",
             });
 
             if (result.isConfirmed) {
@@ -210,9 +208,7 @@ export default {
             }
         },
         showAnnouncePreview(announce) {
-            const imageHtml = announce.announcePictureName
-                ? `<img src="${announce.announcePictureName}" alt="圖片預覽" style="width: 100%; height: auto;"/>`
-                : "";
+            const imageHtml = announce.announcePictureName ? `<img src="${announce.announcePictureName}" alt="圖片預覽" style="width: 100%; height: auto;"/>` : "";
 
             Swal.fire({
                 html: `
@@ -222,8 +218,8 @@ export default {
             <pre style="text-align: left; padding-top: 2%; white-space: pre-wrap; word-break: break-word; overflow-y: auto;">${announce.announceContent}</pre>
         `,
                 focusConfirm: false,
-                confirmButtonText: '關閉',
-                width: '800px',
+                confirmButtonText: "關閉",
+                width: "800px",
             });
         },
         async updateAnnounce() {
@@ -240,7 +236,7 @@ export default {
                 const response = await axios.post("http://localhost:8080/announce/update", postData);
                 if (response.status === 200) {
                     Swal.fire("公告更新成功");
-                    this.switchView('announceList');
+                    this.switchView("announceList");
                     this.fetchAllannounceId();
                 } else {
                     Swal.fire("公告更新失敗");
@@ -251,9 +247,8 @@ export default {
             }
         },
     },
-}
+};
 </script>
-
 
 <template>
     <div>
@@ -266,30 +261,28 @@ export default {
             <div v-if="currentView === 'createAnnounce'">
                 <h2>建立公告</h2>
                 <div class="announceArea">
-                    <input type="file" ref="fileInput" @change="onFileChange" accept="image/*" style="display: none;" />
-                    <div @click="triggerFileInput" v-if="imageUrl" class="upload-container no-border"
-                        style="cursor: pointer;">
+                    <input type="file" ref="fileInput" @change="onFileChange" accept="image/*" style="display: none" />
+                    <div @click="triggerFileInput" v-if="imageUrl" class="upload-container no-border" style="cursor: pointer">
                         <img :src="imageUrl" alt="圖片預覽" class="preview-image" />
                     </div>
 
-                    <div @click="triggerFileInput" v-else class="upload-container with-border" style="cursor: pointer;">
+                    <div @click="triggerFileInput" v-else class="upload-container with-border" style="cursor: pointer">
                         <div class="upload-placeholder">點擊此處上傳圖片</div>
                     </div>
-                    <div style="width: 100%; display: flex; justify-content: space-between; margin-top: 2%;">
-                        <h3>標題
-                            <input type="text" v-model="announceTitle">
+                    <div style="width: 100%; display: flex; justify-content: space-between; margin-top: 2%">
+                        <h3>
+                            標題
+                            <input type="text" v-model="announceTitle" />
                         </h3>
-                        <h3 style="margin-right:12%;">活動時間
-                            <input type="date" v-model="announceStartTime" :min="today"> ~
-                            <input type="date" v-model="announceEndTime" :min="announceStartTime">
+                        <h3 style="margin-right: 12%">
+                            活動時間 <input type="date" v-model="announceStartTime" :min="today" /> ~
+                            <input type="date" v-model="announceEndTime" :min="announceStartTime" />
                         </h3>
                     </div>
-                    <div>
-                    </div>
+                    <div></div>
                     <div class="contentArea">
                         <textarea name="" id="" v-model="announceContent" placeholder="活動內容:"></textarea>
                     </div>
-
                 </div>
                 <div class="buttons">
                     <button @click="clearForm" class="cancelBtn">取消</button>
@@ -300,20 +293,17 @@ export default {
             <div v-if="currentView === 'announceList'">
                 <div class="headerArea">
                     <h2>公告列表</h2>
-                    <button @click="setFilterType('upcoming')"
-                        :class="{ active: filterType === 'upcoming' }">近期</button>
+                    <button @click="setFilterType('upcoming')" :class="{ active: filterType === 'upcoming' }">近期</button>
                     <button @click="setFilterType('ended')" :class="{ active: filterType === 'ended' }">已結束</button>
                 </div>
                 <div class="listArea">
-                    <div v-for="announce in displayedAnnouncements" :key="announce.announceId"
-                        class="announcement-item">
-                        <img :src="announce.announcePictureName || '/images/default-menu-img.png'" class="previewlist-image"
-                            @click="showAnnouncePreview(announce)" />
+                    <div v-for="announce in displayedAnnouncements" :key="announce.announceId" class="announcement-item">
+                        <img :src="announce.announcePictureName || '/images/default-menu-img.png'" class="previewlist-image" @click="showAnnouncePreview(announce)" />
                         <div class="item-content">
                             <div class="textlistArea">
-                                <h3 @click="showAnnouncePreview(announce)"
-                                    style="cursor: pointer; text-overflow: ellipsis; overflow: hidden;white-space: nowrap; padding-bottom: 2%;">
-                                    {{ announce.announceTitle }}</h3>
+                                <h3 @click="showAnnouncePreview(announce)" style="cursor: pointer; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; padding-bottom: 2%">
+                                    {{ announce.announceTitle }}
+                                </h3>
                                 <span>{{ announce.announceStartTime }}</span> ~
                                 <span>{{ announce.announceEndTime }}</span>
                             </div>
@@ -323,38 +313,34 @@ export default {
                             </div>
                         </div>
                     </div>
-
                 </div>
                 <div class="pagination">
                     <button :disabled="currentPage === 1" @click="setCurrentPage(currentPage - 1)"><</button>
-                            <button
-                                :disabled="currentPage === Math.ceil(totalAnnouncements / itemsPerPage) || totalAnnouncements === 0"
-                                @click="setCurrentPage(currentPage + 1)">></button>
+                    <button :disabled="currentPage === Math.ceil(totalAnnouncements / itemsPerPage) || totalAnnouncements === 0" @click="setCurrentPage(currentPage + 1)">></button>
                 </div>
             </div>
             <div v-if="currentView === 'announceUpdate'">
                 <h2>編輯公告</h2>
                 <div class="announceArea">
-                    <input type="file" ref="fileInput" @change="onFileChange" accept="image/*" style="display: none;" />
-                    <div @click="triggerFileInput" v-if="imageUrl" class="upload-container no-border"
-                        style="cursor: pointer;">
+                    <input type="file" ref="fileInput" @change="onFileChange" accept="image/*" style="display: none" />
+                    <div @click="triggerFileInput" v-if="imageUrl" class="upload-container no-border" style="cursor: pointer">
                         <img :src="imageUrl" alt="圖片預覽" class="preview-image" />
                     </div>
 
-                    <div @click="triggerFileInput" v-else class="upload-container with-border" style="cursor: pointer;">
+                    <div @click="triggerFileInput" v-else class="upload-container with-border" style="cursor: pointer">
                         <div class="upload-placeholder">點擊此處上傳圖片</div>
                     </div>
-                    <div style="width: 100%; display: flex; justify-content: space-between; margin-top: 2%;">
-                        <h3>標題
-                            <input type="text" v-model="announceTitle">
+                    <div style="width: 100%; display: flex; justify-content: space-between; margin-top: 2%">
+                        <h3>
+                            標題
+                            <input type="text" v-model="announceTitle" />
                         </h3>
-                        <h3 style="margin-right:12%;">活動時間
-                            <input type="date" v-model="announceStartTime" :min="today"> ~
-                            <input type="date" v-model="announceEndTime" :min="announceStartTime">
+                        <h3 style="margin-right: 12%">
+                            活動時間 <input type="date" v-model="announceStartTime" :min="today" /> ~
+                            <input type="date" v-model="announceEndTime" :min="announceStartTime" />
                         </h3>
                     </div>
-                    <div>
-                    </div>
+                    <div></div>
                     <div class="contentArea">
                         <textarea name="" id="" v-model="announceContent" placeholder="活動內容"></textarea>
                     </div>
@@ -364,11 +350,9 @@ export default {
                     <button @click="updateAnnounce" class="publishBtn">更新</button>
                 </div>
             </div>
-
         </div>
     </div>
 </template>
-
 
 <style scoped lang="scss">
 $divColor: #fff;
@@ -391,6 +375,9 @@ $addDiv: #343a3f;
     top: 0%;
     left: 0%;
     background-color: white;
+    border: 1px solid rgba(grey, 0.5);
+    border: 1px solid;
+    box-shadow: -3px 3px 4px black;
 
     h3 {
         width: 100%;
@@ -413,6 +400,9 @@ $addDiv: #343a3f;
     top: 0%;
     left: 17%;
     background-color: white;
+    border: 1px solid rgba(grey, 0.5);
+    border: 1px solid;
+    box-shadow: -3px 3px 4px black;
 
     h2 {
         position: absolute;
@@ -436,8 +426,6 @@ $addDiv: #343a3f;
         .upload-container {
             width: 88%;
             height: 300px;
-
-
         }
 
         .with-border {
@@ -460,7 +448,7 @@ $addDiv: #343a3f;
         .upload-placeholder {
             color: #888;
             font-size: 16px;
-            display: flex
+            display: flex;
         }
 
         .contentArea {
@@ -496,7 +484,6 @@ $addDiv: #343a3f;
 
             &.active {
                 background-color: rgba(199, 199, 199, 0.5);
-
             }
         }
     }
@@ -565,7 +552,7 @@ $addDiv: #343a3f;
             width: 5%;
             font-size: 100%;
             border-radius: 10px;
-            background-color: #C1C7CD;
+            background-color: #c1c7cd;
             margin-left: 10px;
             margin-right: 10px;
 
