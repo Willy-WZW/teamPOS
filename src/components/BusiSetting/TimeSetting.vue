@@ -90,6 +90,16 @@ export default {
                 // 檢查返回的結果
                 if (response.data.every(res => res.code === 200)) {
                     Swal.fire('成功', '營業時間已成功保存', 'success');
+                    // 清空所有欄位
+                    this.businessHours.forEach(hour => {
+                        hour.openingTime = '';
+                        hour.closingTime = '';
+                    });
+                    this.diningDuration = ''; // 清空用餐時長
+                    this.timeSlots = []; // 重置時間段
+                    this.weekDays.forEach(day => {
+                        day.selected = false; // 清空選擇的營業日
+                    });
                 } else {
                     Swal.fire('錯誤', '部分營業時間保存失敗，請檢查輸入', 'error');
                 }
@@ -536,7 +546,7 @@ $boxShadow: #F2F4F8;
                     .timeSlot {
                         flex: 1;
                         text-align: center;
-                        padding: 0.625rem 1.25rem; // 10px 20px -> 0.625rem 1.25rem
+                        padding: 0.8125rem 2.5rem; // 13px ->0.8125rem 40px ->2.5rem
                         font-size: 1rem; // 16px -> 1rem
                         background-color: $background-color;
                         border: 0.0625rem solid $gray-color; // 1px -> 0.0625rem
