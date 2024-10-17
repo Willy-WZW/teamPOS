@@ -227,9 +227,9 @@ $textColor: #697077;
                 background-repeat: no-repeat;
                 background-position: left;
                 background-size: 80%;
-                opacity: 0.8; //0.8
+                opacity: 0; //0.8
                 clip-path: inset(0 100% 0 0); // 完全遮擋
-                transition: clip-path 0.7s ease;
+                transition: clip-path 0.7s ease, opacity 0s;
             }
 
             .isSelected {
@@ -237,6 +237,7 @@ $textColor: #697077;
             }
 
             .isSelected::before {
+                opacity: 0.8;
                 clip-path: inset(0 0 0 0);
             }
         }
