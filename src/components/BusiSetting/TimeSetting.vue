@@ -1,49 +1,50 @@
 <script>
-import axios from 'axios';
-import Swal from 'sweetalert2';
+import axios from "axios";
+import Swal from "sweetalert2";
 
 export default {
-    data () {
+    data() {
         return {
-            businessHours: [   // 存放多個營業時間段
-                { openingTime: '', closingTime: '' }
+            businessHours: [
+                // 存放多個營業時間段
+                { openingTime: "", closingTime: "" },
             ],
-            diningDuration: '', // 用餐時間
+            diningDuration: "", // 用餐時間
             timeSlots: [], // 初始化 timeSlots
             weekDays: [
-                { name: '星期一', value: 'Monday', selected: false },
-                { name: '星期二', value: 'Tuesday', selected: false },
-                { name: '星期三', value: 'Wednesday', selected: false },
-                { name: '星期四', value: 'Thursday', selected: false },
-                { name: '星期五', value: 'Friday', selected: false },
-                { name: '星期六', value: 'Saturday', selected: false },
-                { name: '星期日', value: 'Sunday', selected: false }
+                { name: "星期一", value: "Monday", selected: false },
+                { name: "星期二", value: "Tuesday", selected: false },
+                { name: "星期三", value: "Wednesday", selected: false },
+                { name: "星期四", value: "Thursday", selected: false },
+                { name: "星期五", value: "Friday", selected: false },
+                { name: "星期六", value: "Saturday", selected: false },
+                { name: "星期日", value: "Sunday", selected: false },
             ],
-            showAddButton: true // 用來控制按鈕顯示狀態的布林值
+            showAddButton: true, // 用來控制按鈕顯示狀態的布林值
         };
     },
 
     watch: {
         businessHours: {
             handler(newValue) {
-                const hasValidHours = newValue.some(hour => hour.openingTime && hour.closingTime);
+                const hasValidHours = newValue.some((hour) => hour.openingTime && hour.closingTime);
                 if (hasValidHours && this.diningDuration) {
                     this.fetchTimeSlots();
                 }
             },
-            deep: true // 深度監聽
+            deep: true, // 深度監聽
         },
         diningDuration(newValue) {
-            if (newValue > 0 && this.businessHours.some(hour => hour.openingTime && hour.closingTime)) {
+            if (newValue > 0 && this.businessHours.some((hour) => hour.openingTime && hour.closingTime)) {
                 this.fetchTimeSlots();
             }
-        }
+        },
     },
 
     methods: {
         // 新增一個營業時間區段
         addBusinessHour() {
-            this.businessHours.push({ openingTime: '', closingTime: '' });
+            this.businessHours.push({ openingTime: "", closingTime: "" });
             this.showAddButton = false; // 隱藏新增按鈕
         },
 
@@ -52,60 +53,60 @@ export default {
             // 確保所有時間段的營業時間和用餐時間都已設置
             for (let hour of this.businessHours) {
                 if (!hour.openingTime || !hour.closingTime || !this.diningDuration) {
-                    Swal.fire('錯誤', '請先填寫所有必要的時間資訊', 'error');
+                    Swal.fire("錯誤", "請先填寫所有必要的時間資訊", "error");
                     return;
                 }
 
                 // 檢查營業開始時間不能晚於結束時間
                 if (hour.openingTime >= hour.closingTime) {
-                    Swal.fire('錯誤', '營業開始時間不能晚於結束時間', 'error');
+                    Swal.fire("錯誤", "營業開始時間不能晚於結束時間", "error");
                     return;
                 }
             }
 
             // 確保至少選擇了一個營業日
-            const selectedDays = this.weekDays.filter(day => day.selected).map(day => day.name);
+            const selectedDays = this.weekDays.filter((day) => day.selected).map((day) => day.name);
             if (selectedDays.length === 0) {
-                Swal.fire('錯誤', '請至少選擇一個營業日', 'error');
+                Swal.fire("錯誤", "請至少選擇一個營業日", "error");
                 return;
             }
 
             // 構建要傳送到後端的資料
             const operatingHoursReqList = [];
             for (let hour of this.businessHours) {
-                selectedDays.forEach(day => {
+                selectedDays.forEach((day) => {
                     operatingHoursReqList.push({
                         dayOfWeek: day,
                         openingTime: hour.openingTime,
                         closingTime: hour.closingTime,
-                        diningDuration: this.diningDuration
+                        diningDuration: this.diningDuration,
                     });
                 });
             }
 
             try {
                 // 發送 POST 請求到後端 API
-                const response = await axios.post('http://localhost:8080/operatingHours/saveOperatingHours', operatingHoursReqList);
-                
+                const response = await axios.post("http://localhost:8080/operatingHours/saveOperatingHours", operatingHoursReqList);
+
                 // 檢查返回的結果
-                if (response.data.every(res => res.code === 200)) {
-                    Swal.fire('成功', '營業時間已成功保存', 'success');
+                if (response.data.every((res) => res.code === 200)) {
+                    Swal.fire("成功", "營業時間已成功保存", "success");
                     // 清空所有欄位
-                    this.businessHours.forEach(hour => {
-                        hour.openingTime = '';
-                        hour.closingTime = '';
+                    this.businessHours.forEach((hour) => {
+                        hour.openingTime = "";
+                        hour.closingTime = "";
                     });
-                    this.diningDuration = ''; // 清空用餐時長
+                    this.diningDuration = ""; // 清空用餐時長
                     this.timeSlots = []; // 重置時間段
-                    this.weekDays.forEach(day => {
+                    this.weekDays.forEach((day) => {
                         day.selected = false; // 清空選擇的營業日
                     });
                 } else {
-                    Swal.fire('錯誤', '部分營業時間保存失敗，請檢查輸入', 'error');
+                    Swal.fire("錯誤", "部分營業時間保存失敗，請檢查輸入", "error");
                 }
             } catch (error) {
-                console.error('Error saving business hours:', error);
-                Swal.fire('錯誤', '保存營業時間時發生錯誤', 'error');
+                console.error("Error saving business hours:", error);
+                Swal.fire("錯誤", "保存營業時間時發生錯誤", "error");
             }
         },
 
@@ -120,143 +121,143 @@ export default {
             for (let hour of this.businessHours) {
                 if (hour.openingTime && hour.closingTime) {
                     try {
-                        const response = await axios.get('http://localhost:8080/operatingHours/calculateAvailableStartTimes', {
+                        const response = await axios.get("http://localhost:8080/operatingHours/calculateAvailableStartTimes", {
                             params: {
                                 openingTime: hour.openingTime,
                                 closingTime: hour.closingTime,
-                                diningDuration: this.diningDuration
-                            }
+                                diningDuration: this.diningDuration,
+                            },
                         });
-                        
+
                         // 提取並格式化開始時間
-                        const formattedSlots = response.data.map(slot => this.formatTime(slot));
-                        
+                        const formattedSlots = response.data.map((slot) => this.formatTime(slot));
+
                         // 合併計算出的時間段
                         this.timeSlots = this.timeSlots.concat(formattedSlots);
                     } catch (error) {
-                        console.error('Error fetching time slots:', error);
-                        Swal.fire('錯誤', '獲取時間段時發生錯誤', 'error');
+                        console.error("Error fetching time slots:", error);
+                        Swal.fire("錯誤", "獲取時間段時發生錯誤", "error");
                     }
                 }
             }
-            console.log('Fetched time slots:', this.timeSlots); // 調試輸出
+            console.log("Fetched time slots:", this.timeSlots); // 調試輸出
         },
 
         // 重置表單
         resetForm() {
             // 重置營業時間
-            this.businessHours = [{ openingTime: '', closingTime: '' }]; // 確保只有一個時間段
-            this.diningDuration = ''; // 清空用餐時間
+            this.businessHours = [{ openingTime: "", closingTime: "" }]; // 確保只有一個時間段
+            this.diningDuration = ""; // 清空用餐時間
             // 也可以重置選擇的日期
-            this.weekDays.forEach(day => {
+            this.weekDays.forEach((day) => {
                 day.selected = false; // 取消選擇所有星期
             });
             this.showAddButton = true; // 隱藏新增按鈕
-        }
-    }
+        },
+    },
 };
 </script>
 
 <template>
-<div class="reserveSettingArea">
-    <!-- 顯示訂位管理標題 -->
-    <h2 class="reserveTitle">訂位時段管理</h2>
+    <div class="reserveSettingArea">
+        <!-- 顯示訂位管理標題 -->
+        <h2 class="reserveTitle">訂位時段管理</h2>
 
-    <!-- 顯示訂位管理注意事項 -->
-    <p class="reminderText">請依照步驟依序設定</p>
+        <!-- 顯示訂位管理注意事項 -->
+        <p class="reminderText">請依照步驟依序設定</p>
 
-    <!-- 顯示訂位管理表格區域 -->
-    <div class="reserveArea">
-        <!-- 營業時間設定 -->
-        <div class="businessHoursSection">
-            <div class="sectionHeader">
-                <div class="sectionNumber">1</div>
+        <!-- 顯示訂位管理表格區域 -->
+        <div class="reserveArea">
+            <!-- 營業時間設定 -->
+            <div class="businessHoursSection">
+                <div class="sectionHeader">
+                    <div class="sectionNumber">1</div>
 
-                <div class="sectionTitle">營業時間設定</div>
+                    <div class="sectionTitle">營業時間設定</div>
+                </div>
+
+                <!-- 動態生成的營業時間區段 -->
+                <div class="timeSelectContainer">
+                    <div v-for="(hour, index) in businessHours" :key="index" class="timeSelectArea">
+                        <div class="beginTimeSelectArea">
+                            <label class="beginTimeLabel" for="openingTime">開始時間</label>
+                            <input class="beginTimeInput" type="time" v-model="hour.openingTime" />
+                        </div>
+
+                        <div class="endTimeSelectArea">
+                            <label class="endTimeLabel" for="closingTime">結束時間</label>
+                            <input class="endTimeInput" type="time" v-model="hour.closingTime" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 新增營業時間按鈕 -->
+                <button v-if="showAddButton" @click="addBusinessHour" class="addButton">
+                    <i class="fa-solid fa-plus"></i>
+                </button>
             </div>
 
-            <!-- 動態生成的營業時間區段 -->
-            <div class="timeSelectContainer">
-                <div v-for="(hour, index) in businessHours" :key="index" class="timeSelectArea">
-                    <div class="beginTimeSelectArea">
-                        <label class="beginTimeLabel" for="openingTime">開始時間</label>
-                        <input class="beginTimeInput" type="time" v-model="hour.openingTime" />
-                    </div>
+            <!-- 用餐時間設定 -->
+            <div class="diningDurationSection">
+                <div class="sectionHeader">
+                    <div class="sectionNumber">2</div>
 
-                    <div class="endTimeSelectArea">
-                        <label class="endTimeLabel" for="closingTime">結束時間</label>
-                        <input class="endTimeInput" type="time" v-model="hour.closingTime" />
+                    <div class="sectionTitle">用餐時間設定</div>
+                </div>
+
+                <div class="diningDurationArea">
+                    <input class="diningDurationInput" type="number" v-model="diningDuration" placeholder="輸入客人用餐時間" min="1" />
+                    <span class="diningDurationLabel">分鐘</span>
+                </div>
+            </div>
+
+            <!-- 預設訂位時段設定 -->
+            <div class="timeSlotSection">
+                <div class="sectionHeader">
+                    <div class="sectionNumber">3</div>
+                    <div class="sectionTitle">預覽訂位時間段</div>
+                </div>
+
+                <div class="timeSlotArea">
+                    <p class="description">根據步驟 1 和步驟 2 自動計算</p>
+
+                    <div class="timeSlotBox">
+                        <div class="timeSlot" v-for="(time, index) in timeSlots" :key="index">
+                            {{ time }}
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- 新增營業時間按鈕 -->
-            <button v-if="showAddButton" @click="addBusinessHour" class="addButton">
-                <i class="fa-solid fa-plus"></i>
-            </button>   
-        </div>
+            <!-- 選擇營業日期 -->
+            <div class="daySelectSection">
+                <div class="sectionHeader">
+                    <div class="sectionNumber">4</div>
+                    <div class="sectionTitle">選擇營業日期</div>
+                </div>
 
-        <!-- 用餐時間設定 -->
-        <div class="diningDurationSection">
-            <div class="sectionHeader">
-                <div class="sectionNumber">2</div>
-
-                <div class="sectionTitle">用餐時間設定</div>
-            </div>
-
-            <div class="diningDurationArea">
-                <input class="diningDurationInput" type="number" v-model="diningDuration" placeholder="輸入客人用餐時間" min="1" />
-                <span class="diningDurationLabel">分鐘</span>
-            </div>
-        </div>
-
-        <!-- 預設訂位時段設定 -->
-        <div class="timeSlotSection">
-            <div class="sectionHeader">
-                <div class="sectionNumber">3</div>
-                <div class="sectionTitle">預覽訂位時間段</div>
-            </div>
-            
-            <div class="timeSlotArea">
-                <p class="description">根據步驟 1 和步驟 2 自動計算</p>
-
-                <div class="timeSlotBox">
-                    <div class="timeSlot" v-for="(time, index) in timeSlots" :key="index">
-                        {{ time }}
-                    </div>
+                <div class="daySelectArea">
+                    <label v-for="(day, index) in weekDays" :key="index" class="daySelectLabel">
+                        <input type="checkbox" v-model="day.selected" />
+                        {{ day.name }}
+                    </label>
                 </div>
             </div>
         </div>
 
-        <!-- 選擇營業日期 -->
-        <div class="daySelectSection">
-            <div class="sectionHeader">
-                <div class="sectionNumber">4</div>
-                <div class="sectionTitle">選擇營業日期</div>
-            </div>
-
-            <div class="daySelectArea">
-                <label v-for="(day, index) in weekDays" :key="index" class="daySelectLabel">
-                    <input type="checkbox" v-model="day.selected" />
-                    {{ day.name }}
-                </label>
-            </div>
+        <!-- 取消、儲存操作按鈕區域 -->
+        <div class="buttonArea">
+            <button class="cancelButton" @click="resetForm">取消</button>
+            <button class="saveButton" @click="saveBusinessHoursAndDays">儲存</button>
         </div>
     </div>
-
-    <!-- 取消、儲存操作按鈕區域 -->
-    <div class="buttonArea">
-        <button class="cancelButton" @click="resetForm">取消</button>
-        <button class="saveButton" @click="saveBusinessHoursAndDays" >儲存</button>
-    </div>
-</div>
 </template>
 
 <style scoped lang="scss">
-$background-color: #FFFFFF;
-$black-color: #1E1E1E;
-$gray-color: #DDE1E6;
-$boxShadow: #F2F4F8;
+$background-color: #ffffff;
+$black-color: #1e1e1e;
+$gray-color: #dde1e6;
+$boxShadow: #f2f4f8;
 
 .reserveSettingArea {
     width: 80%;
@@ -285,7 +286,7 @@ $boxShadow: #F2F4F8;
         height: 85%;
         border: 0.125rem solid $gray-color; // 2px -> 0.125rem
         padding: 0.9375rem 0.625rem; // 15px 10px -> 0.9375rem 0.625rem
-        max-height: 40.625rem; // 650px -> 40.625rem
+        max-height: 37.625rem; // 650px -> 40.625rem
         overflow-y: auto;
 
         .businessHoursSection {
@@ -652,5 +653,4 @@ $boxShadow: #F2F4F8;
         }
     }
 }
-
 </style>
