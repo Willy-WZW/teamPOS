@@ -138,16 +138,19 @@ export default {
 
         // 套餐
         selectComboDish(categoryName, dish) {
-            const existingDishIndex = this.comboDishes.selectedDishes.findIndex((d) =>  d.categoryId === dish.categoryId);
+            const workstationId = this.getWorkstationId(dish.categoryId);
+            const existingDishIndex = this.comboDishes.selectedDishes.findIndex((d) => d.categoryId === dish.categoryId);
 
             if (existingDishIndex !== -1) {
                 this.comboDishes.selectedDishes[existingDishIndex] = {
                     ...dish,
+                    workstationId,
                     selectedOptions: {},
                 };
             } else {
                 this.comboDishes.selectedDishes.push({
                     ...dish,
+                    workstationId,
                     selectedOptions: {},
                 });
             }
@@ -503,7 +506,7 @@ button.submit {
         padding: 3%;
         display: flex;
         justify-content: space-between;
-        background-color: #FFC90E;
+        background-color: #ffc90e;
         margin: 2% 0;
         border-radius: 5px;
     }
@@ -566,7 +569,7 @@ button.submit {
                 text-align: center;
                 font-size: 1.2rem;
                 margin-bottom: 10px;
-                background-color: #FFC90E;
+                background-color: #ffc90e;
                 padding: 5px;
                 border-radius: 20px;
             }
