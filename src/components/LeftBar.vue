@@ -247,7 +247,7 @@ export default {
                 <i class="fa-solid fa-utensils"></i>
                 <h3>點餐</h3>
             </div>
-            <div class="orderStatus" @click="goStatus()" :class="{ selected: this.$route.path == '/orderStatus' }" v-if="managedAreas.includes('點餐狀態')">
+            <div class="orderStatus" @click="goStatus()" :class="{ selected: this.$route.path == '/orderStatus' }" v-if="managedAreas.includes('餐點狀態')">
                 <i class="fa-solid fa-list-check"></i>
                 <h3>餐點狀態</h3>
             </div>
@@ -259,7 +259,7 @@ export default {
                 <i class="fa-solid fa-clock-rotate-left"></i>
                 <h3>歷史紀錄</h3>
             </div>
-            <div class="operation" @click="goOperation()" :class="{ selected: this.$route.path == '/operation' }" v-if="managedAreas.includes('營運')">
+            <div class="operation" @click="goOperation()" :class="{ selected: this.$route.path == '/operation' }" v-if="managedAreas.includes('銷售分析')">
                 <i class="fa-solid fa-chart-simple"></i>
                 <h3>銷售分析</h3>
             </div>
