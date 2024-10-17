@@ -1197,7 +1197,7 @@ export default {
             <!-- 桌位狀態 -->
             <div class="status">
                 <span class="activeDot"></span> 用餐中
-                <span class="reservedDot"></span> 訂位中
+                <span class="reservedDot"></span> 已訂位
                 <span class="availableDot"></span> 可使用
             </div>
 
@@ -1963,7 +1963,7 @@ $radius:10px;
 
                         .orderDetails {
                             width: 100%;
-                            height: 600px;
+                            height: 566px;
                             max-height: 600px;
                             overflow-y: auto;
                             margin-bottom: 10px;
