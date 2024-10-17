@@ -1663,7 +1663,7 @@ $down-font: #388e3c;
                     background-color: white;
                     border: 2px solid rgba(0, 0, 0, 0.25);
                     padding: 2% 2%;
-                    margin: 0 2% 0 0;
+                    margin: 0 0 0 0;
                     h1{
                         font-size: 25px;
                         margin: 0 0 20px 0;
