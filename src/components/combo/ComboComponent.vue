@@ -28,7 +28,7 @@ export default {
             selectedCategory: [],
             comboDetail: [], // [[], []]
             comboContentInnerQuantity: 0,
-            discountAmount: 0,
+            discountAmount: "",
             //searchCombo container 
             comboItemsList: [],
 
@@ -79,6 +79,18 @@ export default {
             this.selectedCategory = []
         },
         saveMeal() {
+            for (const item of this.comboItemsList) {
+                // 檢查新資料的 comboName 是否與現有資料的 comboName 重複
+                if (item.comboName === this.comboName) {
+                    Swal.fire({
+                        title: '錯誤',
+                        text: '此套餐名稱已存在，請使用其他名稱！',
+                        icon: 'warning',
+                        confirmButtonText: '確定'
+                    });
+                    return; // 停止函式執行，不發送 axios 請求
+                }
+            }
             axios.post("http://localhost:8080/pos/createCombo", {
                 "comboName": this.comboName,
                 "comboDetail": JSON.stringify(this.comboDetail),
@@ -146,7 +158,7 @@ export default {
             this.selectedCategory = []
             for (let i = 0; i < comboItem.comboDetail.length; i++) {
                 this.selectedMeal.push('')
-                let categoryItem = this.categories.find(category=>category.categoryId == comboItem.comboDetail[i].categoryId)
+                let categoryItem = this.categories.find(category => category.categoryId == comboItem.comboDetail[i].categoryId)
                 this.selectedCategory.push(categoryItem.category)
             }
 
@@ -264,31 +276,31 @@ export default {
                 confirmButtonText: '是的，繼續',
                 cancelButtonText: '取消',
             })
-            .then((result) => {
+                .then((result) => {
                     if (result.isConfirmed) {
                         axios.post("http://localhost:8080/pos/deleteCombo", {
                             "comboName": comboName,
                         })
-                        .then(response => {
-                            console.log(response)
-                            return axios.post("http://localhost:8080/pos/searchCombo", {
-                                "comboName": "",
-                            });
-                        })
-                        .then(response => {
-                            console.log(response)
-                            this.comboItemsList = response.data.comboItemsList
-                            this.comboItemsList.forEach(comboItem => {
-                                comboItem.comboDetail = JSON.parse(comboItem.comboDetail);
-                            });
-                            Swal.fire({
+                            .then(response => {
+                                console.log(response)
+                                return axios.post("http://localhost:8080/pos/searchCombo", {
+                                    "comboName": "",
+                                });
+                            })
+                            .then(response => {
+                                console.log(response)
+                                this.comboItemsList = response.data.comboItemsList
+                                this.comboItemsList.forEach(comboItem => {
+                                    comboItem.comboDetail = JSON.parse(comboItem.comboDetail);
+                                });
+                                Swal.fire({
                                     title: '已成功刪除',
                                     icon: 'success',
                                 });
-                        })
-                        .catch(error => {
-                            console.error("Error:", error.response ? error.response.data : error.message);
-                        });
+                            })
+                            .catch(error => {
+                                console.error("Error:", error.response ? error.response.data : error.message);
+                            });
                     }
                 });
 
@@ -342,7 +354,7 @@ export default {
             }
 
             const disabledName = this.disabledNames.some(disabledName => disabledName == `select${comboItemIndex}`);
-            if (!disabledName){
+            if (!disabledName) {
                 this.disabledNames.push(`select${comboItemIndex}`)
             }
         },
@@ -377,7 +389,7 @@ export default {
                 }
             });
 
-            totalPrice += Number(this.discountAmount); // 加上折扣
+            totalPrice -= Number(this.discountAmount); // 加上折扣
             return totalPrice;
         },
         menuWithSelectedCategory(selectedCategory) {
@@ -389,13 +401,21 @@ export default {
             return menuWithSelectedCategory
         },
 
+        validateDiscount(event) {
+            const value = event.target.value;
+            const regex = /^[1-9][0-9]*$/;
+            if (regex.test(value)) {
+                this.discountAmount = Number(value); // 將字串轉換為數字
+            } else {
+                this.discountAmount = ''; // 不符合格式，清空輸入
+            }
+        }
     }
 }
 </script>
 
 <template>
     <div class="ComboMainArea">
-
         <div class="glassMorphism" v-if="editeMode">
         </div>
         <div class="windowArea" v-if="editeMode">
@@ -439,7 +459,7 @@ export default {
             <div class="comboTotal">
                 <div class="discount">
                     <p>折扣 </p>
-                    <input type="text" placeholder="-10" v-model="discountAmount">
+                    <input type="text" placeholder="折扣" v-model="discountAmount" @input="validateDiscount">
                 </div>
                 <div class="total">
                     <p>合計</p>
