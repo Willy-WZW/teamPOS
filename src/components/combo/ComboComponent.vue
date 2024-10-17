@@ -433,7 +433,7 @@ export default {
                 <div class="comboContentInner" v-for="(comboItem, comboItemIndex) in comboDetail">
                     <!-- <h1>{{ this.comboDetail }}</h1> -->
                     <div class="selectionContainer">
-                        <select :name="`select${comboItemIndex}`" v-model="selectedCategory[comboItemIndex]">
+                        <select :disabled="this.comboDetail[comboItemIndex].dishes.length!=0" :name="`select${comboItemIndex}`" v-model="selectedCategory[comboItemIndex]">
                             <option value="" disabled selected>選擇餐點分類</option>
                             <option v-for="(category, index) in categories" :key="index" :value="category.category">{{
                                 category.category }}</option>
@@ -447,6 +447,7 @@ export default {
                         </select>
                         <i class="fa-solid fa-circle-xmark" @click="deleteSelection(comboItemIndex)"></i>
                     </div>
+                    
                     <div class="comboDetail" v-for="(meal, mealIndex) in comboDetail[comboItemIndex].dishes">
                         <p>• {{ meal }}</p>
                         <p>$ {{ searchMealPrice(meal) }}</p>

@@ -219,20 +219,25 @@ $textColor: #697077;
             .headername::before {
                 content: "";
                 position: absolute;
-                bottom: 0;
-                left: 0;
-                height: 5px;
-                width: 0;
-                background-color: $selectedTextColor;
-                transition: width 0.3s ease-in-out;
+                bottom: -20%;
+                left: 26%;
+                height: 100%;
+                width: 60%;
+                background-image: url('/src/assets/highlightpen1.png');
+                background-repeat: no-repeat;
+                background-position: left;
+                background-size: 80%;
+                opacity: 0.8; //0.8
+                clip-path: inset(0 100% 0 0); // 完全遮擋
+                transition: clip-path 0.7s ease;
             }
 
             .isSelected {
-                color: $selectedTextColor;
+                color: #000;
             }
 
             .isSelected::before {
-                width: 100%;
+                clip-path: inset(0 0 0 0);
             }
         }
 
