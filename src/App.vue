@@ -69,6 +69,6 @@ watch(route, (newRoute) => {
   top: 0;
   left: 0;
   z-index: -1;
-  background-color: rgba(199, 199, 199, 0.5);
+  background-color: #FAEBCD; //rgba(199, 199, 199, 0.5)
 }
 </style>
