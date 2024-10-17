@@ -1142,6 +1142,7 @@ export default {
                         <span>{{ selectedCategoryId == null ? "菜單分類" : selectedCategory }}</span>
                     </div>
                     <div class="mtMid">
+                        <span class="necessary" :style="{ opacity: this.lastSelectedWorkstationId === null ? 1 : 0 }">*必選&nbsp&nbsp</span>
                         <i
                             class="fa-solid fa-square-pen"
                             :class="{ disIcon: selectedCategory == null }"
@@ -1569,6 +1570,12 @@ $subColor: #000000;
 
                 .mtMid {
                     width: 30%;
+
+                    .necessary{
+                        font-family: "Noto Sans TC", sans-serif;
+                        font-weight: bold;
+                        color: $soldOut;
+                    }
 
                     .subtitle {
                         font-size: 15px;

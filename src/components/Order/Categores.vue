@@ -47,7 +47,7 @@ button:hover {
 }
 
 button.active {
-    border: 2px solid grey; /* 點擊後維持2px的邊框 */
-    background-color: rgba(grey, 0.1);
+    border: 2px solid black; /* 點擊後維持2px的邊框 */
+    background-color: #FFC90E;
 }
 </style>
