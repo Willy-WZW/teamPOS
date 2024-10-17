@@ -949,8 +949,54 @@ export default {
 
         // 儲存訂位API
         async addReservation() {
+            // 1. 驗證顧客姓名
+            if (!this.newReservation.name || this.newReservation.name.trim() === '') {
+                Swal.fire({
+                    title: '錯誤',
+                    text: '請輸入顧客姓名',
+                    icon: 'error',
+                    confirmButtonText: '確定'
+                });
+                return;
+            }
+
+            // 2. 驗證電話號碼格式（必須以 "09" 開頭，且後面是 8 位數字）
+            const phoneNumber = this.newReservation.phone;
+            if (!phoneNumber || !phoneNumber.match(/^09\d{8}$/)) {
+                Swal.fire({
+                    title: '錯誤',
+                    text: '請輸入正確的電話號碼，必須以 09 開頭，後面跟 8 位數字',
+                    icon: 'error',
+                    confirmButtonText: '確定'
+                });
+                return;
+            }
+
+            // 3. 驗證電子郵件格式
+            const email = this.newReservation.email;
+            const emailPattern = /^[A-Za-z0-9+_.-]+@(.+)$/;
+            if (!email || !emailPattern.test(email)) {
+                Swal.fire({
+                    title: '錯誤',
+                    text: '請輸入有效的電子郵件地址：xxx@ooo.aaa！',
+                    icon: 'error',
+                    confirmButtonText: '確定'
+                });
+                return;
+            }
+
             // 找到用戶選擇的時間段
             const selectedTimeSlot = this.availableTimes.find(time => time.startTime === this.newReservation.time);
+
+            if (!selectedTimeSlot) {
+                Swal.fire({
+                    title: '錯誤',
+                    text: '請選擇有效的時間段',
+                    icon: 'error',
+                    confirmButtonText: '確定'
+                });
+                return;
+            }
 
             // 組裝訂位資料，使用從後端獲得的時間段結束時間
             const reservationData = {
@@ -958,10 +1004,10 @@ export default {
                 customerPhoneNumber: this.newReservation.phone,
                 customerEmail: this.newReservation.email,
                 customerGender: this.newReservation.title, // 先生, 小姐, 或 其他
-                reservationPeople: this.newReservation.people, // 注意：這裡改為 people，對應你表單中的命名
+                reservationPeople: this.newReservation.people,
                 reservationDate: this.newReservation.date,
-                reservationStartTime: selectedTimeSlot.startTime, // 選擇的開始時間
-                reservationEndingTime: selectedTimeSlot.endTime // 直接使用後端提供的結束時間
+                reservationStartTime: selectedTimeSlot.startTime,
+                reservationEndingTime: selectedTimeSlot.endTime
             };
 
             // 在這裡打印出準備發送的資料
@@ -992,7 +1038,7 @@ export default {
 
                     this.closeReservationModal();
                     this.fetchReservationsByDate(this.currentDate);
-                    this.fetchTables(); // 添加這行以刷新桌位
+                    this.fetchTables(); // 刷新桌位狀態
                 } else {
                     Swal.fire({
                         title: '訂位失敗',
@@ -1045,6 +1091,42 @@ export default {
 
         // 儲存候位API
         async addWaitlist() {
+            // 1. 驗證顧客姓名
+            if (!this.newWaitlist.name || this.newWaitlist.name.trim() === '') {
+                Swal.fire({
+                    title: '錯誤',
+                    text: '請輸入顧客姓名',
+                    icon: 'error',
+                    confirmButtonText: '確定'
+                });
+                return;
+            }
+
+            // 2. 驗證電話號碼格式（必須以 "09" 開頭，且後面是 8 位數字）
+            const phoneNumber = this.newWaitlist.phone;
+            if (!phoneNumber || !phoneNumber.match(/^09\d{8}$/)) {
+                Swal.fire({
+                    title: '錯誤',
+                    text: '請輸入正確的電話號碼，必須以 09 開頭，後面跟 8 位數字',
+                    icon: 'error',
+                    confirmButtonText: '確定'
+                });
+                return;
+            }
+
+            // 3. 驗證電子郵件格式
+            const email = this.newWaitlist.email;
+            const emailPattern = /^[A-Za-z0-9+_.-]+@(.+)$/;
+            if (!email || !emailPattern.test(email)) {
+                Swal.fire({
+                    title: '錯誤',
+                    text: '請輸入有效的電子郵件地址：xxx@ooo.aaa！',
+                    icon: 'error',
+                    confirmButtonText: '確定'
+                });
+                return;
+            }
+
             // 將要傳送的數據格式化
             const waitlistData = {
                 customerName: this.newWaitlist.name,
@@ -1311,17 +1393,17 @@ export default {
                     <!-- 顧客名字 -->
                     <div class="customerName">{{ reservation.name }}</div>
 
-                        <!-- 顧客手機與訂位人數 -->
-                        <div class="customerPhoneAndParty">
-                            <div class="customerPhone">
-                                <i class="fa-solid fa-phone"></i>
-                                {{ reservation.phone }}
-                            </div>
-                            <div class="customerPartySize">
-                                <i class="fa-solid fa-user-group"></i>
-                                {{ reservation.partySize }}位
-                            </div>
+                    <!-- 顧客手機與訂位人數 -->
+                    <div class="customerPhoneAndParty">
+                        <div class="customerPhone">
+                            <i class="fa-solid fa-phone"></i>
+                            {{ reservation.phone }}
                         </div>
+                        <div class="customerPartySize">
+                            <i class="fa-solid fa-user-group"></i>
+                            {{ reservation.partySize }}位
+                        </div>
+                    </div>
 
                     <!-- 桌號與訂位時間 -->
                     <div class="tableNumberAndTime">
@@ -2271,7 +2353,7 @@ $radius:10px;
                     }
 
                     .tableNumberAndTime {
-                        width: 25%;
+                        width: 23%;
                         border-radius: $radius;
                         background-color: $gray-color;
                         color: $black-color;
@@ -2302,19 +2384,11 @@ $radius:10px;
                             color: $black-color;
                             font-size: 1.2rem;
                             margin-bottom: 30%;
-
-                            input[type="checkbox"] {
-                                margin-right: 5%;
-                            }
                         }
 
                         .cancelArea {
                             color: $black-color;
                             font-size: 1.2rem;
-
-                            input[type="checkbox"] {
-                                margin-right: 5%;
-                            }
                         }
                     }
                 }
@@ -2430,7 +2504,7 @@ $radius:10px;
                     }
 
                     .tableNumberAndTime {
-                        width: 25%;
+                        width: 23%;
                         border-radius: 10px;
                         background-color: $gray-color;
                         color: $black-color;
@@ -2461,19 +2535,11 @@ $radius:10px;
                             color: $black-color;
                             font-size: 1.2rem;
                             margin-bottom: 15px;
-
-                            input[type="checkbox"] {
-                                margin-right: 5%;
-                            }
                         }
 
                         .cancelArea {
                             color: $black-color;
                             font-size: 1.2rem;
-
-                            input[type="checkbox"] {
-                                margin-right: 5%;
-                            }
                         }
                     }
                 }
