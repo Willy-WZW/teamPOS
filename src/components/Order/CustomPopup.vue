@@ -137,17 +137,16 @@ export default {
         },
 
         // 套餐
-        selectComboDish(categoryName, dish) {
+        selectComboDish(groupIndex, categoryName, dish) {
             const workstationId = this.getWorkstationId(dish.categoryId);
-            const existingDishIndex = this.comboDishes.selectedDishes.findIndex((d) => d.categoryId === dish.categoryId);
 
-            if (existingDishIndex !== -1) {
-                this.comboDishes.selectedDishes[existingDishIndex] = {
+            if(this.comboDishes.selectedDishes[groupIndex]){
+                this.comboDishes.selectedDishes[groupIndex] = {
                     ...dish,
                     workstationId,
                     selectedOptions: {},
-                };
-            } else {
+                }
+            }else{
                 this.comboDishes.selectedDishes.push({
                     ...dish,
                     workstationId,
@@ -155,6 +154,7 @@ export default {
                 });
             }
             this.calculateTotal();
+            console.log(this.comboDishes.selectedDishes)
         },
         toggleComboOption(categoryName, optionTitle, optionContent, extraPrice, optionType) {
             // 根據 categoryName 找到對應的菜品
@@ -368,18 +368,20 @@ export default {
         <div class="comboDetail">
             <div v-for="(group, index) in groupedComboDishes" :key="index" class="comboGroup">
                 <h4>{{ group.categoryName }}</h4>
-
+                <h1>{{ comboDishes.selectedDishes[index] }}</h1>
                 <!-- 菜品選擇區 -->
                 <div class="dishRadioGroup">
-                    <div v-for="dish in group.dishes" :key="dish.name">
+                    <div v-for="(dish, dishIndex) in group.dishes" :key="dish.name">
+                        <h1>{{dish.name}}</h1>
                         <label class="dishLabel">
                             <span class="dishInputName">
+                                <h1>{{`${index}`}}</h1>
                                 <input
                                     type="radio"
-                                    :name="group.categoryName"
+                                    :name="`group-${index}-dish-${dishIndex}`"
                                     :value="dish"
-                                    :checked="comboDishes.selectedDishes.some((d) => d.name === dish.name)"
-                                    @change="selectComboDish(group.categoryName, dish)" />
+                                    :checked="comboDishes.selectedDishes[index] && comboDishes.selectedDishes[index].name === dish.name"
+                                    @change="selectComboDish(index, group.categoryName, dish)" />
                                 {{ dish.name }}
                             </span>
                             <span class="dishPrice">${{ dish.priceDifference }}</span>
@@ -389,14 +391,15 @@ export default {
 
                 <!-- 該分類下的客製化區塊 -->
                 <div v-if="comboDishes.selectedDishes.some((d) => d.categoryId === group.categoryId)" class="customOptions">
-                    <div v-for="option in getOptionsForDish(comboDishes.selectedDishes.find((d) => d.categoryId === group.categoryId))" :key="option.optionTitle" class="customOption">
+                    <div v-for="(option, optionIndex) in getOptionsForDish(comboDishes.selectedDishes.find((d) => d.categoryId === group.categoryId))" :key="option.optionTitle" class="customOption">
                         <h5>{{ option.optionTitle }}</h5>
+                        <h1>{{option}}</h1>
                         <div v-for="item in option.optionItems" :key="item.optionContent">
                             <label class="optionLabel">
                                 <span class="optionInputName">
                                     <input
                                         :type="option.optionType"
-                                        :name="`${group.categoryName}-${option.optionTitle}`"
+                                        :name="option.optionType == 'radio' ?  `group${index}-option${option.optionTitle}` : `group${group.categoryName}-${option.optionTitle}-${dishIndex}`"
                                         @change="toggleComboOption(group.categoryName, option.optionTitle, item.optionContent, item.extraPrice, option.optionType)" />
                                     {{ item.optionContent }}
                                 </span>
