@@ -33,7 +33,7 @@ export default {
                 Swal.fire({
                     icon: 'error',
                     title: '加載失敗',
-                    text: '加載桌位數據失敗，請稍後再試。',
+                    text: '加載桌位數據失敗，請稍後再試！',
                 });
             }
         },
@@ -56,7 +56,7 @@ export default {
                 Swal.fire({
                     icon: 'error',
                     title: '無法刪除桌位',
-                    text: `桌位 ${table.table_number} 正在使用或已預訂，無法刪除。`,
+                    text: `桌位 ${table.table_number} 正在使用或已預訂，無法刪除！`,
                     confirmButtonText: '確認'
                 });
                 return; // 阻止刪除
@@ -86,7 +86,7 @@ export default {
                         Swal.fire({
                             icon: 'warning',
                             title: '錯誤',
-                            text: '請輸入桌號並選擇容納人數。',
+                            text: '請輸入桌號並選擇容納人數！',
                         });
                         return; // 阻止儲存操作
                     }
@@ -97,7 +97,7 @@ export default {
                         Swal.fire({
                             icon: 'warning',
                             title: '桌號格式錯誤',
-                            text: '桌號必須是一個大寫字母加兩個數字（如 A01）。',
+                            text: '桌號必須是一個大寫字母加兩個數字（如 A01）！',
                         });
                         return; // 阻止儲存操作
                     }
@@ -108,7 +108,7 @@ export default {
                         Swal.fire({
                             icon: 'warning',
                             title: '錯誤',
-                            text: `桌號 ${table.table_number} 已存在，請選擇其他桌號。`,
+                            text: `桌號 ${table.table_number} 已存在，請選擇其他桌號！`,
                         });
                         return; // 阻止儲存操作
                     }
@@ -153,7 +153,7 @@ export default {
                 Swal.fire({
                     icon: 'success',
                     title: '儲存成功',
-                    text: '所有變更已成功儲存。',
+                    text: '所有桌位變更已成功儲存！',
                 });
 
             } catch (error) {
@@ -161,7 +161,7 @@ export default {
                 Swal.fire({
                     icon: 'error',
                     title: '儲存失敗',
-                    text: '儲存過程中發生錯誤，請稍後再試。',
+                    text: '儲存過程中發生錯誤，請稍後再試！',
                 });
             }
         },
@@ -170,8 +170,8 @@ export default {
         cancelChanges () {
             Swal.fire({
                 icon: 'warning',
-                title: '取消變更',
-                text: '已取消變更桌位操作。',
+                title: '取消變更！',
+                text: '已取消變更桌位操作！',
             });
 
             // 還原 tableList 為原始數據

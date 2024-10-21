@@ -195,69 +195,50 @@ export default {
         // 加載桌位
         async fetchTables() {
             try {
-                const response = await axios.get('http://localhost:8080/tableManagement/getAllTables');
-                // 將 API 返回的桌位數據轉換成符合前端顯示的結構
-                this.tables = response.data.map(table => ({
-                id: table.tableNumber,
-                capacity: table.tableCapacity,
-                status: table.tableStatus,  // 使用原本的狀態
-                }));
-                console.log('桌位資料加載成功:', this.tables);
+                const response = await axios.get('http://localhost:8080/tableManagement/getTodayTableStatuses');
+
+                // 存儲整個時間段對象，而不只是時間段字串
+                this.timeSlots = response.data;
+
+                if (this.timeSlots.length > 0) {
+                    this.selectedTimeSlot = this.timeSlots[0].timeSlot;  // 預設選擇第一個時間段
+                    this.updateTablesForTimeSlot(this.selectedTimeSlot);
+                }
             } catch (error) {
-                console.error('無法獲取桌位資料:', error);
+                console.error('無法獲取桌位狀態資料:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: '錯誤',
+                    text: '無法獲取桌位資料！',
+                });
             }
         },
 
-        // async fetchTables() {
-        //     try {
-        //         const response = await axios.get('http://localhost:8080/tableManagement/getTodayTableStatuses');
+        // 根據選擇的時間段更新桌位狀態
+        updateTablesForTimeSlot(selectedTimeSlot) {
+            // 找到與選擇時間段匹配的時間段對象
+            const selectedSlot = this.timeSlots.find(slot => slot.timeSlot === selectedTimeSlot);
 
-        //         // 存儲整個時間段對象，而不只是時間段字串
-        //         this.timeSlots = response.data;
+            console.log('選擇的時間段:', selectedTimeSlot);
+            console.log('找到的時間段資料:', selectedSlot);
 
-        //         if (this.timeSlots.length > 0) {
-        //             this.selectedTimeSlot = this.timeSlots[0].timeSlot;  // 預設選擇第一個時間段
-        //             this.updateTablesForTimeSlot(this.selectedTimeSlot);
-        //         }
-        //     } catch (error) {
-        //         console.error('無法獲取桌位狀態資料:', error);
-        //         Swal.fire({
-        //             icon: 'error',
-        //             title: '錯誤',
-        //             text: '無法獲取桌位資料！',
-        //         });
-        //     }
-        // },
-
-        // // 根據選擇的時間段更新桌位狀態
-        // updateTablesForTimeSlot(selectedTimeSlot) {
-        //     // 找到與選擇時間段匹配的時間段對象
-        //     const selectedSlot = this.timeSlots.find(slot => slot.timeSlot === selectedTimeSlot);
-
-        //     console.log('選擇的時間段:', selectedTimeSlot);
-        //     console.log('找到的時間段資料:', selectedSlot);
-
-        //     if (selectedSlot) {
-        //         // 更新桌位資料以顯示在前端
-        //         this.tables = selectedSlot.tableStatuses.map(table => ({
-        //             id: table.tableNumber,
-        //             capacity: table.tableCapacity,
-        //             status: table.tableStatus,
-        //             reservations: table.reservations || []
-        //         }));
-        //         console.log('更新後的桌位資料:', this.tables);
-        //     } else {
-        //         console.warn('選擇的時間段沒有對應的桌位資料');
-        //         Swal.fire({
-        //             icon: 'error',
-        //             title: '錯誤',
-        //             text: '選擇的時間段沒有對應的桌位資料！',
-        //         });
-        //     }
-        // },
-
-        refresh() {
-            this.fetchTables()
+            if (selectedSlot) {
+                // 更新桌位資料以顯示在前端
+                this.tables = selectedSlot.tableStatuses.map(table => ({
+                    id: table.tableNumber,
+                    capacity: table.tableCapacity,
+                    status: table.tableStatus,
+                    reservations: table.reservations || []
+                }));
+                console.log('更新後的桌位資料:', this.tables);
+            } else {
+                console.warn('選擇的時間段沒有對應的桌位資料');
+                Swal.fire({
+                    icon: 'error',
+                    title: '錯誤',
+                    text: '選擇的時間段沒有對應的桌位資料！',
+                });
+            }
         },
 
         // 根據容納人數不同調整桌位寬度
@@ -919,20 +900,20 @@ export default {
                     }
                 });
 
-                // 使用返回的 availableTimeSlots 資料
-                if (response.data && response.data.availableTimeSlots) {
+                // 檢查返回的 availableTimeSlots 是否為空
+                if (response.data && response.data.availableTimeSlots && response.data.availableTimeSlots.length > 0) {
                     this.availableTimes = response.data.availableTimeSlots.map(timeSlot => ({
                         startTime: timeSlot.startTime,
                         endTime: timeSlot.endTime,
                         available: timeSlot.available
                     }));
                 } else {
+                    // 如果 availableTimeSlots 為空，顯示提示框
                     this.availableTimes = [];
-                    console.warn('訂位已滿沒有可選取的時段！');
                     Swal.fire({
-                        icon: 'warning',
-                        title: '下次請早',
-                        text: '訂位已滿沒有可選取的時段！',
+                        icon: 'info',
+                        title: '無可用時段',
+                        text: '當天無營業或無可用桌位，請選擇其他日期。',
                     });
                 }
 
@@ -942,7 +923,7 @@ export default {
                 Swal.fire({
                     icon: 'error',
                     title: '錯誤',
-                    text: '無法獲取可用時段！',
+                    text: '無法獲取可用時段，請稍後再試！',
                 });
             }
         },
@@ -1037,8 +1018,8 @@ export default {
                     };
 
                     this.closeReservationModal();
-                    this.fetchReservationsByDate(this.currentDate);
-                    this.fetchTables(); // 刷新桌位狀態
+                    // this.fetchReservationsByDate(this.currentDate);
+                    // this.fetchTables(); // 刷新桌位狀態
                 } else {
                     Swal.fire({
                         title: '訂位失敗',
@@ -1188,10 +1169,15 @@ export default {
             <!-- 桌位標題、刷新 Button -->
             <div class="tableHeader">
                 <h1 class="tableTitle">桌位圖</h1>
-                <!-- 刷新按鈕 -->
-                <button class="refreshButton" @click="refresh">
-                    <i class="fa-solid fa-arrows-rotate"></i>刷新
-                </button>
+                <!-- 時段選擇 -->
+                <div class="timeSlotsArea">
+                    <label for="timeSlots">時間</label>
+                    <select class="selectedTime" id="timeSlots" v-model="selectedTimeSlot" @change="updateTablesForTimeSlot(selectedTimeSlot)">
+                        <option v-for="slot in timeSlots" :key="slot.timeSlot" :value="slot.timeSlot">
+                            {{ slot.timeSlot }}
+                        </option>
+                    </select>
+                </div>
             </div>
 
             <!-- 桌位狀態 -->
@@ -1719,26 +1705,31 @@ $radius:10px;
                     letter-spacing: 4px;
                 }
                 
-                .refreshButton {
-                    width: 15%;
-                    border-radius: $radius;
-                    border: 2px solid $black-color;
-                    background-color: transparent;
-                    font-size: 1.1rem;
-                    color: $black-color;
+                .timeSlotsArea {
+                    width: 35%;
                     display: flex;
-                    justify-content: space-evenly;
                     align-items: center;
-                    padding: 1%;
-                    cursor: pointer;
-                    transition: 0.2s;
+                    justify-content: end;
 
-                    &:hover {
-                        background-color: $editColor;
+                    label {
+                        font-size: 19px;
+                        letter-spacing: 5px;
+                        margin-right: 4%;
                     }
 
-                    &:active {
-                        scale: 0.95;
+                    .selectedTime {
+                        width: 60%;
+                        height: 35px;
+                        border-radius: 10px;
+                        border: 1px solid #C1C7CD;
+                        letter-spacing: 5px;
+                        padding-left: 10px;
+                        appearance: none; /* 隱藏默認的箭頭 */
+                        background: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyLjcxNzUgNi41NDc1QzEzLjE3OTcgNi4xNDcyIDEzLjI4MjIgNS40MTMgMTIuOTg3MiA0LjkzMjVDMTIuNjkzMiA0LjQ1MjUgMTIuMDEwNCA0LjQ1MjUgMTEuNzE3IDQuOTMyNUw4IDkuMzM1NEw0LjI4MjUgNC45MzI1QzMuOTg5NiA0LjQ1MjUgMy4zMDY4IDQuNDUyNSAyLjAxMjggNC45MzI1QzEuNzE4OCA1LjQxMyAxLjgyMTEgNi4xNDcyIDIuMjg0MTIgNi41NDc1TDcuMzE1MTIgMTEuNTA2QzcuNzU4NDEgMTEuOTYxIDguMjQxNiAxMS45NjEgOC42ODY4IDExLjUwNkMxMC4xNzA4IDEwLjI1NyAxMS41OTExIDguOTAzNTggMTIuNzE3NSA3LjY2MjVIMTIuNzE3NVoiIGZpbGw9IiMyMjIyMjIiLz4KPC9zdmc+') no-repeat; /* 使用 base64 格式的箭頭圖標 */
+                        background-position: calc(100% - 14px) center; /* 調整箭頭的位置，讓它距離左邊更近 */
+                        background-size: 10px; /* 調整箭頭大小 */
+                        outline: none;
+                        cursor: pointer;
                     }
                 }
             }

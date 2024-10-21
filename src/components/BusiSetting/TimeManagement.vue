@@ -31,7 +31,7 @@ export default {
                 Swal.fire({
                     icon: "error",
                     title: "加載失敗",
-                    text: "獲取營業時間時發生錯誤，請稍後再試。",
+                    text: "獲取營業時間時發生錯誤，請稍後再試！",
                 });
             }
         },
@@ -78,7 +78,7 @@ export default {
                 Swal.fire({
                     icon: "info",
                     title: "沒有選擇要刪除的營業時間",
-                    text: "請先選擇要刪除的營業時間。",
+                    text: "請先選擇要刪除的營業時間！",
                 });
                 return; // 如果沒有選擇要刪除的項目，則返回
             }
@@ -102,7 +102,7 @@ export default {
                 Swal.fire({
                     icon: "error",
                     title: "刪除失敗",
-                    text: "刪除營業時間時發生錯誤，請稍後再試。",
+                    text: "刪除營業時間時發生錯誤，請稍後再試！",
                 });
             }
         },
@@ -111,7 +111,7 @@ export default {
             Swal.fire({
                 icon: "warning",
                 title: "取消變更",
-                text: "已取消刪除營業時間操作。",
+                text: "已取消刪除營業時間操作！",
             });
             this.loadBusinessHours(); // 重新加載營業時間列表
         },

@@ -6,10 +6,10 @@ export default {
     data() {
         return {
             businessHours: [
-                // 存放多個營業時間段
                 { openingTime: "", closingTime: "" },
             ],
             diningDuration: "", // 用餐時間
+            cleanbreak: 0, // 清潔時間，設置為數字0
             timeSlots: [], // 初始化 timeSlots
             weekDays: [
                 { name: "星期一", value: "Monday", selected: false },
@@ -20,7 +20,7 @@ export default {
                 { name: "星期六", value: "Saturday", selected: false },
                 { name: "星期日", value: "Sunday", selected: false },
             ],
-            showAddButton: true, // 用來控制按鈕顯示狀態的布林值
+            showAddButton: true,
         };
     },
 
@@ -34,8 +34,16 @@ export default {
             },
             deep: true, // 深度監聽
         },
+
         diningDuration(newValue) {
             if (newValue > 0 && this.businessHours.some((hour) => hour.openingTime && hour.closingTime)) {
+                this.fetchTimeSlots();
+            }
+        },
+
+        cleanbreak(newValue) {
+            // 當清潔時間變更且有營業時間及用餐時間時調用 fetchTimeSlots
+            if (newValue > 0 && this.diningDuration > 0 && this.businessHours.some((hour) => hour.openingTime && hour.closingTime)) {
                 this.fetchTimeSlots();
             }
         },
@@ -50,9 +58,9 @@ export default {
 
         // 保存營業時間及選定的營業日
         async saveBusinessHoursAndDays() {
-            // 確保所有時間段的營業時間和用餐時間都已設置
+            // 確保所有時間段的營業時間、用餐時間、及清潔時間（如果有）都已設置
             for (let hour of this.businessHours) {
-                if (!hour.openingTime || !hour.closingTime || !this.diningDuration) {
+                if (!hour.openingTime || !hour.closingTime || this.diningDuration === "") {
                     Swal.fire("錯誤", "請先填寫所有必要的時間資訊", "error");
                     return;
                 }
@@ -60,6 +68,18 @@ export default {
                 // 檢查營業開始時間不能晚於結束時間
                 if (hour.openingTime >= hour.closingTime) {
                     Swal.fire("錯誤", "營業開始時間不能晚於結束時間", "error");
+                    return;
+                }
+
+                // 用餐時間必須大於等於 0
+                if (this.diningDuration <= 0) {
+                    Swal.fire("錯誤", "用餐時間必須大於 0", "error");
+                    return;
+                }
+
+                // 清潔時間必須大於等於 0（已經是數字類型，不需要特別處理 null）
+                if (this.cleanbreak < 0) {
+                    Swal.fire("錯誤", "清潔時間必須大於等於 0", "error");
                     return;
                 }
             }
@@ -79,7 +99,8 @@ export default {
                         dayOfWeek: day,
                         openingTime: hour.openingTime,
                         closingTime: hour.closingTime,
-                        diningDuration: this.diningDuration,
+                        diningDuration: this.diningDuration, // 用餐時間從 v-model 取
+                        cleaningBreak: this.cleanbreak || null, // 清潔時間從 v-model 取，若為 null 則傳送 null
                     });
                 });
             }
@@ -97,6 +118,7 @@ export default {
                         hour.closingTime = "";
                     });
                     this.diningDuration = ""; // 清空用餐時長
+                    this.cleanbreak = null; // 清空清潔時間
                     this.timeSlots = []; // 重置時間段
                     this.weekDays.forEach((day) => {
                         day.selected = false; // 清空選擇的營業日
@@ -126,6 +148,7 @@ export default {
                                 openingTime: hour.openingTime,
                                 closingTime: hour.closingTime,
                                 diningDuration: this.diningDuration,
+                                cleaningBreak: this.cleanbreak || 0, // 傳入清潔時間，如果為 null 則設置為 0
                             },
                         });
 
@@ -153,6 +176,7 @@ export default {
                 day.selected = false; // 取消選擇所有星期
             });
             this.showAddButton = true; // 隱藏新增按鈕
+            this.timeSlots = []
         },
     },
 };
@@ -197,17 +221,22 @@ export default {
                 </button>
             </div>
 
-            <!-- 用餐時間設定 -->
+            <!-- 用餐時間與清潔時間設定 -->
             <div class="diningDurationSection">
                 <div class="sectionHeader">
                     <div class="sectionNumber">2</div>
 
-                    <div class="sectionTitle">用餐時間設定</div>
+                    <div class="sectionTitle">用餐時間與清潔時間設定</div>
                 </div>
 
-                <div class="diningDurationArea">
-                    <input class="diningDurationInput" type="number" v-model="diningDuration" placeholder="輸入客人用餐時間" min="1" />
-                    <span class="diningDurationLabel">分鐘</span>
+                <div class="diningDurationAndCleanbreakArea">
+                    <p class="description">可以自行選擇是否要增加清潔時間</p>
+                    <div class="diningDurationAndCleanbreakContent">
+                        <input class="diningDurationInput" type="number" v-model="diningDuration" placeholder="輸入客人用餐時間" min="1" />
+                        <label class="diningDurationLabel" for="diningDuration">分鐘</label>
+                        <input class="cleanbreakInput" type="number" v-model="cleanbreak" placeholder="輸入清潔時間" min="1" />
+                        <label class="cleanbreakLabel" for="cleanbreak">分鐘</label>
+                    </div>
                 </div>
             </div>
 
@@ -417,7 +446,7 @@ $boxShadow: #f2f4f8;
 
         .diningDurationSection {
             width: 75%;
-            height: 12.5rem; // 200px -> 12.5rem
+            height: 13.4375rem; // 215px -> 13.4375rem
             border-radius: 0.625rem; // 10px -> 0.625rem
             border: 0.125rem solid $gray-color; // 2px -> 0.125rem
             padding: 0.9375rem; // 15px -> 0.9375rem
@@ -454,31 +483,63 @@ $boxShadow: #f2f4f8;
                 }
             }
 
-            .diningDurationArea {
-                height: 5.9375rem; // 95px -> 5.9375rem
+            .diningDurationAndCleanbreakArea {
+                height: 6.875rem; // 110px -> 6.875rem
                 border-radius: 0.625rem; // 10px -> 0.625rem
                 background-color: $boxShadow;
                 display: flex;
-                align-items: center;
+                flex-direction: column;
+                justify-content: space-evenly;
                 margin-top: 0.9375rem; // 15px -> 0.9375rem
                 padding-top: 0.625rem; // 10px -> 0.625rem;
 
-                .diningDurationInput {
-                    width: 30%;
-                    border: 0.125rem solid $gray-color; // 2px -> 0.125rem
-                    border-radius: 0.625rem; // 10px -> 0.625rem
-                    background-color: transparent;
-                    outline: none;
-                    font-size: 0.9375rem; // 15px -> 0.9375rem
-                    padding: 0.625rem; // 10px -> 0.625rem
+                .description {
+                    font-size: 1rem; // 16px -> 1rem
                     color: $black-color;
+                    opacity: 0.6;
                     margin-left: 3.75rem; // 60px -> 3.75rem
                 }
 
-                .diningDurationLabel {
-                    font-size: 1.0625rem; // 17px -> 1.0625rem
-                    color: $black-color;
-                    margin-left: 1.25rem; // 20px -> 1.25rem
+                .diningDurationAndCleanbreakContent {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    padding: 0.9375rem; // 15px -> 0.9375rem
+                    border-radius: 0.5rem; // 8px -> 0.5rem
+
+                    .diningDurationInput {
+                        width: 30%;
+                        border: 0.125rem solid $gray-color; // 2px -> 0.125rem
+                        border-radius: 0.625rem; // 10px -> 0.625rem
+                        background-color: transparent;
+                        outline: none;
+                        font-size: 0.9375rem; // 15px -> 0.9375rem
+                        padding: 0.625rem; // 10px -> 0.625rem
+                        color: $black-color;
+                        margin-left: 3.75rem; // 60px -> 3.75rem
+                    }
+
+                    .diningDurationLabel {
+                        font-size: 1.0625rem; // 17px -> 1.0625rem
+                        color: $black-color;
+                    }
+
+                    .cleanbreakInput {
+                        width: 30%;
+                        border: 0.125rem solid $gray-color; // 2px -> 0.125rem
+                        border-radius: 0.625rem; // 10px -> 0.625rem
+                        background-color: transparent;
+                        outline: none;
+                        font-size: 0.9375rem; // 15px -> 0.9375rem
+                        padding: 0.625rem; // 10px -> 0.625rem
+                        color: $black-color;
+                        margin-left: 3.75rem; // 60px -> 3.75rem
+                    }
+
+                    .cleanbreakLabel {
+                        font-size: 1.0625rem; // 17px -> 1.0625rem
+                        color: $black-color;
+                    }
                 }
             }
         }
