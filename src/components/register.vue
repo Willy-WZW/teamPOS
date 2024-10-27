@@ -104,7 +104,7 @@ export default {
 <template>
     <div class="register-container">
         <div class="register-box">
-            <img src="../assets/Logo.jpg" alt="logo" class="logo" />
+            <img src="@/assets/Logo.jpg" alt="logo" class="logo" />
             <h2>註冊</h2>
             <form @submit.prevent="handleRegister">
                 <div class="input-group">
