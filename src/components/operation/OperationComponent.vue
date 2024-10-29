@@ -263,8 +263,9 @@ export default{
             console.error("Error fetching analysis:", error);
         });
         this.$nextTick(() => {
-            this.drawChart();  // 初始化图表
-            this.drawDishesChart()
+            this.drawDishesChart() //初始化日的表
+            this.drawMonthChart();  // 初始化月图表
+            this.drawYearChart();  // 初始化年图表
         });
     },
     computed:{
@@ -289,8 +290,6 @@ export default{
 
             return `${preYear}年${preMonth}月${preDay}日`;
         },
-
-
         previousDay() {
             const index = this.allDateList.indexOf(this.dateForDay)
             this.dateForDay = this.allDateList[index-1]
@@ -303,7 +302,6 @@ export default{
             // const newDate2 = new Date(this.preDateForDay); // 先複製當前日期
             // newDate2.setDate(newDate2.getDate() - 1); // 修改新日期的值
             // this.preDateForDay = newDate2; // 賦值給 date，這樣 Vue 才能監測變化
-
         },
         nextDay() {
             const index = this.allDateList.indexOf(this.dateForDay)
@@ -560,73 +558,75 @@ export default{
     },
     methods:{
         postEveryMonthOfYearDishes(mealName){
-            if (this.currentHead != '年'){
+            if (this.currentHead == '月'){
 
             //這是年在用的
             //為了bar的統計圖 x軸應該是月份
             //當前年當月
-            this.analysisMealVoList = []
-            this.analysis12Month = []
-            this.lastYearAnalysis12Month = []
-            let result = this.getFirstAndLastDaysOfYear(this.dateForYear.getFullYear())
-            let currentDate = result[1]
-            let promisesCurrrDate = [];
-            for (let month=0; month<12; month++){
-                console.log(currentDate[month][0])
-                console.log(currentDate[month][1])
-                let promise = axios.post("http://localhost:8080/pos/analysis", {   
-                            "startDate":currentDate[month][0],
-                            "endDate":currentDate[month][1],
-                            "mealName": mealName
-                })
-                promisesCurrrDate.push(promise)
-            }
-            Promise.all(promisesCurrrDate)
-                .then(responses=>{
-                    responses.forEach(response => {
-                        this.analysis12Month.push(response.data.analysis);
-                    });
-                    let mealTotalOrdersList = this.analysis12Month.map(item => item.analysisMealVo.mealTotalOrders);
-                    console.log(this.analysis12Month)    
-                    this.option.series[1].data = mealTotalOrdersList
-                    this.drawChart()
-                })
-                .catch(error => {
-                    console.error("Error in one or more requests:", error);
-                });    
+            // this.analysisMealVoList = []
+            // this.analysis12Month = []
+            // this.lastYearAnalysis12Month = []
+            // let result = this.getFirstAndLastDaysOfYear(this.dateForYear.getFullYear())
+            // let currentDate = result[1]
+            // let promisesCurrrDate = [];
+            // for (let month=0; month<12; month++){
+            //     console.log(currentDate[month][0])
+            //     console.log(currentDate[month][1])
+            //     let promise = axios.post("http://localhost:8080/pos/analysis", {   
+            //                 "startDate":currentDate[month][0],
+            //                 "endDate":currentDate[month][1],
+            //                 "mealName": mealName
+            //     })
+            //     promisesCurrrDate.push(promise)
+            // }
+            // Promise.all(promisesCurrrDate)
+            //     .then(responses=>{
+            //         responses.forEach(response => {
+            //             this.analysis12Month.push(response.data.analysis);
+            //         });
+            //         let mealTotalOrdersList = this.analysis12Month.map(item => item.analysisMealVo.mealTotalOrders);
+            //         console.log(this.analysis12Month)    
+            //         this.option.series[1].data = mealTotalOrdersList
+            //         this.drawChart()
+            //     })
+            //     .catch(error => {
+            //         console.error("Error in one or more requests:", error);
+            //     });    
 
             //這是年在用的x軸應該是月份
             //為了bar的統計圖
             //去年同月    
-            let lastYearDate = result[2]
-            let promisesLastYearDate = [];
-            for (let month=0; month<12; month++){
-                let promise = axios.post("http://localhost:8080/pos/analysis", {   
-                            "startDate":lastYearDate[month][0],
-                            "endDate":lastYearDate[month][1],
-                            "mealName": mealName
-                })
-                promisesLastYearDate.push(promise)
-            }
-            Promise.all(promisesLastYearDate)
-                .then(responses=>{
-                    responses.forEach(response => {
-                        this.lastYearAnalysis12Month.push(response.data.analysis);
-                    });
-                    let mealTotalOrdersList = this.lastYearAnalysis12Month.map(item => item.analysisMealVo.mealTotalOrders);
-                    console.log('last' + mealTotalOrdersList)    
-                    this.option.series[0].data = mealTotalOrdersList
-                    this.drawChart()
-                })
-                .catch(error => {
-                    console.error("Error in one or more requests:", error);
-                });    
+            // let lastYearDate = result[2]
+            // let promisesLastYearDate = [];
+            // for (let month=0; month<12; month++){
+            //     let promise = axios.post("http://localhost:8080/pos/analysis", {   
+            //                 "startDate":lastYearDate[month][0],
+            //                 "endDate":lastYearDate[month][1],
+            //                 "mealName": mealName
+            //     })
+            //     promisesLastYearDate.push(promise)
+            // }
+            // Promise.all(promisesLastYearDate)
+            //     .then(responses=>{
+            //         responses.forEach(response => {
+            //             this.lastYearAnalysis12Month.push(response.data.analysis);
+            //         });
+            //         let mealTotalOrdersList = this.lastYearAnalysis12Month.map(item => item.analysisMealVo.mealTotalOrders);
+            //         console.log('last' + mealTotalOrdersList)    
+            //         this.option.series[0].data = mealTotalOrdersList
+            //         this.drawChart()
+            //     })
+            //     .catch(error => {
+            //         console.error("Error in one or more requests:", error);
+            //     });    
 
 
             //點擊商品時計算折線圖顯示販賣的商品數量 
             //optionLine就是echat1負責，用來顯示x軸是日期y軸是餐點銷售數量
             //給月使用
             let promisesAnalysisMealVoList = [];
+            this.analysisMealVoList = [];
+
             this.optionLine.legend.data[0] = '商品銷售量'
             this.optionLine.series[0].name = '商品銷售量'
             this.optionLine.series[0].type = 'bar'
@@ -649,14 +649,13 @@ export default{
                 .then(()=>{
                     let list = this.analysisMealVoList.map(item=>item.analysisMealVo.mealTotalOrders)
                     this.optionLine.series[0].data = list
-                    this.drawChart()
+                    this.drawMonthChart()
                 })
                 .catch(error => {
                     console.error("Error in one or more requests:", error);
                 }); 
 
             }
-
             
             //這是給年用的 x軸是每一季
             if (this.currentHead == '年'){
@@ -714,7 +713,7 @@ export default{
                         this.option.xAxis[0].data = ["第一季", "第二季", "第三季", "第四季"];
 
                         //繪製圖表
-                        this.drawChart();
+                        this.drawYearChart();
                     })
                     .catch(error => {
                         console.error("Error in one or more requests:", error);
@@ -824,12 +823,11 @@ export default{
                     this.option.series[0].data = lastYearRevenueList;
 
                     // 绘制图表
-                    this.drawChart();
+                    this.drawYearChart();
                 })
                 .catch(error => {
                     console.error("Error in one or more requests:", error);
                 });
-
         },
         getFirstAndLastDaysOfYear(year){
             const currentDates = [];
@@ -892,12 +890,11 @@ export default{
                     let totalRevenueList = this.analysis12Month.map(item => item.totalRevenue);
                     this.option.series[1].data = totalRevenueList
                     this.option.xAxis[0].data = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-                    this.drawChart()
+                    this.drawMonthChart()
                 })
                 .catch(error => {
                     console.error("Error in one or more requests:", error);
                 });    
-                
 
             //去年同月    
             let lastYearDate = result[2]
@@ -917,17 +914,11 @@ export default{
                     let totalRevenueList = this.lastYearAnalysis12Month.map(item => item.totalRevenue);
                     this.option.series[0].data = totalRevenueList
                     this.option.xAxis[0].data = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-                    this.drawChart()
+                    this.drawMonthChart()
                 })
                 .catch(error => {
                     console.error("Error in one or more requests:", error);
                 });
-                
-                
-            // this.option.legend.data[1] = String(year)
-            // this.option.series[1].name = String(year)
-            // this.option.legend.data[0] = String(year-1)
-            // this.option.series[0].name = String(year-1)
 
         },
         todayDate(){
@@ -983,14 +974,15 @@ export default{
                 console.error("Invalid DOM: chart container not found");
             }
         },
-        drawChart() {
-
+        drawMonthChart() {
             const myChart1 = echarts.init(document.getElementById("echart1"));
             if (myChart1) {
                 myChart1.setOption(this.optionLine);  
             } else {
                 console.error("Invalid DOM: chart container not found");
             }
+        },
+        drawYearChart() {
             const myChart2 = echarts.init(document.getElementById("echart2"));
             if (myChart2) {
                 myChart2.setOption(this.option);  
@@ -1114,9 +1106,7 @@ export default{
             <div class="navHead">
                 <h1 class="headStyle" :class="{headStyleClick: currentHead == '日'}" @click="selectPeriod('日')">日</h1>
                 <h1 class="headStyle" :class="{headStyleClick: currentHead == '月'}" @click="selectPeriod('月')">月</h1>
-                <!-- <h1 class="headStyle" :class="{headStyleClick: currentHead == '季'}" @click="selectPeriod('季')">季</h1> -->
                 <h1 class="headStyle" :class="{headStyleClick: currentHead == '年'}" @click="selectPeriod('年')">年</h1>
-                <!-- <h1 class="headStyle" :class="{headStyleClick: currentHead == '自訂'}" @click="selectPeriod('自訂')">自訂</h1> -->
             </div>
 
             <div class="echartContainer" v-if="currentHead=='日'">
@@ -1137,13 +1127,6 @@ export default{
                     <i class='bx bx-chevron-right' @click="nextMonth" v-if="dateForMonth.toISOString().split('T')[0] < new Date().toISOString().split('T')[0]"></i>
                 </div>
             </div>
-            <div class="echartContainer" v-if="currentHead=='季'">
-                <div class="leftRightContainer">
-                    <i class='bx bx-chevron-left' @click="previousSeason" v-if="isFirstOperationDateBeforeSeason(firstOperationDate, dateForSeason)"></i>
-                    <p>{{ currentSeason }}</p> 
-                    <i class='bx bx-chevron-right' @click="nextSeason" v-if="dateForSeason.toISOString().split('T')[0] < new Date().toISOString().split('T')[0]"></i>
-                </div>
-            </div>
             <div class="echartContainer" v-if="currentHead=='年'">
                 <div class="leftRightContainer">
                     <i class='bx bx-chevron-left' @click="previousYear" v-if="new Date(firstOperationDate).getFullYear() < dateForYear.getFullYear()"></i>
@@ -1151,16 +1134,7 @@ export default{
                     <i class='bx bx-chevron-right' @click="nextYear" v-if="dateForYear.toISOString().split('T')[0] < new Date().toISOString().split('T')[0]"></i>
                 </div>
             </div>
-            <!-- <div class="echartContainer" v-if="currentHead=='自訂'">
-                <p>請選擇日期範圍</p>
-                <div class="leftRightContainer">
-                    <p>開始</p>
-                    <input type="date" v-model="startDate">
-                    <p>結束</p>
-                    <input type="date" v-model="startDate">
-                </div>
-            </div> -->
-            </div>
+        </div>
         <div class="dashboardRight">
             <!-- <i class='bx bxs-grid'></i> -->
             <!-- <button>下載檔案</button> -->
