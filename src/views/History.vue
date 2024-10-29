@@ -262,8 +262,12 @@ export default {
                                 <p class="comboPrice">${{ meal.price }}</p>
                             </div>
                             <div class="comboDetail">
+                                <!-- 使用 split('), ') 拆分並處理最後一個括號 -->
                                 <ul>
-                                    <li v-for="(item, idx) in meal.mealName.split(', ')" :key="idx">{{ item }}</li>
+                                    <li v-for="(item, idx) in meal.mealName.split('), ')" :key="idx">
+                                        <!-- 如果是最後一個項目，不加多餘的括號 -->
+                                        {{ item }}{{ idx === meal.mealName.split("), ").length - 1 ? "" : ")" }}
+                                    </li>
                                 </ul>
                             </div>
                         </div>
